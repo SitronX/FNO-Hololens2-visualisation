@@ -137,6 +137,8 @@ PlayerSettings:
   bundleVersion: 0.1
   preloadedAssets:
   - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -615,7 +617,7 @@ PlayerSettings:
   m_MobileRenderingPath: 1
   metroPackageName: HospitalVisualisations-HoloLens2
   metroPackageVersion: 1.0.0.0
-  metroCertificatePath: H:\UnityTmpProjects\HospitalVisualisations\Assets\WSATestCertificate.pfx
+  metroCertificatePath: Assets/WSATestCertificate.pfx
   metroCertificatePassword: 
   metroCertificateSubject: DefaultCompany
   metroCertificateIssuer: DefaultCompany
