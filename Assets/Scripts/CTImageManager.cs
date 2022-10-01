@@ -35,7 +35,7 @@ public class CTImageManager : MonoBehaviour
 
 
         slicedObjectName = liver.name+"Slices";
-        GameObject slicedParent = GameObject.Find(slicedObjectName);
+        GameObject slicedParent = sliceObjectParent.transform.Find(slicedObjectName).gameObject;
         for(int i=0;i<slicedParent.transform.childCount;i++)
         {
             GameObject slicedObject = slicedParent.transform.GetChild(i).gameObject;
