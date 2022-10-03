@@ -15,13 +15,15 @@ public class CTImageManager : MonoBehaviour
 
     Vector3 savedPos;
     Quaternion savedRot;
+    Vector3 savedScale;
      string slicedObjectName;
-    void Start()
+    void Awake()
     {
         Slice sliceScript = liver.GetComponent<Slice>();
 
         savedPos = transform.parent.localPosition;
         savedRot = transform.parent.localRotation;
+        savedScale = transform.parent.localScale;
 
         for (int i= 0; i < transform.childCount; i++)
         {
@@ -70,5 +72,6 @@ public class CTImageManager : MonoBehaviour
     {
         transform.parent.transform.localPosition = savedPos;
         transform.parent.transform.localRotation = savedRot;
+        transform.parent.localScale = savedScale;
     }
 }
