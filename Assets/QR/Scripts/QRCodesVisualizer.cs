@@ -12,6 +12,8 @@ namespace QRTracking
         private Queue<ActionData> pendingActions = new Queue<ActionData>();
         private bool clearExisting = false;
 
+        [SerializeField] bool _useSceneObjectAsPrefab = false;
+
         struct ActionData
         {
             public enum Type
@@ -94,19 +96,37 @@ namespace QRTracking
 
                     if (action.type == ActionData.Type.Added)
                     {
-                        GameObject qrCodeObject = Instantiate(qrCodePrefab, new Vector3(0, 0, 0), Quaternion.identity);
-                        qrCodeObject.GetComponent<SpatialGraphNodeTracker>().Id = action.qrCode.SpatialGraphNodeId;
-                        qrCodeObject.GetComponent<QRCode>().qrCode = action.qrCode;
-                        qrCodesObjectsList.Add(action.qrCode.Id, qrCodeObject);
-                    }
-                    else if (action.type == ActionData.Type.Updated)
-                    {
-                        if (!qrCodesObjectsList.ContainsKey(action.qrCode.Id))
+                        if(_useSceneObjectAsPrefab)
+                        {           
+                            qrCodePrefab.GetComponent<SpatialGraphNodeTracker>().Id = action.qrCode.SpatialGraphNodeId;
+                            qrCodePrefab.GetComponent<QRCode>().qrCode = action.qrCode;
+                            qrCodesObjectsList.Add(action.qrCode.Id, qrCodePrefab);
+                        }
+                        else
                         {
                             GameObject qrCodeObject = Instantiate(qrCodePrefab, new Vector3(0, 0, 0), Quaternion.identity);
                             qrCodeObject.GetComponent<SpatialGraphNodeTracker>().Id = action.qrCode.SpatialGraphNodeId;
                             qrCodeObject.GetComponent<QRCode>().qrCode = action.qrCode;
                             qrCodesObjectsList.Add(action.qrCode.Id, qrCodeObject);
+                        }                
+                    }
+                    else if (action.type == ActionData.Type.Updated)
+                    {
+                        if (!qrCodesObjectsList.ContainsKey(action.qrCode.Id))
+                        {
+                            if (_useSceneObjectAsPrefab)
+                            {
+                                qrCodePrefab.GetComponent<SpatialGraphNodeTracker>().Id = action.qrCode.SpatialGraphNodeId;
+                                qrCodePrefab.GetComponent<QRCode>().qrCode = action.qrCode;
+                                qrCodesObjectsList.Add(action.qrCode.Id, qrCodePrefab);
+                            }
+                            else
+                            {
+                                GameObject qrCodeObject = Instantiate(qrCodePrefab, new Vector3(0, 0, 0), Quaternion.identity);
+                                qrCodeObject.GetComponent<SpatialGraphNodeTracker>().Id = action.qrCode.SpatialGraphNodeId;
+                                qrCodeObject.GetComponent<QRCode>().qrCode = action.qrCode;
+                                qrCodesObjectsList.Add(action.qrCode.Id, qrCodeObject);
+                            }        
                         }
                     }
                     else if (action.type == ActionData.Type.Removed)

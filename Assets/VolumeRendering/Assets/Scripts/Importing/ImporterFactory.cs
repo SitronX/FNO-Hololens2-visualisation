@@ -85,6 +85,7 @@ namespace UnityVolumeRendering
                         return typeof(SimpleITKImageFileImporter);
                         #else
                         return null;
+
                         #endif
                     }
                 case ImageFileFormat.NIFTI:

@@ -13,6 +13,7 @@ using UnityEngine.InputSystem;
 using UnityVolumeRendering;
 using RenderMode = UnityVolumeRendering.RenderMode;
 
+
 public class VolumeDataControl : MonoBehaviour
 {
     [SerializeField] VolumeRenderedObject _volumeData;
@@ -28,62 +29,66 @@ public class VolumeDataControl : MonoBehaviour
     bool _showCutPlane = false;
     bool _useCubicInterpolation = false;
     bool _consoleOpened = false;
-    Vector3 _startPosition;
-    Vector3 _startRotation;
-    Vector3 _startScale;
+    Vector3 _startLocalPosition;
+    Vector3 _startLocalRotation;
+    Vector3 _startLocalScale;
+
+    Vector3 _startLocalPlanePosition;
+    Vector3 _startLocalPlaneRotation;
+    Vector3 _startLocalPlaneScale;
 
     private void Start()
     {
-        ResetInitialPosition();
+        string filePath = Application.dataPath + "/TempDicom/";
+        string transferFunctionPath = Application.dataPath + "/TempTransferFunction/default.tf";
 
-        string filePath = "H:\\jatra\\Saved\\Nrrdf\\Dicom\\";
-        string transferFunctionPath = "H:\\GithubSync\\FnO-Hololens2-visualisation\\Assets\\TransferFunction\\default.tf";
+        //#if ENABLE_WINMD_SUPPORT
+        //            filePath = Windows.Storage.KnownFolders.DocumentsLibrary.Path+"\\DICOM\\";
+        //            transferFunctionPath=Windows.Storage.KnownFolders.DocumentsLibrary.Path+"\\TRANSFERFC\\default.tf";
+        //#endif
+        //        
+        //
+        //TransferFunction transferFunction = TransferFunctionDatabase.LoadTransferFunctionFromResources(transferFunctionPath);
 
-
-        TransferFunction transferFunction=TransferFunctionDatabase.LoadTransferFunction(transferFunctionPath);
-
+        TransferFunction transferFunction = TransferFunctionDatabase.LoadTransferFunction(transferFunctionPath);
+     
         VolumeRenderedObject volumeRenderedObject = _volumetricDataMainParentObject.GetComponent<VolumeRenderedObject>();
-
+     
         NonNativeKeyboard.Instance.OnTextUpdated += ConsoleTextUpdate;
-
+     
         ImageSequenceFormat imgSeqFormat = ImageSequenceFormat.DICOM;
-
+     
         IEnumerable<string> fileCandidates = Directory.EnumerateFiles(filePath, "*.*", SearchOption.TopDirectoryOnly)
                             .Where(p => p.EndsWith(".dcm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicom", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicm", StringComparison.InvariantCultureIgnoreCase));
-
-
+     
+     
         if (fileCandidates.Any())
         {
             IImageSequenceImporter importer = ImporterFactory.CreateImageSequenceImporter(imgSeqFormat);
-            IEnumerable<IImageSequenceSeries> seriesList = importer.LoadSeries(fileCandidates);
+            IEnumerable<IImageSequenceSeries> seriesList = importer.LoadSeries(fileCandidates);                 //Long load
             float numVolumesCreated = 0;
-
+     
             foreach (IImageSequenceSeries series in seriesList)
             {
-                VolumeDataset dataset = importer.ImportSeries(series);
+                VolumeDataset dataset = importer.ImportSeries(series);                                          //Long load
                 if (dataset != null)
                 {
-                    if (EditorPrefs.GetBool("DownscaleDatasetPrompt"))
-                    {
-                        if (EditorUtility.DisplayDialog("Optional DownScaling",
-                            $"Do you want to downscale the dataset? The dataset's dimension is: {dataset.dimX} x {dataset.dimY} x {dataset.dimZ}", "Yes", "No"))
-                        {
-                            dataset.DownScaleData();
-                        }
-                    }
-
-                    VolumeObjectFactory.FillObjectWithDatasetData(dataset, _volumetricDataMainParentObject,_volumetricDataMainParentObject.transform.GetChild(0).gameObject,transferFunction);
+                    VolumeObjectFactory.FillObjectWithDatasetData(dataset, _volumetricDataMainParentObject,_volumetricDataMainParentObject.transform.GetChild(0).gameObject,transferFunction);      //Long load
                     numVolumesCreated++;
                 }
             }
-
+     
             volumeRenderedObject.SetTransferFunction(transferFunction);
             volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneObject);
         }
         else
             Debug.LogError("Could not find any DICOM files to import.");
-
-
+     
+        _isoValueSlider.SliderValue= 0;
+        _isoRangeSlider.SliderValue= 1;
+    
+        ResetInitialPosition();
+        UpdateIsoRanges();
     }
     public void UpdateIsoRanges()
     {
@@ -120,8 +125,13 @@ public class VolumeDataControl : MonoBehaviour
     }
     public void ResetObjectTransform()
     {
-        transform.SetPositionAndRotation(_startPosition, Quaternion.Euler(_startRotation));
-        transform.localScale = _startScale;
+        transform.localPosition = _startLocalPosition;
+        transform.localRotation= Quaternion.Euler(_startLocalRotation);
+        transform.localScale = _startLocalScale;
+
+        _slicingPlaneObject.transform.localPosition = _startLocalPlanePosition;
+        _slicingPlaneObject.transform.localRotation= Quaternion.Euler(_startLocalPlaneRotation);
+        _slicingPlaneObject.transform.localScale = _startLocalPlaneScale;
     }
     public void OpenConsole()
     {
@@ -147,8 +157,12 @@ public class VolumeDataControl : MonoBehaviour
     [Command("resetinitpos",MonoTargetType.All)]
     public void ResetInitialPosition()
     {
-        _startPosition = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-        _startRotation = new Vector3(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
-        _startScale = new Vector3(transform.localScale.x, transform.localScale.y, transform.localScale.z);
+        _startLocalPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, transform.localPosition.z);
+        _startLocalRotation = new Vector3(transform.localRotation.eulerAngles.x, transform.localRotation.eulerAngles.y, transform.localRotation.eulerAngles.z);
+        _startLocalScale = new Vector3(transform.localScale.x, transform.localScale.y, transform.localScale.z);
+
+        _startLocalPlanePosition = new Vector3(_slicingPlaneObject.transform.localPosition.x, _slicingPlaneObject.transform.localPosition.y, _slicingPlaneObject.transform.localPosition.z);
+        _startLocalPlaneRotation = new Vector3(_slicingPlaneObject.transform.localRotation.eulerAngles.x, _slicingPlaneObject.transform.localRotation.eulerAngles.y, _slicingPlaneObject.transform.localRotation.eulerAngles.z);
+        _startLocalPlaneScale = new Vector3(_slicingPlaneObject.transform.localScale.x, _slicingPlaneObject.transform.localScale.y, _slicingPlaneObject.transform.localScale.z);
     }
 }

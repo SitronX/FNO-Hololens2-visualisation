@@ -67,6 +67,19 @@ namespace UnityVolumeRendering
             tf.alphaControlPoints = data.alphaPoints;
             return tf;
         }
+        public static TransferFunction LoadTransferFunctionFromResources(string fileName)
+        {
+            
+            string jsonstring = Resources.Load<TextAsset>(fileName).text;
+            TF1DSerialisationData data = JsonUtility.FromJson<TF1DSerialisationData>(jsonstring);
+            Debug.Log(jsonstring);
+            Debug.Log(data.colourPoints.ToString());
+            Debug.Log(data.alphaPoints.ToString());
+            TransferFunction tf = new TransferFunction();
+            tf.colourControlPoints = data.colourPoints;
+            tf.alphaControlPoints = data.alphaPoints;
+            return tf;
+        }
 
         public static TransferFunction2D LoadTransferFunction2D(string filepath)
         {

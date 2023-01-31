@@ -25,7 +25,7 @@
             #pragma multi_compile __ TF2D_ON
             #pragma multi_compile __ CROSS_SECTION_ON
             #pragma multi_compile __ LIGHTING_ON
-            #pragma multi_compile DEPTHWRITE_ON DEPTHWRITE_OFF
+            //#pragma multi_compile DEPTHWRITE_ON DEPTHWRITE_OFF
             #pragma multi_compile __ DVR_BACKWARD_ON
             #pragma multi_compile __ RAY_TERMINATE_ON
             #pragma multi_compile __ USE_MAIN_LIGHT
@@ -409,7 +409,7 @@
             // Draws the first point (closest to camera) with a density within the user-defined thresholds.
             frag_out frag_surf(frag_in i)
             {
-                #define MAX_NUM_STEPS 1024
+                #define MAX_NUM_STEPS 512
 
                 RayInfo ray = getRayFront2Back(i.vertexLocal);
                 RaymarchInfo raymarchInfo = initRaymarch(ray, MAX_NUM_STEPS);
