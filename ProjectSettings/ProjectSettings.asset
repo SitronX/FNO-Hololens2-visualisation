@@ -605,7 +605,7 @@ PlayerSettings:
   webGLThreadsSupport: 0
   webGLDecompressionFallback: 0
   scriptingDefineSymbols:
-    1: 
+    1: UVR_USE_SIMPLEITK
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}

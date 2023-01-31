@@ -58,3 +58,5 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+Assets/VolumeRendering/Assets/3rdparty/SimpleITK/SimpleITKCSharpManaged.dll
+Assets/VolumeRendering/Assets/3rdparty/SimpleITK/SimpleITKCSharpNative.dll

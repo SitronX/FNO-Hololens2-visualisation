@@ -39,7 +39,7 @@ public class VolumeDataControl : MonoBehaviour
 
     private void Start()
     {
-        string filePath = Application.dataPath + "/TempDicom/";
+        string filePath = Application.dataPath + "/TempDicom/Segmentation.nrrd";                //complete path when loading nrrd for load with itk library, folder path when loading dicom multiple files
         string transferFunctionPath = Application.dataPath + "/TempTransferFunction/default.tf";
 
         //#if ENABLE_WINMD_SUPPORT
@@ -48,42 +48,50 @@ public class VolumeDataControl : MonoBehaviour
         //#endif
         //        
         //
-        //TransferFunction transferFunction = TransferFunctionDatabase.LoadTransferFunctionFromResources(transferFunctionPath);
 
         TransferFunction transferFunction = TransferFunctionDatabase.LoadTransferFunction(transferFunctionPath);
-     
         VolumeRenderedObject volumeRenderedObject = _volumetricDataMainParentObject.GetComponent<VolumeRenderedObject>();
-     
         NonNativeKeyboard.Instance.OnTextUpdated += ConsoleTextUpdate;
-     
-        ImageSequenceFormat imgSeqFormat = ImageSequenceFormat.DICOM;
-     
-        IEnumerable<string> fileCandidates = Directory.EnumerateFiles(filePath, "*.*", SearchOption.TopDirectoryOnly)
-                            .Where(p => p.EndsWith(".dcm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicom", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicm", StringComparison.InvariantCultureIgnoreCase));
-     
-     
-        if (fileCandidates.Any())
+
+
+
+        SimpleITKImageFileImporter imp = new SimpleITKImageFileImporter();                      //QUICK LOAD WITH THIS LOADER, ONLY WORKS ON FEW PLATFORMS AND DOESNT WORK ON HOLOLENS
+        VolumeDataset dataset = imp.Import(filePath);
+        if (dataset != null)
         {
-            IImageSequenceImporter importer = ImporterFactory.CreateImageSequenceImporter(imgSeqFormat);
-            IEnumerable<IImageSequenceSeries> seriesList = importer.LoadSeries(fileCandidates);                 //Long load
-            float numVolumesCreated = 0;
-     
-            foreach (IImageSequenceSeries series in seriesList)
-            {
-                VolumeDataset dataset = importer.ImportSeries(series);                                          //Long load
-                if (dataset != null)
-                {
-                    VolumeObjectFactory.FillObjectWithDatasetData(dataset, _volumetricDataMainParentObject,_volumetricDataMainParentObject.transform.GetChild(0).gameObject,transferFunction);      //Long load
-                    numVolumesCreated++;
-                }
-            }
-     
-            volumeRenderedObject.SetTransferFunction(transferFunction);
-            volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneObject);
+            VolumeObjectFactory.FillObjectWithDatasetData(dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject, transferFunction);      //Long load
         }
-        else
-            Debug.LogError("Could not find any DICOM files to import.");
-     
+        volumeRenderedObject.SetTransferFunction(transferFunction);
+        volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneObject);
+
+
+        //LOADING DICOM ON HOLOLENS (.dcm files
+
+        //ImageSequenceFormat imgSeqFormat = ImageSequenceFormat.DICOM;
+        //IEnumerable<string> fileCandidates = Directory.EnumerateFiles(filePath, "*.*", SearchOption.TopDirectoryOnly).Where(p => p.EndsWith(".nrrd", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicom", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicm", StringComparison.InvariantCultureIgnoreCase));
+        // if (fileCandidates.Any())                                                                             
+        // {
+        //     //IImageSequenceImporter importer = ImporterFactory.CreateImageSequenceImporter(imgSeqFormat);
+        //     SimpleITKImageSequenceImporter importer = new SimpleITKImageSequenceImporter();                     //Using ITK loader only on supported platforms
+        //     IEnumerable<IImageSequenceSeries> seriesList = importer.LoadSeries(fileCandidates);                 //Long load
+        //     float numVolumesCreated = 0;
+        //
+        //     foreach (IImageSequenceSeries series in seriesList)
+        //     {
+        //         SimpleITKImageFileImporter imp = new SimpleITKImageFileImporter();
+        //         VolumeDataset dataset=imp.Import(filePath);
+        //         //VolumeDataset dataset = importer.ImportSeries(series);                                          //Long load
+        //         if (dataset != null)
+        //         {
+        //             VolumeObjectFactory.FillObjectWithDatasetData(dataset, _volumetricDataMainParentObject,_volumetricDataMainParentObject.transform.GetChild(0).gameObject,transferFunction);      //Long load
+        //             numVolumesCreated++;
+        //         }
+        //     }
+        //   
+        // }
+        // else
+        //     Debug.LogError("Could not find any DICOM files to import.");
+
         _isoValueSlider.SliderValue= 0;
         _isoRangeSlider.SliderValue= 1;
     
