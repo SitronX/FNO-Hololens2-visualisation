@@ -37,10 +37,19 @@ public class VolumeDataControl : MonoBehaviour
     Vector3 _startLocalPlaneRotation;
     Vector3 _startLocalPlaneScale;
 
+    string filePath;            
+    string transferFunctionPath;
+    string transferFunction2DPath;
+    TransferFunction transferFunction;
+    TransferFunction2D transferFunction2D;
+    VolumeRenderedObject volumeRenderedObject;
+
     private void Start()
     {
-        string filePath = Application.dataPath + "/TempDicom/Segmentation.nrrd";                //complete path when loading nrrd for load with itk library, folder path when loading dicom multiple files
-        string transferFunctionPath = Application.dataPath + "/TempTransferFunction/default.tf";
+        filePath = Application.dataPath + "/TempDicom/Segmentation.nrrd";        //complete path when loading nrrd for load with itk library, folder path when loading dicom multiple files
+        transferFunctionPath = Application.dataPath + "/TempTransferFunction/default.tf";
+        transferFunction2DPath = Application.dataPath + "/TempTransferFunction/default.tf2d";
+
 
         //#if ENABLE_WINMD_SUPPORT
         //            filePath = Windows.Storage.KnownFolders.DocumentsLibrary.Path+"\\DICOM\\";
@@ -49,8 +58,14 @@ public class VolumeDataControl : MonoBehaviour
         //        
         //
 
-        TransferFunction transferFunction = TransferFunctionDatabase.LoadTransferFunction(transferFunctionPath);
-        VolumeRenderedObject volumeRenderedObject = _volumetricDataMainParentObject.GetComponent<VolumeRenderedObject>();
+        transferFunction = TransferFunctionDatabase.LoadTransferFunction(transferFunctionPath);
+        transferFunction2D = TransferFunctionDatabase.LoadTransferFunction2D(transferFunction2DPath);
+
+
+
+        volumeRenderedObject = _volumetricDataMainParentObject.GetComponent<VolumeRenderedObject>();
+
+
         NonNativeKeyboard.Instance.OnTextUpdated += ConsoleTextUpdate;
 
 
@@ -61,7 +76,9 @@ public class VolumeDataControl : MonoBehaviour
         {
             VolumeObjectFactory.FillObjectWithDatasetData(dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject, transferFunction);      //Long load
         }
-        volumeRenderedObject.SetTransferFunction(transferFunction);
+
+        SetTransferFunction(false);
+       
         volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneObject);
 
 
@@ -97,6 +114,21 @@ public class VolumeDataControl : MonoBehaviour
     
         ResetInitialPosition();
         UpdateIsoRanges();
+    }
+
+    [Command]
+    public void SetTransferFunction(bool singleDimension)
+    {
+        if(singleDimension)
+        {
+            volumeRenderedObject.SetTransferFunction(transferFunction);
+            volumeRenderedObject.SetTransferFunctionMode(TFRenderMode.TF1D);
+        }
+        else
+        {
+            volumeRenderedObject.SetTransferFunction2D(transferFunction2D);
+            volumeRenderedObject.SetTransferFunctionMode(TFRenderMode.TF2D);
+        }   
     }
     public void UpdateIsoRanges()
     {
@@ -156,6 +188,13 @@ public class VolumeDataControl : MonoBehaviour
             _quantumConsole.Deactivate();
             NonNativeKeyboard.Instance.Close();
 
+        }
+    }
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.F1))
+        {
+            OpenConsole();
         }
     }
     public void ConsoleTextUpdate(string text)

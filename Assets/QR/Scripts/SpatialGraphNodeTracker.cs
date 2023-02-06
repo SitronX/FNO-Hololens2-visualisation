@@ -65,7 +65,7 @@ namespace QRTracking
             if (node == null || force)
             {
                 node = (Id != System.Guid.Empty) ? SpatialGraphNode.FromStaticNodeId(Id) : null;
-                Debug.Log("Initialize SpatialGraphNode Id= " + Id);
+                //Debug.Log("Initialize SpatialGraphNode Id= " + Id);
             }
         }
     }

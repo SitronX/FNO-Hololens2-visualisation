@@ -204,6 +204,11 @@ namespace UnityVolumeRendering
             this.transferFunction = tf;
             UpdateMaterialProperties();
         }
+        public void SetTransferFunction2D(TransferFunction2D tf)
+        {
+            this.transferFunction2D = tf;
+            UpdateMaterialProperties();
+        }
 
         private void UpdateMaterialProperties()
         {
