@@ -77,7 +77,7 @@ public class VolumeDataControl : MonoBehaviour
             VolumeObjectFactory.FillObjectWithDatasetData(dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject, transferFunction);      //Long load
         }
 
-        SetTransferFunction(false);
+        SetTransferFunction(true);
        
         volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneObject);
 
