@@ -31,7 +31,7 @@ namespace QRTracking
     public class QRCodesManager : Singleton<QRCodesManager>
     {
         [Tooltip("Determines if the QR codes scanner should be automatically started.")]
-        public bool AutoStartQRTracking = true;
+        public bool AutoStartQRTracking;
 
         public bool IsTrackerRunning { get; private set; }
 
@@ -85,7 +85,7 @@ namespace QRTracking
             capabilityInitialized = true;
         }
 
-        private void SetupQRTracking()
+        public void SetupQRTracking()
         {
             try
             {
@@ -101,10 +101,9 @@ namespace QRTracking
                 Debug.Log("QRCodesManager : exception starting the tracker " + ex.ToString());
             }
 
-            if (AutoStartQRTracking)
-            {
-                StartQRTracking();
-            }
+            
+            StartQRTracking();
+            
         }
 
         public void StartQRTracking()
@@ -119,6 +118,24 @@ namespace QRTracking
                     QRCodesTrackingStateChanged?.Invoke(this, true);
                 }
                 catch(Exception ex)
+                {
+                    Debug.Log("QRCodesManager starting QRCodeWatcher Exception:" + ex.ToString());
+                }
+            }
+        }
+
+        public void StartQR()
+        {
+            if (qrTracker != null && !IsTrackerRunning)
+            {
+                Debug.Log("QRCodesManager starting QRCodeWatcher");
+                try
+                {
+                    qrTracker.Start();
+                    IsTrackerRunning = true;
+                    QRCodesTrackingStateChanged?.Invoke(this, true);
+                }
+                catch (Exception ex)
                 {
                     Debug.Log("QRCodesManager starting QRCodeWatcher Exception:" + ex.ToString());
                 }
@@ -210,20 +227,20 @@ namespace QRTracking
             Debug.Log("QRCodesManager QrTracker_EnumerationCompleted");
         }
 
-        private void Update()
-        {
-            if (qrTracker == null && capabilityInitialized && IsSupported)
-            {
-                if (accessStatus == QRCodeWatcherAccessStatus.Allowed)
-                {
-                    SetupQRTracking();
-                }
-                else
-                {  
-                    Debug.Log("Capability access status : " + accessStatus);
-                }
-            }
-        }
+        //private void Update()
+        //{
+        //    if (qrTracker == null && capabilityInitialized && IsSupported)
+        //    {
+        //        if (accessStatus == QRCodeWatcherAccessStatus.Allowed)
+        //        {
+        //            SetupQRTracking();
+        //        }
+        //        else
+        //        {  
+        //            Debug.Log("Capability access status : " + accessStatus);
+        //        }
+        //    }
+        //}
     }
 
 }

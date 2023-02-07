@@ -21,8 +21,8 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] MeshRenderer _blackPlaneRenderer;
     [SerializeField] PinchSlider _isoValueSlider;
     [SerializeField] PinchSlider _isoRangeSlider;
-    [SerializeField] QuantumConsole _quantumConsole;
-    [SerializeField] TMP_InputField _consoleInputField;
+    //[SerializeField] QuantumConsole _quantumConsole;
+    //[SerializeField] TMP_InputField _consoleInputField;
     [SerializeField] GameObject _volumetricDataMainParentObject;
     [SerializeField] GameObject _slicingPlaneObject;
 
@@ -46,9 +46,9 @@ public class VolumeDataControl : MonoBehaviour
 
     private void Start()
     {
-        filePath = Application.dataPath + "/TempDicom/Segmentation.nrrd";        //complete path when loading nrrd for load with itk library, folder path when loading dicom multiple files
-        transferFunctionPath = Application.dataPath + "/TempTransferFunction/default.tf";
-        transferFunction2DPath = Application.dataPath + "/TempTransferFunction/default.tf2d";
+        filePath = "H:/GithubSync/FnO-Hololens2-visualisation/Assets/TempDicom/Segmentation.nrrd";        //complete path when loading nrrd for load with itk library, folder path when loading dicom multiple files
+        transferFunctionPath = "H:/GithubSync/FnO-Hololens2-visualisation/Assets/TempTransferFunction/default.tf";
+        //transferFunction2DPath = Application.dataPath + "/TempTransferFunction/default.tf2d";
 
 
         //#if ENABLE_WINMD_SUPPORT
@@ -66,7 +66,7 @@ public class VolumeDataControl : MonoBehaviour
         volumeRenderedObject = _volumetricDataMainParentObject.GetComponent<VolumeRenderedObject>();
 
 
-        NonNativeKeyboard.Instance.OnTextUpdated += ConsoleTextUpdate;
+        //NonNativeKeyboard.Instance.OnTextUpdated += ConsoleTextUpdate;
 
 
 
@@ -173,34 +173,34 @@ public class VolumeDataControl : MonoBehaviour
         _slicingPlaneObject.transform.localRotation= Quaternion.Euler(_startLocalPlaneRotation);
         _slicingPlaneObject.transform.localScale = _startLocalPlaneScale;
     }
-    public void OpenConsole()
-    {
-        _consoleOpened = !_consoleOpened;
-        
-
-        if (_consoleOpened)
-        {
-            _quantumConsole.Activate(true);
-            NonNativeKeyboard.Instance.PresentKeyboard("");
-        }
-        else
-        {
-            _quantumConsole.Deactivate();
-            NonNativeKeyboard.Instance.Close();
-
-        }
-    }
-    private void Update()
-    {
-        if(Input.GetKeyDown(KeyCode.F1))
-        {
-            OpenConsole();
-        }
-    }
-    public void ConsoleTextUpdate(string text)
-    {
-        _consoleInputField.text =text;
-    }
+    //public void OpenConsole()
+    //{
+    //    _consoleOpened = !_consoleOpened;
+    //    
+    //
+    //    if (_consoleOpened)
+    //    {
+    //        _quantumConsole.Activate(true);
+    //        NonNativeKeyboard.Instance.PresentKeyboard("");
+    //    }
+    //    else
+    //    {
+    //        _quantumConsole.Deactivate();
+    //        NonNativeKeyboard.Instance.Close();
+    //
+    //    }
+    //}
+    //private void Update()
+    //{
+    //    if(Input.GetKeyDown(KeyCode.F1))
+    //    {
+    //        OpenConsole();
+    //    }
+    //}
+    //public void ConsoleTextUpdate(string text)
+    //{
+    //    _consoleInputField.text =text;
+    //}
     [Command("resetinitpos",MonoTargetType.All)]
     public void ResetInitialPosition()
     {
