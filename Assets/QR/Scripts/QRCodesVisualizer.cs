@@ -1,16 +1,19 @@
 ﻿
+using Microsoft.MixedReality.SampleQRCodes;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace QRTracking
 {
-    public class QRCodesVisualizer : MonoBehaviour
+    public class QRCodesVisualizer : MonoBehaviour, IQRUpdateDisable
     {
         public GameObject qrCodePrefab;
 
         private SortedDictionary<System.Guid, GameObject> qrCodesObjectsList;
         private Queue<ActionData> pendingActions = new Queue<ActionData>();
         private bool clearExisting = false;
+
+        bool _enableQrUpdate = true;
 
         [SerializeField] bool _useSceneObjectAsPrefab = false;
 
@@ -67,11 +70,14 @@ namespace QRTracking
 
         private void Instance_QRCodeUpdated(object sender, QRCodeEventArgs<Microsoft.MixedReality.QR.QRCode> e)
         {
-            Debug.Log("QRCodesVisualizer Instance_QRCodeUpdated");
-
-            lock (pendingActions)
+            if (_enableQrUpdate)
             {
-                pendingActions.Enqueue(new ActionData(ActionData.Type.Updated, e.Data));
+                Debug.Log("QRCodesVisualizer Instance_QRCodeUpdated");
+
+                lock (pendingActions)
+                {
+                    pendingActions.Enqueue(new ActionData(ActionData.Type.Updated, e.Data));
+                }
             }
         }
 
@@ -94,7 +100,16 @@ namespace QRTracking
                     var action = pendingActions.Dequeue();
                     Debug.Log($"QRCodesVisualizer HandleEvents: {action.type}");
 
-                    if (action.type == ActionData.Type.Added)
+                    if(action.type==ActionData.Type.Added&& action.qrCode.LastDetectedTime < QRCodesManager.Instance.WatcherStart)
+                    {
+                        foreach(var i in qrCodesObjectsList)
+                        {
+                            Destroy(i.Value);
+                        }
+                        qrCodesObjectsList.Clear();
+
+                    }
+                    else if (action.type == ActionData.Type.Added)
                     {
                         if(_useSceneObjectAsPrefab)
                         {           
@@ -156,6 +171,11 @@ namespace QRTracking
         {
             HandleEvents();
         }
+        public void EnableQRUpdate(bool value)
+        {
+            _enableQrUpdate = value;
+        }
+    
     }
 
 }

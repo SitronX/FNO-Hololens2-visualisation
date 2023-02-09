@@ -1681,6 +1681,26 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 4436408278160384}
     m_Modifications:
+    - target: {fileID: 199551306, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_TagString
+      value: VolumeObject
+      objectReference: {fileID: 0}
+    - target: {fileID: 199551307, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 199551307, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_ReceiveShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 199551307, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 199551307, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 199551307, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
@@ -1896,6 +1916,22 @@ PrefabInstance:
     - target: {fileID: 3354882635577488948, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: -123.343
+      objectReference: {fileID: 0}
+    - target: {fileID: 3362784846967462500, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3362784846967462500, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_ReceiveShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3362784846967462500, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3362784846967462500, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4036840326531865723, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
       propertyPath: m_AnchorMax.y
@@ -2348,6 +2384,22 @@ PrefabInstance:
     - target: {fileID: 7132171069584365482, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0.178
+      objectReference: {fileID: 0}
+    - target: {fileID: 9065935078279486076, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9065935078279486076, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_ReceiveShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9065935078279486076, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9065935078279486076, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9065935078279486076, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
       propertyPath: m_Materials.Array.data[0]

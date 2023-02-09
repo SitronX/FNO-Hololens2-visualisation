@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.MixedReality.OpenXR.Remoting;
+using QFSW.QC;
 using QRTracking;
 using System.Collections.Generic;
 using System.Net;
@@ -44,6 +45,8 @@ namespace Microsoft.MixedReality.OpenXR.BasicSample
 
         [SerializeField, Tooltip("The configuration information for listening to remote connection.")]
         private Remoting.RemotingListenConfiguration remotingListenConfiguration = new Remoting.RemotingListenConfiguration { ListenInterface = "0.0.0.0", HandshakeListenPort = 8265, TransportListenPort = 8266, MaxBitrateKbps = 20000 };
+
+        [SerializeField] QRCodesManager _qrCodeManager;
 
         private bool m_connected = false;
         private DisconnectReason m_disconnectReason = DisconnectReason.None;
@@ -200,6 +203,7 @@ namespace Microsoft.MixedReality.OpenXR.BasicSample
         }
 
         // Disconnects from the remote session.
+        [Command("Disconnect")]
         public void OnDisconnectButtonPressed()
         {
             Remoting.AppRemoting.Disconnect();
@@ -231,6 +235,7 @@ namespace Microsoft.MixedReality.OpenXR.BasicSample
             m_connected = true;
             HideConnectionUI();
             Debug.Log("Connected");
+            _qrCodeManager.SetupQRTracking();
         }
 
         private void OnDisconnecting(DisconnectReason disconnectReason)

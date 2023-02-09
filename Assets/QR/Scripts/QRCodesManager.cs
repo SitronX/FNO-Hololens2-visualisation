@@ -28,13 +28,16 @@ namespace QRTracking
         }
     }
 
-    public class QRCodesManager : Singleton<QRCodesManager>
+    public class QRCodesManager : Singleton<QRCodesManager>, IQRUpdateDisable
     {
         [Tooltip("Determines if the QR codes scanner should be automatically started.")]
         public bool AutoStartQRTracking;
 
+        bool _enableQrUpdate = true;
+
         public bool IsTrackerRunning { get; private set; }
 
+        public DateTimeOffset WatcherStart { get; private set; }
         public bool IsSupported { get; private set; }
 
         public event EventHandler<bool> QRCodesTrackingStateChanged;
@@ -73,7 +76,7 @@ namespace QRTracking
         }
         protected void Awake()
         {
-
+            
         }
 
         // Use this for initialization
@@ -89,6 +92,7 @@ namespace QRTracking
         {
             try
             {
+                WatcherStart = DateTimeOffset.Now;
                 qrTracker = new QRCodeWatcher();
                 IsTrackerRunning = false;
                 qrTracker.Added += QRCodeWatcher_Added;
@@ -186,23 +190,26 @@ namespace QRTracking
 
         private void QRCodeWatcher_Updated(object sender, QRCodeUpdatedEventArgs args)
         {
-            Debug.Log("QRCodesManager QRCodeWatcher_Updated");
+            if (_enableQrUpdate)
+            {
+                Debug.Log("QRCodesManager QRCodeWatcher_Updated");
 
-            bool found = false;
-            lock (qrCodesList)
-            {
-                if (qrCodesList.ContainsKey(args.Code.Id))
+                bool found = false;
+                lock (qrCodesList)
                 {
-                    found = true;
-                    qrCodesList[args.Code.Id] = args.Code;
+                    if (qrCodesList.ContainsKey(args.Code.Id))
+                    {
+                        found = true;
+                        qrCodesList[args.Code.Id] = args.Code;
+                    }
                 }
-            }
-            if (found)
-            {
-                var handlers = QRCodeUpdated;
-                if (handlers != null)
+                if (found)
                 {
-                    handlers(this, QRCodeEventArgs.Create(args.Code));
+                    var handlers = QRCodeUpdated;
+                    if (handlers != null)
+                    {
+                        handlers(this, QRCodeEventArgs.Create(args.Code));
+                    }
                 }
             }
         }
@@ -225,6 +232,11 @@ namespace QRTracking
         private void QRCodeWatcher_EnumerationCompleted(object sender, object e)
         {
             Debug.Log("QRCodesManager QrTracker_EnumerationCompleted");
+        }
+
+        public void EnableQRUpdate(bool value)
+        {
+            _enableQrUpdate = value;
         }
 
         //private void Update()

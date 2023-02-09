@@ -22,7 +22,7 @@ namespace QFSW.QC
             {
                 return !u;
             }
-
+            
             return x is null;
         }
 

@@ -152,8 +152,19 @@ Transform:
   m_Children:
   - {fileID: 963194228}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &531229542 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5731539863259288648, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+  m_PrefabInstance: {fileID: 876340971}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c011a6cf24698544bfd05b3bb6c96da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -245,8 +256,77 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1001 &876340971
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+      propertyPath: m_RootOrder
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2079062873306329133, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+      propertyPath: m_Name
+      value: QRCodesManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 2079062873306329133, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4908586973252628864, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+      propertyPath: AutoStartQRTracking
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5731539863259288648, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+      propertyPath: qrCodePrefab
+      value: 
+      objectReference: {fileID: 1200717071578424, guid: c43eb2e8273c74c49931d278661aa4f0, type: 3}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -400,14 +480,26 @@ PrefabInstance:
     - target: {fileID: 3937077915513568239, guid: 3e479eb4858083a4ca11df2eea4d684d, type: 3}
       propertyPath: _qrCodeManager
       value: 
-      objectReference: {fileID: 1499526026}
+      objectReference: {fileID: 1858610368}
+    - target: {fileID: 3937077915513568239, guid: 3e479eb4858083a4ca11df2eea4d684d, type: 3}
+      propertyPath: remotingListenConfiguration.EnableAudio
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3937077915513568239, guid: 3e479eb4858083a4ca11df2eea4d684d, type: 3}
+      propertyPath: remotingConnectConfiguration.EnableAudio
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3937077915513568244, guid: 3e479eb4858083a4ca11df2eea4d684d, type: 3}
       propertyPath: m_Name
       value: AppRemoting
       objectReference: {fileID: 0}
+    - target: {fileID: 3937077915513568244, guid: 3e479eb4858083a4ca11df2eea4d684d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4544871370438788421, guid: 3e479eb4858083a4ca11df2eea4d684d, type: 3}
       propertyPath: m_RootOrder
-      value: 5
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 4544871370438788421, guid: 3e479eb4858083a4ca11df2eea4d684d, type: 3}
       propertyPath: m_LocalPosition.x
@@ -494,7 +586,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1319592961
 GameObject:
@@ -538,19 +630,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1499526026 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4908586973252628864, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
-  m_PrefabInstance: {fileID: 2004102273}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ab2f5e2f7e55e6c4db3da309ff799c5a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &1774669990
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -561,6 +642,10 @@ PrefabInstance:
     - target: {fileID: 1263217620473054, guid: 9ed2a051c32b4fe47a5e4fb95c20b03f, type: 3}
       propertyPath: m_Name
       value: Quantum Console
+      objectReference: {fileID: 0}
+    - target: {fileID: 1263217620473054, guid: 9ed2a051c32b4fe47a5e4fb95c20b03f, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1483687485715032, guid: 9ed2a051c32b4fe47a5e4fb95c20b03f, type: 3}
       propertyPath: m_IsActive
@@ -656,7 +741,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 224130951485110974, guid: 9ed2a051c32b4fe47a5e4fb95c20b03f, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -0.000030517578
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 224166536479716514, guid: 9ed2a051c32b4fe47a5e4fb95c20b03f, type: 3}
       propertyPath: m_AnchorMax.y
@@ -692,7 +777,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 224296548220470038, guid: 9ed2a051c32b4fe47a5e4fb95c20b03f, type: 3}
       propertyPath: m_RootOrder
-      value: 6
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 224296548220470038, guid: 9ed2a051c32b4fe47a5e4fb95c20b03f, type: 3}
       propertyPath: m_AnchorMax.x
@@ -852,11 +937,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 224785810147451886, guid: 9ed2a051c32b4fe47a5e4fb95c20b03f, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 1432.817
+      value: 1636.447
       objectReference: {fileID: 0}
     - target: {fileID: 224785810147451886, guid: 9ed2a051c32b4fe47a5e4fb95c20b03f, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 314.864
+      value: 1341.575
       objectReference: {fileID: 0}
     - target: {fileID: 265229693040713684, guid: 9ed2a051c32b4fe47a5e4fb95c20b03f, type: 3}
       propertyPath: m_textAlignment
@@ -1041,8 +1126,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57e464cb9cb71b24b93ad30f4b54d1dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _qrCodeManager: {fileID: 1499526026}
+  _qrCodeManager: {fileID: 1858610368}
   _quantumConsole: {fileID: 1774669998}
+  _prefab: {fileID: 1200717071578424, guid: c43eb2e8273c74c49931d278661aa4f0, type: 3}
+  _qrVisualizer: {fileID: 531229542}
 --- !u!114 &1774669998 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 114600693638766706, guid: 9ed2a051c32b4fe47a5e4fb95c20b03f, type: 3}
@@ -1054,68 +1141,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d0e534416bbcea448f24633d520da24, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!1001 &2004102273
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
-      propertyPath: m_RootOrder
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2079062873306329132, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2079062873306329133, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
-      propertyPath: m_Name
-      value: QRCodesManager
-      objectReference: {fileID: 0}
-    - target: {fileID: 4908586973252628864, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
-      propertyPath: AutoStartQRTracking
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5731539863259288648, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
-      propertyPath: qrCodePrefab
-      value: 
-      objectReference: {fileID: 1200717071578424, guid: c43eb2e8273c74c49931d278661aa4f0, type: 3}
-    m_RemovedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+--- !u!114 &1858610368 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4908586973252628864, guid: 88af6ac4da385574e9131fda5fb793cc, type: 3}
+  m_PrefabInstance: {fileID: 876340971}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab2f5e2f7e55e6c4db3da309ff799c5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

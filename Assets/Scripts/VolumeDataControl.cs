@@ -46,9 +46,9 @@ public class VolumeDataControl : MonoBehaviour
 
     private void Start()
     {
-        filePath = "H:/GithubSync/FnO-Hololens2-visualisation/Assets/TempDicom/Segmentation.nrrd";        //complete path when loading nrrd for load with itk library, folder path when loading dicom multiple files
-        transferFunctionPath = "H:/GithubSync/FnO-Hololens2-visualisation/Assets/TempTransferFunction/default.tf";
-        //transferFunction2DPath = Application.dataPath + "/TempTransferFunction/default.tf2d";
+        filePath = "Data/Dicom/Segmentation.nrrd";        //complete path when loading nrrd for load with itk library, folder path when loading dicom multiple files
+        transferFunctionPath = "Data/Transfer/default.tf";
+        transferFunction2DPath = "Data/Transfer/default.tf2d";
 
 
         //#if ENABLE_WINMD_SUPPORT
@@ -163,6 +163,7 @@ public class VolumeDataControl : MonoBehaviour
 
         _blackPlaneRenderer.enabled = _showCutPlane;
     }
+    [Command]
     public void ResetObjectTransform()
     {
         transform.localPosition = _startLocalPosition;
@@ -201,8 +202,7 @@ public class VolumeDataControl : MonoBehaviour
     //{
     //    _consoleInputField.text =text;
     //}
-    [Command("resetinitpos",MonoTargetType.All)]
-    public void ResetInitialPosition()
+    private void ResetInitialPosition()
     {
         _startLocalPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, transform.localPosition.z);
         _startLocalRotation = new Vector3(transform.localRotation.eulerAngles.x, transform.localRotation.eulerAngles.y, transform.localRotation.eulerAngles.z);

@@ -1,12 +1,13 @@
-﻿using System.Collections;
+﻿using Microsoft.MixedReality.SampleQRCodes;
+using System.Collections;
 
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace QRTracking
 {
-    [RequireComponent(typeof(QRTracking.SpatialGraphNodeTracker))]
-    public class QRCode : MonoBehaviour
+    [RequireComponent(typeof(SpatialGraphNodeTracker))]
+    public class QRCode : MonoBehaviour, IQRUpdateDisable
     {
         public Microsoft.MixedReality.QR.QRCode qrCode;
         private GameObject qrCodeCube;
@@ -25,6 +26,7 @@ namespace QRTracking
         private bool launch = false;
         private System.Uri uriResult;
         private long lastTimeStamp = 0;
+        bool _enableQrUpdate = true;
 
         // Use this for initialization
         void Start()
@@ -67,20 +69,23 @@ namespace QRTracking
 
         void UpdatePropertiesDisplay()
         {
-            // Update properties that change
-            if (qrCode != null && lastTimeStamp != qrCode.SystemRelativeLastDetectedTime.Ticks)
+            if (_enableQrUpdate)
             {
-                QRSize.text = "Size:" + qrCode.PhysicalSideLength.ToString("F04") + "m";
+                // Update properties that change
+                if (qrCode != null && lastTimeStamp != qrCode.SystemRelativeLastDetectedTime.Ticks)
+                {
+                    QRSize.text = "Size:" + qrCode.PhysicalSideLength.ToString("F04") + "m";
 
-                QRTimeStamp.text = "Time:" + qrCode.LastDetectedTime.ToString("MM/dd/yyyy HH:mm:ss.fff");
-                QRTimeStamp.color = QRTimeStamp.color==Color.yellow? Color.white: Color.yellow;
-                PhysicalSize = qrCode.PhysicalSideLength;
-                //Debug.Log("Id= " + qrCode.Id + "NodeId= " + qrCode.SpatialGraphNodeId + " PhysicalSize = " + PhysicalSize + " TimeStamp = " + qrCode.SystemRelativeLastDetectedTime.Ticks + " Time = " + qrCode.LastDetectedTime.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    QRTimeStamp.text = "Time:" + qrCode.LastDetectedTime.ToString("MM/dd/yyyy HH:mm:ss.fff");
+                    QRTimeStamp.color = QRTimeStamp.color == Color.yellow ? Color.white : Color.yellow;
+                    PhysicalSize = qrCode.PhysicalSideLength;
+                    //Debug.Log("Id= " + qrCode.Id + "NodeId= " + qrCode.SpatialGraphNodeId + " PhysicalSize = " + PhysicalSize + " TimeStamp = " + qrCode.SystemRelativeLastDetectedTime.Ticks + " Time = " + qrCode.LastDetectedTime.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
-                qrCodeCube.transform.localPosition = new Vector3(PhysicalSize / 2.0f, PhysicalSize / 2.0f, 0.0f);
-                qrCodeCube.transform.localScale = new Vector3(PhysicalSize, PhysicalSize, 0.005f);
-                lastTimeStamp = qrCode.SystemRelativeLastDetectedTime.Ticks;
-                QRInfo.transform.localScale = new Vector3(PhysicalSize/0.2f, PhysicalSize / 0.2f, PhysicalSize / 0.2f);
+                    qrCodeCube.transform.localPosition = new Vector3(PhysicalSize / 2.0f, PhysicalSize / 2.0f, 0.0f);
+                    qrCodeCube.transform.localScale = new Vector3(PhysicalSize, PhysicalSize, 0.005f);
+                    lastTimeStamp = qrCode.SystemRelativeLastDetectedTime.Ticks;
+                    QRInfo.transform.localScale = new Vector3(PhysicalSize / 0.2f, PhysicalSize / 0.2f, PhysicalSize / 0.2f);
+                }
             }
         }
 
@@ -93,6 +98,12 @@ namespace QRTracking
                 launch = false;
                 LaunchUri();
             }
+        }
+
+
+        public void EnableQRUpdate(bool value)
+        {
+            _enableQrUpdate = value;
         }
 
         void LaunchUri()
