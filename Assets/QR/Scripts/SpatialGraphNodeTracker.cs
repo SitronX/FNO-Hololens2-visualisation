@@ -1,72 +1,63 @@
-﻿using UnityEngine;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using UnityEngine;
 using Microsoft.MixedReality.Toolkit.Utilities;
 
 #if MIXED_REALITY_OPENXR
 using Microsoft.MixedReality.OpenXR;
 #else
-using QRTracking.WindowsMR;
+using SpatialGraphNode = Microsoft.MixedReality.SampleQRCodes.WindowsXR.SpatialGraphNode;
 #endif
 
-namespace QRTracking
+namespace Microsoft.MixedReality.SampleQRCodes
 {
-    public class SpatialGraphNodeTracker : MonoBehaviour
+    public class SpatialGraphNodeTracker : MonoBehaviour, IQRUpdateDisable
     {
-        private System.Guid _id;
         private SpatialGraphNode node;
+        bool _enableQrUpdate = true;
+        public System.Guid Id { get; set; }
 
-        public System.Guid Id
+        public void EnableQRUpdate(bool value)
         {
-            get => _id;
-
-            set
-            {
-                if (_id != value)
-                {
-                    _id = value;
-                    InitializeSpatialGraphNode(force: true);
-                }
-            }
+            _enableQrUpdate = value;
         }
 
-        // Use this for initialization
-        void Start()
-        {
-            InitializeSpatialGraphNode();
-        }
-
-        // Update is called once per frame
         void Update()
         {
-            InitializeSpatialGraphNode();
-
-            if (node != null)
+            if (_enableQrUpdate)
             {
-                if (node.TryLocate(FrameTime.OnUpdate, out Pose pose))
+                if (node == null || node.Id != Id)
                 {
-                    // If there is a parent to the camera that means we are using teleport and we should not apply the teleport
-                    // to these objects so apply the inverse
-                    if (CameraCache.Main.transform.parent != null)
+                    node = (Id != System.Guid.Empty) ? SpatialGraphNode.FromStaticNodeId(Id) : null;
+                    //Debug.Log("Initialize SpatialGraphNode Id= " + Id);
+                }
+
+                if (node != null)
+                {
+#if MIXED_REALITY_OPENXR
+                    if (node.TryLocate(FrameTime.OnUpdate, out Pose pose))
+#else
+            if (node.TryLocate(out Pose pose))
+#endif
                     {
-                        pose = pose.GetTransformedBy(CameraCache.Main.transform.parent);
+                        // If there is a parent to the camera that means we are using teleport and we should not apply the teleport
+                        // to these objects so apply the inverse
+                        if (CameraCache.Main.transform.parent != null)
+                        {
+                            pose = pose.GetTransformedBy(CameraCache.Main.transform.parent);
+                        }
+
+                        gameObject.transform.SetPositionAndRotation(pose.position, pose.rotation);
+                        //Debug.Log("Id= " + Id + " QRPose = " + pose.position.ToString("F7") + " QRRot = " + pose.rotation.ToString("F7"));
                     }
-
-                    gameObject.transform.SetPositionAndRotation(pose.position, pose.rotation);
-                    Debug.Log("Id= " + Id + " QRPose = " + pose.position.ToString("F7") + " QRRot = " + pose.rotation.ToString("F7"));
-                }
-                else
-                {
-                    Debug.LogWarning("Cannot locate " + Id);
+                    else
+                    {
+                        //Debug.LogWarning("Cannot locate " + Id);
+                    }
                 }
             }
-        }
-
-        private void InitializeSpatialGraphNode(bool force = false)
-        {
-            if (node == null || force)
-            {
-                node = (Id != System.Guid.Empty) ? SpatialGraphNode.FromStaticNodeId(Id) : null;
-                Debug.Log("Initialize SpatialGraphNode Id= " + Id);
-            }
+            
         }
     }
 }

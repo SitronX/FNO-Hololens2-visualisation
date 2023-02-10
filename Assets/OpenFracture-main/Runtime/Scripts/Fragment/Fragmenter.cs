@@ -157,7 +157,7 @@ public static class Fragmenter
     /// <param name="fragmentTemplate">The template GameObject that each slice will clone</param>
     /// <param name="parent">The parent transform for the fragment objects</param>
     /// <returns></returns>
-    public static void Slice(GameObject sourceObject,
+    public static Tuple<GameObject,GameObject> Slice(GameObject sourceObject,
                              Vector3 sliceNormal,
                              Vector3 sliceOrigin,
                              SliceOptions options,
@@ -169,6 +169,9 @@ public static class Fragmenter
         // Subdivide the mesh into multiple fragments until we reach the fragment limit
         FragmentData topSlice, bottomSlice;
 
+        GameObject obj1 = null;
+        GameObject obj2 = null;
+
         // Slice and dice!
         MeshSlicer.Slice(sourceMesh,
                          sliceNormal,
@@ -179,7 +182,7 @@ public static class Fragmenter
                          out bottomSlice);
 
         int i = 0;
-        CreateFragment(topSlice,
+        obj1= CreateFragment(topSlice,
                        sourceObject,
                        fragmentTemplate,
                        parent,
@@ -190,7 +193,7 @@ public static class Fragmenter
                        ref i);
 
         if(!instantiateOnlyLeftFragment)
-            CreateFragment(bottomSlice,
+            obj2=CreateFragment(bottomSlice,
                        sourceObject,
                        fragmentTemplate,
                        parent,
@@ -199,6 +202,8 @@ public static class Fragmenter
                        options.detectFloatingFragments,
                        isKinematic,
                        ref i);
+
+        return new Tuple<GameObject, GameObject>(obj1, obj2 );
     }
 
     /// <summary>
@@ -209,7 +214,7 @@ public static class Fragmenter
     /// <param name="fragmentTemplate">The template GameObject that each fragment will clone</param>
     /// <param name="parent">The parent transform for the fragment objects</param>
     /// <param name="i">Fragment counter</param>
-    private static void CreateFragment(FragmentData fragmentMeshData,
+    private static GameObject CreateFragment(FragmentData fragmentMeshData,
                                        GameObject sourceObject,
                                        GameObject fragmentTemplate,
                                        Transform parent,
@@ -222,7 +227,7 @@ public static class Fragmenter
         // If there is no mesh data, don't create an object
         if (fragmentMeshData.Triangles.Length == 0)
         {
-            return;
+            return null;
         }
 
         Mesh[] meshes;
@@ -243,8 +248,9 @@ public static class Fragmenter
         var parentSize = sourceObject.GetComponent<MeshFilter>().sharedMesh.bounds.size;
         var parentMass = sourceObject.GetComponent<Rigidbody>().mass;
 
-        for(int k = 0; k < meshes.Length; k++)
+        for(int k = 0; k < meshes.Length; k++)            
         {
+
             GameObject fragment = GameObject.Instantiate(fragmentTemplate, parent);
             fragment.name = $"Fragment{i}";
             fragment.transform.localPosition = Vector3.zero;
@@ -282,7 +288,11 @@ public static class Fragmenter
             }
             #endif
 
+            return fragment;            //Jump from cycle, in this project i dont need multimesh or smth
+
             i++;
         }
+
+        return null;
     }
 }

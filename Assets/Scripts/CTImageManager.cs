@@ -13,6 +13,7 @@ public class CTImageManager : MonoBehaviour
     [SerializeField] GameObject sliceObjectParent;
     [SerializeField] PinchSlider pinchSlider;
 
+    GameObject fragmentRoot;
     Vector3 savedPos;
     Quaternion savedRot;
     Vector3 savedScale;
@@ -25,6 +26,8 @@ public class CTImageManager : MonoBehaviour
         savedRot = transform.parent.localRotation;
         savedScale = transform.parent.localScale;
 
+        fragmentRoot = sliceScript.CreateFragmentRootObject(sliceObjectParent);
+
         for (int i= 0; i < transform.childCount; i++)
         {
             GameObject ctImage = transform.GetChild(i).gameObject;
@@ -32,11 +35,11 @@ public class CTImageManager : MonoBehaviour
 
             Vector3 slicePos = ctImage.transform.position+(ctImage.transform.forward * 0.001f);
 
-            sliceScript.ComputeSlice(ctImage.transform.forward, slicePos, true, true,sliceObjectParent);
+            sliceScript.ComputeSlice(ctImage.transform.forward, slicePos, true, true, fragmentRoot);
         }
 
 
-        slicedObjectName = liver.name+"Slices";
+        slicedObjectName = sliceObjectParent.name+"Slices";
         GameObject slicedParent = sliceObjectParent.transform.Find(slicedObjectName).gameObject;
         for(int i=0;i<slicedParent.transform.childCount;i++)
         {

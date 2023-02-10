@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -68,35 +69,46 @@ public class Slice : MonoBehaviour
             }
         }
     }
-    public void ComputeSlice(Vector3 sliceNormalWorld, Vector3 sliceOriginWorld, bool instantiateOnlyLeftFragment, bool isKinematic, GameObject sliceObjectParent)
+    public GameObject CreateFragmentRootObject(GameObject parent)
+    {
+        GameObject fragmentRoot= new GameObject($"{parent.name}Slices");
+        fragmentRoot.transform.SetParent(parent.transform);
+
+        fragmentRoot.transform.position = this.transform.position;
+        fragmentRoot.transform.rotation = this.transform.rotation;
+        fragmentRoot.transform.localScale = Vector3.one;
+
+        return fragmentRoot;
+    }
+    public Tuple<GameObject,GameObject> ComputeSlice(Vector3 sliceNormalWorld, Vector3 sliceOriginWorld, bool instantiateOnlyLeftFragment, bool isKinematic,GameObject fragmentRootObject)
     {
         var mesh = this.GetComponent<MeshFilter>().sharedMesh;
 
         if (mesh != null)
         {
             // If the fragment root object has not yet been created, create it now
-            if (this.fragmentRoot == null)
-            {
-                // Create a game object to contain the fragments
-                this.fragmentRoot = new GameObject($"{this.name}Slices");
-                this.fragmentRoot.transform.SetParent(sliceObjectParent.transform);
-
-                // Each fragment will handle its own scale
-                this.fragmentRoot.transform.position = this.transform.position;
-                this.fragmentRoot.transform.rotation = this.transform.rotation;
-                this.fragmentRoot.transform.localScale = Vector3.one;
-            }
+            //if (this.fragmentRoot == null)
+            //{
+            //    // Create a game object to contain the fragments
+            //    this.fragmentRoot = new GameObject($"{this.name}Slices");
+            //    this.fragmentRoot.transform.SetParent(sliceObjectParent.transform);
+            //
+            //    // Each fragment will handle its own scale
+            //    this.fragmentRoot.transform.position = this.transform.position;
+            //    this.fragmentRoot.transform.rotation = this.transform.rotation;
+            //    this.fragmentRoot.transform.localScale = Vector3.one;
+            //}
 
             var sliceTemplate = CreateSliceTemplate();
             var sliceNormalLocal = this.transform.InverseTransformDirection(sliceNormalWorld);
             var sliceOriginLocal = this.transform.InverseTransformPoint(sliceOriginWorld);
 
-            Fragmenter.Slice(this.gameObject,
+            Tuple<GameObject,GameObject> slicedObjects= Fragmenter.Slice(this.gameObject,
                              sliceNormalLocal,
                              sliceOriginLocal,
                              this.sliceOptions,
                              sliceTemplate,
-                             this.fragmentRoot.transform, instantiateOnlyLeftFragment, isKinematic);
+                             fragmentRootObject.transform, instantiateOnlyLeftFragment, isKinematic);
 
             // Done with template, destroy it
             GameObject.Destroy(sliceTemplate);
@@ -109,7 +121,10 @@ public class Slice : MonoBehaviour
             {
                 callbackOptions.onCompleted.Invoke();
             }
+
+            return slicedObjects;
         }
+        return null;
     }
 
     /// <summary>
