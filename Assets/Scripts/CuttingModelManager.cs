@@ -10,6 +10,8 @@ public class CuttingModelManager : MonoBehaviour
     [SerializeField] GameObject _emptyGameObjectPrefab;
     List<SliceData> _segments = new List<SliceData>();
     [SerializeField] GameObject _occlusionPlane;
+    [SerializeField] GameObject _alphaSliderPrefab;
+
 
     public struct SliceData
     {
@@ -31,7 +33,7 @@ public class CuttingModelManager : MonoBehaviour
             Slice currentSlice= current.AddComponent<Slice>();
             currentSlice.sliceOptions = new SliceOptions
             {
-                insideMaterial = current.GetComponent<MeshRenderer>().material,
+                insideMaterial = current.GetComponent<MeshRenderer>().sharedMaterial,
                 enableReslicing = true
             };
             currentSlice.callbackOptions = new CallbackOptions();
@@ -52,6 +54,10 @@ public class CuttingModelManager : MonoBehaviour
             data.originalObject = current;
             _segments.Add(data);
 
+            GameObject alphaSlider = Instantiate(_alphaSliderPrefab, transform.parent.transform.parent);
+
+            alphaSlider.transform.localPosition = new Vector3(0, 0.03f * i, 0);
+            alphaSlider.GetComponent<AlphaMat>().MainMaterial=currentSlice.sliceOptions.insideMaterial;
         }
     }
 

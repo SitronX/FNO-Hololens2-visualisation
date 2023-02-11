@@ -1800,6 +1800,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _emptyGameObjectPrefab: {fileID: 1097188835228037223, guid: 78bfc558e89059a4ead269348bfd9e1f, type: 3}
   _occlusionPlane: {fileID: 312435154}
+  _alphaSliderPrefab: {fileID: 6630343336682291301, guid: 26201de18c5f1ab41b6b6ae484b4441b, type: 3}
 --- !u!1001 &4179230059381211813
 PrefabInstance:
   m_ObjectHideFlags: 0
