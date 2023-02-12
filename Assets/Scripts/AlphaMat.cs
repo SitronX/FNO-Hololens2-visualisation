@@ -18,7 +18,9 @@ public class AlphaMat : MonoBehaviour
         set
         {
             mainMaterial = value;
-            _colorImage.color = mainMaterial.color;
+            Color fixedColor = mainMaterial.color;
+            fixedColor.a = 1;
+            _colorImage.color = fixedColor;
         }
     }
     public void UpdateAlphaSlider(SliderEventData data)
