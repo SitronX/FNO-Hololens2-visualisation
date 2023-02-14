@@ -19,12 +19,11 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] VolumeRenderedObject _volumeData;
     [SerializeField] InteractableToggleCollection _renderModes;
     [SerializeField] MeshRenderer _blackPlaneRenderer;
-    [SerializeField] PinchSlider _isoValueSlider;
-    [SerializeField] PinchSlider _isoRangeSlider;
     //[SerializeField] QuantumConsole _quantumConsole;
     //[SerializeField] TMP_InputField _consoleInputField;
     [SerializeField] GameObject _volumetricDataMainParentObject;
     [SerializeField] GameObject _slicingPlaneObject;
+    [SerializeField] SliderIntervalUpdater _sliderIntervalUpdater;
 
     bool _showCutPlane = false;
     bool _useCubicInterpolation = false;
@@ -46,10 +45,17 @@ public class VolumeDataControl : MonoBehaviour
 
     private void Start()
     {
+        //Uncomment in build
         filePath = "Data/Dicom/Segmentation.nrrd";        //complete path when loading nrrd for load with itk library, folder path when loading dicom multiple files
         transferFunctionPath = "Data/Transfer/default.tf";
         transferFunction2DPath = "Data/Transfer/default.tf2d";
 
+        //Uncomment in editor
+        //filePath = Application.dataPath + "/TempDicom/Segmentation.nrrd";       //complete path when loading nrrd for load with itk library, folder path when loading dicom multiple files
+        //transferFunctionPath = Application.dataPath + "/TempTransferFunction/default.tf";
+        //transferFunction2DPath = Application.dataPath + "/TempTransferFunction/default.tf2d";
+
+        _sliderIntervalUpdater.OnIntervaSliderValueChanged += UpdateIsoRanges;
 
         //#if ENABLE_WINMD_SUPPORT
         //            filePath = Windows.Storage.KnownFolders.DocumentsLibrary.Path+"\\DICOM\\";
@@ -57,7 +63,6 @@ public class VolumeDataControl : MonoBehaviour
         //#endif
         //        
         //
-
         transferFunction = TransferFunctionDatabase.LoadTransferFunction(transferFunctionPath);
         transferFunction2D = TransferFunctionDatabase.LoadTransferFunction2D(transferFunction2DPath);
 
@@ -108,9 +113,6 @@ public class VolumeDataControl : MonoBehaviour
         // }
         // else
         //     Debug.LogError("Could not find any DICOM files to import.");
-
-        _isoValueSlider.SliderValue= 0;
-        _isoRangeSlider.SliderValue= 1;
     
         ResetInitialPosition();
         UpdateIsoRanges();
@@ -132,7 +134,8 @@ public class VolumeDataControl : MonoBehaviour
     }
     public void UpdateIsoRanges()
     {
-        _volumeData.SetVisibilityWindow(Mathf.Min(_isoValueSlider.SliderValue, 0.8f), Mathf.Min(_isoValueSlider.SliderValue + _isoRangeSlider.SliderValue, 1f));
+        _sliderIntervalUpdater.GetSliderValues(out float firstVal,out float secondVal);
+        _volumeData.SetVisibilityWindow(firstVal,secondVal);
     }
     public void RenderingModeUpdated()
     {
