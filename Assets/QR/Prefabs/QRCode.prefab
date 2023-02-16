@@ -1685,6 +1685,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1148588685447023581, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.17699748
+      objectReference: {fileID: 0}
     - target: {fileID: 1148980119938031823, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
       propertyPath: m_LocalPosition.x
       value: 19.503
@@ -1765,6 +1769,30 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: -0.412
       objectReference: {fileID: 0}
+    - target: {fileID: 1464089596082302642, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 19.516
+      objectReference: {fileID: 0}
+    - target: {fileID: 1464089596082302642, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.445
+      objectReference: {fileID: 0}
+    - target: {fileID: 1464089596082302642, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 5.55
+      objectReference: {fileID: 0}
+    - target: {fileID: 2780693956558390700, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 19.453
+      objectReference: {fileID: 0}
+    - target: {fileID: 2780693956558390700, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2780693956558390700, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 5.548
+      objectReference: {fileID: 0}
     - target: {fileID: 4186097702043771632, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
       propertyPath: m_RootOrder
       value: 3
@@ -1812,6 +1840,18 @@ PrefabInstance:
     - target: {fileID: 4186097702043771639, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
       propertyPath: m_Name
       value: VolumeLogic
+      objectReference: {fileID: 0}
+    - target: {fileID: 7132171069584365482, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 19.505
+      objectReference: {fileID: 0}
+    - target: {fileID: 7132171069584365482, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.631
+      objectReference: {fileID: 0}
+    - target: {fileID: 7132171069584365482, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 5.549
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
