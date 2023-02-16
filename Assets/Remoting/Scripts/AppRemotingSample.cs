@@ -14,6 +14,7 @@ using UnityEngine.XR;
 
 namespace Microsoft.MixedReality.OpenXR.BasicSample
 {
+    [CommandPrefix(".")]
     /// <summary>
     /// Helper script for automatically connecting an OpenXR app to a specific remote device.
     /// </summary>

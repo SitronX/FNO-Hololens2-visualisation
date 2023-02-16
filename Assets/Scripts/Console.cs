@@ -1,5 +1,7 @@
 using Microsoft.MixedReality.SampleQRCodes;
+using Microsoft.MixedReality.Toolkit;
 using Microsoft.MixedReality.Toolkit.Experimental.UI;
+using Microsoft.MixedReality.Toolkit.SpatialAwareness;
 using QFSW.QC;
 using QFSW.QC.Suggestors.Tags;
 using QRTracking;
@@ -8,12 +10,23 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+[CommandPrefix(".")]
 public class Console : MonoBehaviour
 {
     [SerializeField] QRCodesManager _qrCodeManager;
     [SerializeField] QuantumConsole _quantumConsole;
     [SerializeField] GameObject _prefab;
     [SerializeField] QRCodesVisualizer _qrVisualizer;
+    [SerializeField] MixedRealityToolkitConfigurationProfile _wireFrame;
+    [SerializeField] MixedRealityToolkitConfigurationProfile _default;
+    [SerializeField] MixedRealityToolkitConfigurationProfile _diagnostics;
+    [SerializeField] MixedRealityToolkitConfigurationProfile _noSpatial;
+    [SerializeField] MixedRealityToolkit _toolkit;
+
+    public enum MRTKModule
+    {
+        WireFrame,Default,Diagnostics,NoSpatial
+    }
 
     [Command]
     public void InitQR()
@@ -47,6 +60,19 @@ public class Console : MonoBehaviour
         {
             OpenConsole();
         }
+        
+    }
+    [Command]
+    public void SetModule(MRTKModule module)
+    {
+        if (module == MRTKModule.WireFrame)
+            _toolkit.ActiveProfile = _wireFrame;
+        else if (module == MRTKModule.Default)
+            _toolkit.ActiveProfile = _default;
+        if (module == MRTKModule.Diagnostics)
+            _toolkit.ActiveProfile = _diagnostics;
+        if (module == MRTKModule.NoSpatial)
+            _toolkit.ActiveProfile = _noSpatial;
     }
     [Command("QRUpdateState")]
     public void EnableQRUpdate(bool value)

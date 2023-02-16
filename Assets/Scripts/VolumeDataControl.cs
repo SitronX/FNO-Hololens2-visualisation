@@ -13,7 +13,7 @@ using UnityEngine.InputSystem;
 using UnityVolumeRendering;
 using RenderMode = UnityVolumeRendering.RenderMode;
 
-
+[CommandPrefix(".")]
 public class VolumeDataControl : MonoBehaviour
 {
     [SerializeField] VolumeRenderedObject _volumeData;

@@ -365,7 +365,7 @@ Camera:
   m_GameObject: {fileID: 963194225}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
+  m_ClearFlags: 2
   m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
@@ -1130,6 +1130,11 @@ MonoBehaviour:
   _quantumConsole: {fileID: 1774669998}
   _prefab: {fileID: 1200717071578424, guid: c43eb2e8273c74c49931d278661aa4f0, type: 3}
   _qrVisualizer: {fileID: 531229542}
+  _wireFrame: {fileID: 11400000, guid: 82bdc48b0d2241f498d714a93956fb81, type: 2}
+  _default: {fileID: 11400000, guid: 3c1deb1c8de581e45844e1c12a90ea0d, type: 2}
+  _diagnostics: {fileID: 11400000, guid: af455b8575a652b409ea550088c883eb, type: 2}
+  _noSpatial: {fileID: 11400000, guid: 21697d906eaeb874ab99fcf6317d2343, type: 2}
+  _toolkit: {fileID: 1319592962}
 --- !u!114 &1774669998 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 114600693638766706, guid: 9ed2a051c32b4fe47a5e4fb95c20b03f, type: 3}
