@@ -51,7 +51,7 @@ namespace UnityVolumeRendering
             return volObj;
         }
 
-        public static void FillObjectWithDatasetData(VolumeDataset dataset,GameObject objectToFill,GameObject meshContainer,TransferFunction transferFunction,TransferFunction2D transferFunction2D=null)
+        public static void FillObjectWithDatasetData(VolumeDataset dataset,GameObject objectToFill,GameObject meshContainer)
         {
             VolumeRenderedObject volObj = objectToFill.GetComponent<VolumeRenderedObject>();
 
@@ -69,15 +69,11 @@ namespace UnityVolumeRendering
             const int noiseDimY = 512;
             Texture2D noiseTexture = NoiseTextureGenerator.GenerateNoiseTexture(noiseDimX, noiseDimY);
 
-            Texture2D tfTexture = transferFunction.GetTexture();
-            volObj.transferFunction = transferFunction;
-
-            volObj.transferFunction2D = transferFunction2D;
+        
 
             meshRenderer.sharedMaterial.SetTexture("_DataTex", dataset.GetDataTexture());
             meshRenderer.sharedMaterial.SetTexture("_GradientTex", null);
             meshRenderer.sharedMaterial.SetTexture("_NoiseTex", noiseTexture);
-            meshRenderer.sharedMaterial.SetTexture("_TFTex", tfTexture);
 
             meshRenderer.sharedMaterial.EnableKeyword("MODE_DVR");
             meshRenderer.sharedMaterial.DisableKeyword("MODE_MIP");

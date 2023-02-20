@@ -1,3 +1,4 @@
+using itk.simple;
 using Microsoft.MixedReality.Toolkit.Experimental.UI;
 using Microsoft.MixedReality.Toolkit.UI;
 using QFSW.QC;
@@ -14,20 +15,22 @@ using UnityVolumeRendering;
 using RenderMode = UnityVolumeRendering.RenderMode;
 
 [CommandPrefix(".")]
-public class VolumeDataControl : MonoBehaviour
+public class VolumeDataControl : MonoBehaviour,IQcSuggestor
 {
     [SerializeField] VolumeRenderedObject _volumeData;
     [SerializeField] InteractableToggleCollection _renderModes;
     [SerializeField] MeshRenderer _blackPlaneRenderer;
-    //[SerializeField] QuantumConsole _quantumConsole;
-    //[SerializeField] TMP_InputField _consoleInputField;
     [SerializeField] GameObject _volumetricDataMainParentObject;
     [SerializeField] GameObject _slicingPlaneObject;
-    [SerializeField] SliderIntervalUpdater _sliderIntervalUpdater;
+    [SerializeField] SliderIntervalUpdater _sliderIntervalUpdater1;
+    [SerializeField] SliderIntervalUpdater _sliderIntervalUpdater2;
+    [SerializeField] GameObject _secondSliderCheckbox;
 
+
+    ErrorNotifier _errorNotifier;
     bool _showCutPlane = false;
     bool _useCubicInterpolation = false;
-    bool _consoleOpened = false;
+    bool _showSecondSlider = false;
     Vector3 _startLocalPosition;
     Vector3 _startLocalRotation;
     Vector3 _startLocalScale;
@@ -36,106 +39,83 @@ public class VolumeDataControl : MonoBehaviour
     Vector3 _startLocalPlaneRotation;
     Vector3 _startLocalPlaneScale;
 
+    static List<string> _2DTF;
+    static List<string> _1DTF;
+
     string filePath;            
-    string transferFunctionPath;
-    string transferFunction2DPath;
-    TransferFunction transferFunction;
-    TransferFunction2D transferFunction2D;
+
     VolumeRenderedObject volumeRenderedObject;
+
 
     private void Start()
     {
-        //Uncomment in build
-        filePath = "Data/Dicom/Segmentation.nrrd";        //complete path when loading nrrd for load with itk library, folder path when loading dicom multiple files
-        transferFunctionPath = "Data/Transfer/default.tf";
-        transferFunction2DPath = "Data/Transfer/default.tf2d";
+        _errorNotifier=FindObjectOfType<ErrorNotifier>();
 
-        //Uncomment in editor
-        //filePath = Application.dataPath + "/TempDicom/Segmentation.nrrd";       //complete path when loading nrrd for load with itk library, folder path when loading dicom multiple files
-        //transferFunctionPath = Application.dataPath + "/TempTransferFunction/default.tf";
-        //transferFunction2DPath = Application.dataPath + "/TempTransferFunction/default.tf2d";
+        LoadDicomDataPath(Application.streamingAssetsPath + "/DicomData/");
+        LoadTFDataPath(Application.streamingAssetsPath + "/TransferFunctions/");
 
-        _sliderIntervalUpdater.OnIntervaSliderValueChanged += UpdateIsoRanges;
-
-        //#if ENABLE_WINMD_SUPPORT
-        //            filePath = Windows.Storage.KnownFolders.DocumentsLibrary.Path+"\\DICOM\\";
-        //            transferFunctionPath=Windows.Storage.KnownFolders.DocumentsLibrary.Path+"\\TRANSFERFC\\default.tf";
-        //#endif
-        //        
-        //
-        transferFunction = TransferFunctionDatabase.LoadTransferFunction(transferFunctionPath);
-        transferFunction2D = TransferFunctionDatabase.LoadTransferFunction2D(transferFunction2DPath);
-
-
+        _sliderIntervalUpdater1.OnIntervaSliderValueChanged += UpdateIsoRanges;
+        _sliderIntervalUpdater2.OnIntervaSliderValueChanged += UpdateIsoRanges;
 
         volumeRenderedObject = _volumetricDataMainParentObject.GetComponent<VolumeRenderedObject>();
-
-
-        //NonNativeKeyboard.Instance.OnTextUpdated += ConsoleTextUpdate;
-
-
 
         SimpleITKImageFileImporter imp = new SimpleITKImageFileImporter();                      //QUICK LOAD WITH THIS LOADER, ONLY WORKS ON FEW PLATFORMS AND DOESNT WORK ON HOLOLENS
         VolumeDataset dataset = imp.Import(filePath);
         if (dataset != null)
         {
-            VolumeObjectFactory.FillObjectWithDatasetData(dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject, transferFunction);      //Long load
+            VolumeObjectFactory.FillObjectWithDatasetData(dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject);      //Long load
         }
 
-        SetTransferFunction(true);
-       
+
+        if (_1DTF.Count > 0)
+            SetTransferFunction(_1DTF[0]);
+        else if (_2DTF.Count > 0)
+            SetTransferFunction(_2DTF[0]);
+        else
+            _errorNotifier.ShowErrorMessageToUser("No transfer function found. Create and paste atleast one transfer functions in /TransferFunctionsFolder");
+
+
         volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneObject);
-
-
-        //LOADING DICOM ON HOLOLENS (.dcm files
-
-        //ImageSequenceFormat imgSeqFormat = ImageSequenceFormat.DICOM;
-        //IEnumerable<string> fileCandidates = Directory.EnumerateFiles(filePath, "*.*", SearchOption.TopDirectoryOnly).Where(p => p.EndsWith(".nrrd", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicom", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicm", StringComparison.InvariantCultureIgnoreCase));
-        // if (fileCandidates.Any())                                                                             
-        // {
-        //     //IImageSequenceImporter importer = ImporterFactory.CreateImageSequenceImporter(imgSeqFormat);
-        //     SimpleITKImageSequenceImporter importer = new SimpleITKImageSequenceImporter();                     //Using ITK loader only on supported platforms
-        //     IEnumerable<IImageSequenceSeries> seriesList = importer.LoadSeries(fileCandidates);                 //Long load
-        //     float numVolumesCreated = 0;
-        //
-        //     foreach (IImageSequenceSeries series in seriesList)
-        //     {
-        //         SimpleITKImageFileImporter imp = new SimpleITKImageFileImporter();
-        //         VolumeDataset dataset=imp.Import(filePath);
-        //         //VolumeDataset dataset = importer.ImportSeries(series);                                          //Long load
-        //         if (dataset != null)
-        //         {
-        //             VolumeObjectFactory.FillObjectWithDatasetData(dataset, _volumetricDataMainParentObject,_volumetricDataMainParentObject.transform.GetChild(0).gameObject,transferFunction);      //Long load
-        //             numVolumesCreated++;
-        //         }
-        //     }
-        //   
-        // }
-        // else
-        //     Debug.LogError("Could not find any DICOM files to import.");
     
         ResetInitialPosition();
         UpdateIsoRanges();
     }
 
     [Command]
-    public void SetTransferFunction(bool singleDimension)
+    public void SetTransferFunction(string tfName)
     {
-        if(singleDimension)
+        if (_1DTF.Contains(tfName))
         {
+            TransferFunction transferFunction = TransferFunctionDatabase.LoadTransferFunction(tfName);
+
             volumeRenderedObject.SetTransferFunction(transferFunction);
             volumeRenderedObject.SetTransferFunctionMode(TFRenderMode.TF1D);
         }
+        else if (_2DTF.Contains(tfName))
+        {
+            TransferFunction2D transferFunction = TransferFunctionDatabase.LoadTransferFunction2D(tfName);
+
+            volumeRenderedObject.SetTransferFunction2D(transferFunction);
+            volumeRenderedObject.SetTransferFunctionMode(TFRenderMode.TF2D);
+        }
         else
         {
-            volumeRenderedObject.SetTransferFunction2D(transferFunction2D);
-            volumeRenderedObject.SetTransferFunctionMode(TFRenderMode.TF2D);
-        }   
+            _errorNotifier.ShowErrorMessageToUser("Wrong TF name, try to use the suggestor");
+        }
     }
+   
     public void UpdateIsoRanges()
     {
-        _sliderIntervalUpdater.GetSliderValues(out float firstVal,out float secondVal);
-        _volumeData.SetVisibilityWindow(firstVal,secondVal);
+        _sliderIntervalUpdater1.GetSliderValues(out float minVal1,out float maxVal1);
+        if (!_showSecondSlider)
+        {
+            _volumeData.SetVisibilityWindow(minVal1, maxVal1, 0, 0);
+        }
+        else
+        {
+            _sliderIntervalUpdater2.GetSliderValues(out float minVal2, out float maxVal2);
+            _volumeData.SetVisibilityWindow(minVal1, maxVal1, minVal2, maxVal2);
+        } 
     }
     public void RenderingModeUpdated()
     {
@@ -160,6 +140,66 @@ public class VolumeDataControl : MonoBehaviour
         _useCubicInterpolation = !_useCubicInterpolation;
         _volumeData.SetCubicInterpolationEnabled(_useCubicInterpolation);
     }
+    public void ShowSecondSliderChange()
+    {
+        _showSecondSlider= !_showSecondSlider;
+
+        if (_showSecondSlider)
+        {
+            _sliderIntervalUpdater2.gameObject.SetActive(true);
+            Vector3 tmp = _secondSliderCheckbox.transform.localPosition;
+            tmp.y = 1f;
+
+            _secondSliderCheckbox.transform.localPosition = tmp;
+        }
+        else
+        {
+            _sliderIntervalUpdater2.gameObject.SetActive(false);
+
+            Vector3 tmp = _secondSliderCheckbox.transform.localPosition;
+            tmp.y = 1.2f;
+
+            _secondSliderCheckbox.transform.localPosition = tmp;
+        }
+
+        UpdateIsoRanges();
+    }
+    public void LoadDicomDataPath(string dicomFolderPath)
+    {      
+        List<string> dicomFilesCandidates = Directory.GetFiles(dicomFolderPath).ToList();
+
+        dicomFilesCandidates.RemoveAll(x => x.EndsWith(".meta"));
+
+        if (dicomFilesCandidates.Count > 1)
+        {
+            if (dicomFilesCandidates[0].EndsWith(".jpg") || dicomFilesCandidates[0].EndsWith(".dcm"))
+                filePath = dicomFolderPath;
+            else
+                _errorNotifier.ShowErrorMessageToUser("DICOM folder contains multiple datasets, it must contain single dataset at runtime!");
+        }
+        else
+        {
+            filePath = dicomFilesCandidates[0];
+        }
+    }
+    public void LoadTFDataPath(string transferFunctionFolderPath)
+    {
+        _1DTF = new List<string>();
+        _2DTF= new List<string>();
+
+        List<string> dicomFilesCandidates = Directory.GetFiles(transferFunctionFolderPath).ToList();
+
+        dicomFilesCandidates.RemoveAll(x => x.EndsWith(".meta"));
+
+
+        foreach (string i in dicomFilesCandidates)
+        {
+            if (i.EndsWith("tf"))
+                _1DTF.Add(i);
+            else if (i.EndsWith("tf2d"))
+                _2DTF.Add(i);
+        }
+    }
     public void ShowCutPlane()
     {
         _showCutPlane = !_showCutPlane;
@@ -177,34 +217,7 @@ public class VolumeDataControl : MonoBehaviour
         _slicingPlaneObject.transform.localRotation= Quaternion.Euler(_startLocalPlaneRotation);
         _slicingPlaneObject.transform.localScale = _startLocalPlaneScale;
     }
-    //public void OpenConsole()
-    //{
-    //    _consoleOpened = !_consoleOpened;
-    //    
-    //
-    //    if (_consoleOpened)
-    //    {
-    //        _quantumConsole.Activate(true);
-    //        NonNativeKeyboard.Instance.PresentKeyboard("");
-    //    }
-    //    else
-    //    {
-    //        _quantumConsole.Deactivate();
-    //        NonNativeKeyboard.Instance.Close();
-    //
-    //    }
-    //}
-    //private void Update()
-    //{
-    //    if(Input.GetKeyDown(KeyCode.F1))
-    //    {
-    //        OpenConsole();
-    //    }
-    //}
-    //public void ConsoleTextUpdate(string text)
-    //{
-    //    _consoleInputField.text =text;
-    //}
+
     private void ResetInitialPosition()
     {
         _startLocalPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, transform.localPosition.z);
@@ -214,5 +227,16 @@ public class VolumeDataControl : MonoBehaviour
         _startLocalPlanePosition = new Vector3(_slicingPlaneObject.transform.localPosition.x, _slicingPlaneObject.transform.localPosition.y, _slicingPlaneObject.transform.localPosition.z);
         _startLocalPlaneRotation = new Vector3(_slicingPlaneObject.transform.localRotation.eulerAngles.x, _slicingPlaneObject.transform.localRotation.eulerAngles.y, _slicingPlaneObject.transform.localRotation.eulerAngles.z);
         _startLocalPlaneScale = new Vector3(_slicingPlaneObject.transform.localScale.x, _slicingPlaneObject.transform.localScale.y, _slicingPlaneObject.transform.localScale.z);
+    }
+
+    public IEnumerable<IQcSuggestion> GetSuggestions(SuggestionContext context, SuggestorOptions options)
+    {
+        if(context.TargetType==typeof(string))
+        {
+            foreach (string i in _1DTF)
+                yield return new RawSuggestion(i);
+            foreach (string i in _2DTF)
+                yield return new RawSuggestion(i);
+        }
     }
 }

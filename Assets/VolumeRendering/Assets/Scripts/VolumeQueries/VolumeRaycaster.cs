@@ -55,9 +55,11 @@ namespace UnityVolumeRendering
 
             // Calculate min/max data values (use for normalising data values later).
             VolumeDataset dataset = volumeObject.dataset;
-            Vector2 visibilityWindow = volumeObject.GetVisibilityWindow();
-            float minValue = Mathf.Lerp(dataset.GetMinDataValue(), dataset.GetMaxDataValue(), visibilityWindow.x);
-            float maxValue = Mathf.Lerp(dataset.GetMinDataValue(), dataset.GetMaxDataValue(), visibilityWindow.y);
+            Vector4 visibilityWindow = volumeObject.GetVisibilityWindow();
+            float minValue1 = Mathf.Lerp(dataset.GetMinDataValue(), dataset.GetMaxDataValue(), visibilityWindow.x);
+            float maxValue1 = Mathf.Lerp(dataset.GetMinDataValue(), dataset.GetMaxDataValue(), visibilityWindow.y);
+            float minValue2 = Mathf.Lerp(dataset.GetMinDataValue(), dataset.GetMaxDataValue(), visibilityWindow.z);
+            float maxValue2 = Mathf.Lerp(dataset.GetMinDataValue(), dataset.GetMaxDataValue(), visibilityWindow.w);
             // Convert ray to local space coordinates.
             Ray localRay = worldSpaceRay;
             localRay.origin = volumeObject.transform.InverseTransformPoint(worldSpaceRay.origin);
@@ -86,7 +88,7 @@ namespace UnityVolumeRendering
                     // Normalise to 0.0-1.0 (TF uses normalised scale)
                     float normalisedValue = Mathf.InverseLerp(dataset.GetMinDataValue(), dataset.GetMaxDataValue(), value);
                     // Check if value is within visibility window, and TF gives us a visible colour.
-                    if (value >= minValue && value <= maxValue && volumeObject.transferFunction.GetColour(normalisedValue).a > 0.0f)
+                    if (((value >= minValue1 && value <= maxValue1)||(value >= minValue2 && value <= maxValue2)) && volumeObject.transferFunction.GetColour(normalisedValue).a > 0.0f)
                     {
                         hit.point = volumeObject.transform.TransformPoint(position);
                         hit.distance = (worldSpaceRay.origin - volumeObject.transform.TransformPoint(position)).magnitude;

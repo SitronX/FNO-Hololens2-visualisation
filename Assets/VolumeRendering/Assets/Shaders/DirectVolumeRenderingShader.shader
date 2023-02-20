@@ -6,8 +6,10 @@
         _GradientTex("Gradient Texture (Generated)", 3D) = "" {}
         _NoiseTex("Noise Texture (Generated)", 2D) = "white" {}
         _TFTex("Transfer Function Texture (Generated)", 2D) = "" {}
-        _MinVal("Min val", Range(0.0, 1.0)) = 0.0
-        _MaxVal("Max val", Range(0.0, 1.0)) = 1.0
+        _Min1Val("Min1 val", Range(0.0, 1.0)) = 0.0
+        _Max1Val("Max1 val", Range(0.0, 1.0)) = 1.0
+        _Min2Val("Min2 val", Range(0.0, 1.0)) = 0.0
+        _Max2Val("Max2 val", Range(0.0, 1.0)) = 1.0
         _stepNumber("Step number",int)=512
     }
     SubShader
@@ -70,8 +72,10 @@
             sampler2D _NoiseTex;
             sampler2D _TFTex;
 
-            float _MinVal;
-            float _MaxVal;
+            float _MinVal1;
+            float _MaxVal1;
+            float _MinVal2;
+            float _MaxVal2;
             float3 _TextureSize;
             int _stepNumber;
 
@@ -315,7 +319,10 @@
                     const float density = getDensity(currPos);
 
                     // Apply visibility window
-                    if (density < _MinVal || density > _MaxVal) continue;
+                    if (density < _MinVal1 || density > _MaxVal1)
+                        if (density < _MinVal2 || density > _MaxVal2)
+                            continue;
+                    
 
                     // Calculate gradient (needed for lighting and 2D transfer functions)
 #if defined(TF2D_ON) || defined(LIGHTING_ON)
@@ -392,7 +399,7 @@
 #endif
 
                     const float density = getDensity(currPos);
-                    if (density > maxDensity && density > _MinVal && density < _MaxVal)
+                    if (density > maxDensity &&(( density > _MinVal1 && density < _MaxVal1)|| (density > _MinVal2 && density < _MaxVal2)))
                     {
                         maxDensity = density;
                         maxDensityPos = currPos;
@@ -432,7 +439,7 @@
 #endif
 
                     const float density = getDensity(currPos);
-                    if (density > _MinVal && density < _MaxVal)
+                    if ((density > _MinVal1 && density < _MaxVal1)|| (density > _MinVal2 && density < _MaxVal2))
                     {
                         float3 normal = normalize(getGradient(currPos));
                         col = getTF1DColour(density);

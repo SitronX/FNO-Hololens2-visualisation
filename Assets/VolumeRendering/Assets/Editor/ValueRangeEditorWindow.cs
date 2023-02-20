@@ -22,7 +22,7 @@ namespace UnityVolumeRendering
 
             EditorGUILayout.LabelField("Edit the visible value range (min/max value) with the slider.");
 
-            Vector2 visibilityWindow = volRendObject.GetVisibilityWindow();
+            Vector4 visibilityWindow = volRendObject.GetVisibilityWindow();
 
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.MinMaxSlider("Visible value range", ref visibilityWindow.x, ref visibilityWindow.y, 0.0f, 1.0f);

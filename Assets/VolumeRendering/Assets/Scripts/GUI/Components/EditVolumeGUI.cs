@@ -64,7 +64,7 @@ namespace UnityVolumeRendering
                 // Visibility window
                 GUILayout.Label("Visibility window (min - max visible values)");
                 GUILayout.BeginHorizontal();
-                Vector2 visibilityWindow = targetObject.GetVisibilityWindow();
+                Vector4 visibilityWindow = targetObject.GetVisibilityWindow();
                 GUILayout.Label("min:");
                 visibilityWindow.x = GUILayout.HorizontalSlider(visibilityWindow.x, 0.0f, visibilityWindow.y, GUILayout.Width(150.0f));
                 GUILayout.Label("max:");

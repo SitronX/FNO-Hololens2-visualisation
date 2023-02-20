@@ -27,7 +27,8 @@ namespace UnityVolumeRendering
         private LightSource lightSource;
 
         [SerializeField, HideInInspector]
-        private Vector2 visibilityWindow = new Vector2(0.0f, 1.0f);
+        private Vector4 visibilityWindow = new Vector4(0.0f, 1.0f,0,0);
+
         [SerializeField, HideInInspector]
         private bool rayTerminationEnabled = true;
         [SerializeField, HideInInspector]
@@ -79,7 +80,7 @@ namespace UnityVolumeRendering
             if (renderMode != mode)
             {
                 renderMode = mode;
-                SetVisibilityWindow(0.0f, 1.0f); // reset visibility window
+                SetVisibilityWindow(0.0f, 1.0f,0,0); // reset visibility window
             }
             UpdateMaterialProperties();
         }
@@ -138,12 +139,12 @@ namespace UnityVolumeRendering
             UpdateMaterialProperties();
         }
 
-        public void SetVisibilityWindow(float min, float max)
+        public void SetVisibilityWindow(float min1, float max1,float min2,float max2)
         {
-            SetVisibilityWindow(new Vector2(min, max));
+            SetVisibilityWindow(new Vector4(min1, max1,min2,max2));
         }
 
-        public void SetVisibilityWindow(Vector2 window)
+        public void SetVisibilityWindow(Vector4 window)
         {
             if (window != visibilityWindow)
             {
@@ -152,7 +153,7 @@ namespace UnityVolumeRendering
             }
         }
 
-        public Vector2 GetVisibilityWindow()
+        public Vector4 GetVisibilityWindow()
         {
             return visibilityWindow;
         }
@@ -202,12 +203,12 @@ namespace UnityVolumeRendering
         public void SetTransferFunction(TransferFunction tf)
         {
             this.transferFunction = tf;
-            UpdateMaterialProperties();
+            //UpdateMaterialProperties();
         }
         public void SetTransferFunction2D(TransferFunction2D tf)
         {
             this.transferFunction2D = tf;
-            UpdateMaterialProperties();
+            //UpdateMaterialProperties();
         }
 
         private void UpdateMaterialProperties()
@@ -261,8 +262,10 @@ namespace UnityVolumeRendering
                     }
             }
 
-            meshRenderer.sharedMaterial.SetFloat("_MinVal", visibilityWindow.x);
-            meshRenderer.sharedMaterial.SetFloat("_MaxVal", visibilityWindow.y);
+            meshRenderer.sharedMaterial.SetFloat("_MinVal1", visibilityWindow.x);
+            meshRenderer.sharedMaterial.SetFloat("_MaxVal1", visibilityWindow.y);
+            meshRenderer.sharedMaterial.SetFloat("_MinVal2", visibilityWindow.z);
+            meshRenderer.sharedMaterial.SetFloat("_MaxVal2", visibilityWindow.w);
             meshRenderer.sharedMaterial.SetVector("_TextureSize", new Vector3(dataset.dimX, dataset.dimY, dataset.dimZ));
 
             if (rayTerminationEnabled)
