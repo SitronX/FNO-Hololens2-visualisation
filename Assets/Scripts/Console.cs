@@ -1,3 +1,4 @@
+using Microsoft.MixedReality.OpenXR.BasicSample;
 using Microsoft.MixedReality.SampleQRCodes;
 using Microsoft.MixedReality.Toolkit;
 using Microsoft.MixedReality.Toolkit.Experimental.UI;
@@ -11,7 +12,7 @@ using System.Linq;
 using UnityEngine;
 
 [CommandPrefix(".")]
-public class Console : MonoBehaviour
+public class Console : MonoBehaviour, IQcSuggestor
 {
     [SerializeField] QRCodesManager _qrCodeManager;
     [SerializeField] QuantumConsole _quantumConsole;
@@ -83,5 +84,31 @@ public class Console : MonoBehaviour
     public void Quality(int numberOfSteps)
     {
         GameObject.FindGameObjectWithTag("VolumeObject").GetComponent<MeshRenderer>().sharedMaterial.SetInt("_stepNumber", numberOfSteps);
+    }
+    [Command]
+    public void Disconnect()
+    {
+        FindObjectOfType<AppRemotingSample>().OnDisconnectButtonPressed();
+    }
+    [Command]
+    public void SetTransferFunction(string tf)
+    {
+        FindObjectOfType<VolumeDataControl>().SetTransferFunction(tf);
+    }
+    [Command]
+    public void ResetObjectTransform()
+    {
+        FindObjectOfType<VolumeDataControl>().ResetObjectTransform();
+    }
+
+    public IEnumerable<IQcSuggestion> GetSuggestions(SuggestionContext context, SuggestorOptions options)
+    {
+        if (context.TargetType == typeof(string))
+        {
+            foreach (string i in VolumeDataControl.TF1D)
+                yield return new RawSuggestion(i);
+            foreach (string i in VolumeDataControl.TF2D)
+                yield return new RawSuggestion(i);
+        }
     }
 }

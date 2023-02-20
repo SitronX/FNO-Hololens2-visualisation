@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using Microsoft.MixedReality.OpenXR.Remoting;
-using QFSW.QC;
 using QRTracking;
 using System.Collections.Generic;
 using System.Net;
@@ -14,7 +13,6 @@ using UnityEngine.XR;
 
 namespace Microsoft.MixedReality.OpenXR.BasicSample
 {
-    [CommandPrefix(".")]
     /// <summary>
     /// Helper script for automatically connecting an OpenXR app to a specific remote device.
     /// </summary>
@@ -204,7 +202,6 @@ namespace Microsoft.MixedReality.OpenXR.BasicSample
         }
 
         // Disconnects from the remote session.
-        [Command("Disconnect")]
         public void OnDisconnectButtonPressed()
         {
             Remoting.AppRemoting.Disconnect();

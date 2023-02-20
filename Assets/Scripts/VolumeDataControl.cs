@@ -1,7 +1,6 @@
 using itk.simple;
 using Microsoft.MixedReality.Toolkit.Experimental.UI;
 using Microsoft.MixedReality.Toolkit.UI;
-using QFSW.QC;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,8 +13,7 @@ using UnityEngine.InputSystem;
 using UnityVolumeRendering;
 using RenderMode = UnityVolumeRendering.RenderMode;
 
-[CommandPrefix(".")]
-public class VolumeDataControl : MonoBehaviour,IQcSuggestor
+public class VolumeDataControl : MonoBehaviour
 {
     [SerializeField] VolumeRenderedObject _volumeData;
     [SerializeField] InteractableToggleCollection _renderModes;
@@ -39,8 +37,8 @@ public class VolumeDataControl : MonoBehaviour,IQcSuggestor
     Vector3 _startLocalPlaneRotation;
     Vector3 _startLocalPlaneScale;
 
-    static List<string> _2DTF;
-    static List<string> _1DTF;
+    public static List<string> TF2D { get; set; } = new List<string>();
+    public static List<string> TF1D { get; set; } = new List<string>();
 
     string filePath;            
 
@@ -67,10 +65,10 @@ public class VolumeDataControl : MonoBehaviour,IQcSuggestor
         }
 
 
-        if (_1DTF.Count > 0)
-            SetTransferFunction(_1DTF[0]);
-        else if (_2DTF.Count > 0)
-            SetTransferFunction(_2DTF[0]);
+        if (TF1D.Count > 0)
+            SetTransferFunction(TF1D[0]);
+        else if (TF2D.Count > 0)
+            SetTransferFunction(TF2D[0]);
         else
             _errorNotifier.ShowErrorMessageToUser("No transfer function found. Create and paste atleast one transfer functions in /TransferFunctionsFolder");
 
@@ -81,17 +79,17 @@ public class VolumeDataControl : MonoBehaviour,IQcSuggestor
         UpdateIsoRanges();
     }
 
-    [Command]
+    
     public void SetTransferFunction(string tfName)
     {
-        if (_1DTF.Contains(tfName))
+        if (TF1D.Contains(tfName))
         {
             TransferFunction transferFunction = TransferFunctionDatabase.LoadTransferFunction(tfName);
 
             volumeRenderedObject.SetTransferFunction(transferFunction);
             volumeRenderedObject.SetTransferFunctionMode(TFRenderMode.TF1D);
         }
-        else if (_2DTF.Contains(tfName))
+        else if (TF2D.Contains(tfName))
         {
             TransferFunction2D transferFunction = TransferFunctionDatabase.LoadTransferFunction2D(tfName);
 
@@ -184,8 +182,8 @@ public class VolumeDataControl : MonoBehaviour,IQcSuggestor
     }
     public void LoadTFDataPath(string transferFunctionFolderPath)
     {
-        _1DTF = new List<string>();
-        _2DTF= new List<string>();
+        TF1D = new List<string>();
+        TF2D = new List<string>();
 
         List<string> dicomFilesCandidates = Directory.GetFiles(transferFunctionFolderPath).ToList();
 
@@ -195,9 +193,9 @@ public class VolumeDataControl : MonoBehaviour,IQcSuggestor
         foreach (string i in dicomFilesCandidates)
         {
             if (i.EndsWith("tf"))
-                _1DTF.Add(i);
+                TF1D.Add(i);
             else if (i.EndsWith("tf2d"))
-                _2DTF.Add(i);
+                TF2D.Add(i);
         }
     }
     public void ShowCutPlane()
@@ -206,7 +204,7 @@ public class VolumeDataControl : MonoBehaviour,IQcSuggestor
 
         _blackPlaneRenderer.enabled = _showCutPlane;
     }
-    [Command]
+    
     public void ResetObjectTransform()
     {
         transform.localPosition = _startLocalPosition;
@@ -229,14 +227,4 @@ public class VolumeDataControl : MonoBehaviour,IQcSuggestor
         _startLocalPlaneScale = new Vector3(_slicingPlaneObject.transform.localScale.x, _slicingPlaneObject.transform.localScale.y, _slicingPlaneObject.transform.localScale.z);
     }
 
-    public IEnumerable<IQcSuggestion> GetSuggestions(SuggestionContext context, SuggestorOptions options)
-    {
-        if(context.TargetType==typeof(string))
-        {
-            foreach (string i in _1DTF)
-                yield return new RawSuggestion(i);
-            foreach (string i in _2DTF)
-                yield return new RawSuggestion(i);
-        }
-    }
 }
