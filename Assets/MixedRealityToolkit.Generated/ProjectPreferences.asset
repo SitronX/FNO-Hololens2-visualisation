@@ -19,7 +19,7 @@ MonoBehaviour:
     - _MixedRealityToolkit_Editor_AutoEnableUWPCapabilities
     - _MixedRealityToolkit_Editor_LockProfiles
     - MixedRealityToolkit_Editor_NullDataProviders
-    values: 0001010100
+    values: 0101010100
   intPreferences:
     keys:
     - _MixedRealityToolkit_Editor_ConfiguratorState

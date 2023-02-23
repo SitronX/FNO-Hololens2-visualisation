@@ -11,6 +11,7 @@ public class CuttingModelManager : MonoBehaviour
     List<SliceData> _segments = new List<SliceData>();
     [SerializeField] GameObject _slicingPlaneObject;
     [SerializeField] GameObject _alphaSliderPrefab;
+    [SerializeField] GameObject _alphaSliderContainer;
 
     Vector3 _startLocalPosition;
     Vector3 _startLocalRotation;
@@ -62,9 +63,11 @@ public class CuttingModelManager : MonoBehaviour
             data.originalObject = current;
             _segments.Add(data);
 
-            GameObject alphaSlider = Instantiate(_alphaSliderPrefab, transform.parent.transform.parent);
+            GameObject alphaSlider = Instantiate(_alphaSliderPrefab, _alphaSliderContainer.transform);
 
-            alphaSlider.transform.localPosition = new Vector3(0,0.045f+ (0.033f * i), 0);
+            alphaSlider.transform.localPosition = new Vector3(19.5f,3.2f- (0.15f * i), 5);
+            alphaSlider.transform.localRotation = Quaternion.Euler(new Vector3(0, -90, 0));
+
             alphaSlider.GetComponent<AlphaMat>().MainMaterial=currentSlice.sliceOptions.insideMaterial;
 
             ResetInitialPosition();
