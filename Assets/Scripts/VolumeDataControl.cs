@@ -27,10 +27,8 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] TMP_Text _raymarchStepsLabel;
 
     ErrorNotifier _errorNotifier;
-    bool _showCutPlane = false;
-    bool _useCubicInterpolation = false;
+
     bool _showSecondSlider = false;
-    bool _useLightning = false;
     Vector3 _startLocalPosition;
     Vector3 _startLocalRotation;
     Vector3 _startLocalScale;
@@ -104,12 +102,10 @@ public class VolumeDataControl : MonoBehaviour
     
         ResetInitialPosition();
         UpdateIsoRanges();
-        UpdateLighting();
-    }
-    private void Awake()
-    {
+
         DatasetSpawned?.Invoke(this);
     }
+
     private void OnDestroy()
     {
         DatasetDespawned?.Invoke(this);
@@ -152,13 +148,15 @@ public class VolumeDataControl : MonoBehaviour
     }
     public void UpdateRenderingMode(RenderMode renderMode)
     {
-        _volumeData.SetRenderMode(renderMode);
-        UpdateIsoRanges();
+        if(renderMode!=_volumeData.GetRenderMode())
+        {
+            _volumeData.SetRenderMode(renderMode);
+            UpdateIsoRanges();
+        }    
     }
-    public void UpdateCubicInterpolation()
+    public void UpdateCubicInterpolation(bool value)
     {
-        _useCubicInterpolation = !_useCubicInterpolation;
-        _volumeData.SetCubicInterpolationEnabled(_useCubicInterpolation);
+        _volumeData.SetCubicInterpolationEnabled(value);
     }
     public void ShowSecondSliderChange()
     {
@@ -188,11 +186,9 @@ public class VolumeDataControl : MonoBehaviour
     {
         _volumeMesh.sharedMaterial.SetInt("_stepNumber", value);
     }
-    public void UpdateLighting()
+    public void UpdateLighting(bool value)
     {
-        _useLightning= !_useLightning;
-
-        _volumeData.SetLightingEnabled(_useLightning);
+        _volumeData.SetLightingEnabled(value);
     }
     public void LoadDicomDataPath(string dicomFolderPath)
     {      
@@ -235,11 +231,9 @@ public class VolumeDataControl : MonoBehaviour
                 TF2D.Add(i);
         }
     }
-    public void UpdateSlicePlane()
+    public void UpdateSlicePlane(bool value)
     {
-        _showCutPlane = !_showCutPlane;
-
-        _blackPlaneRenderer.enabled = _showCutPlane;
+        _blackPlaneRenderer.enabled = value;
     }
     
     public void ResetObjectTransform()

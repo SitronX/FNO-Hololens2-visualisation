@@ -1088,6 +1088,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: CubicSwitch
       objectReference: {fileID: 0}
+    - target: {fileID: 1850867357197028, guid: a0dc4a34875700c4aba845405dc43a89, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4938574377845388, guid: a0dc4a34875700c4aba845405dc43a89, type: 3}
       propertyPath: m_RootOrder
       value: 8
@@ -1279,6 +1283,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: RadialSet
       objectReference: {fileID: 0}
+    - target: {fileID: 1856622667495492, guid: 8b83134143223104c9bc3865a565cab3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4894033903586032, guid: 8b83134143223104c9bc3865a565cab3, type: 3}
       propertyPath: m_RootOrder
       value: 5
@@ -1403,6 +1411,10 @@ PrefabInstance:
     - target: {fileID: 1850867357197028, guid: a0dc4a34875700c4aba845405dc43a89, type: 3}
       propertyPath: m_Name
       value: UseLight
+      objectReference: {fileID: 0}
+    - target: {fileID: 1850867357197028, guid: a0dc4a34875700c4aba845405dc43a89, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4938574377845388, guid: a0dc4a34875700c4aba845405dc43a89, type: 3}
       propertyPath: m_RootOrder
@@ -1718,6 +1730,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlaneSwitch
       objectReference: {fileID: 0}
+    - target: {fileID: 1850867357197028, guid: a0dc4a34875700c4aba845405dc43a89, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4938574377845388, guid: a0dc4a34875700c4aba845405dc43a89, type: 3}
       propertyPath: m_RootOrder
       value: 7
@@ -1911,6 +1927,10 @@ PrefabInstance:
     - target: {fileID: 7307063430618434862, guid: 1093263a89abe47499cccf7dcb08effb, type: 3}
       propertyPath: m_Name
       value: RaymarchQualitySlider
+      objectReference: {fileID: 0}
+    - target: {fileID: 7307063430618434862, guid: 1093263a89abe47499cccf7dcb08effb, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1093263a89abe47499cccf7dcb08effb, type: 3}

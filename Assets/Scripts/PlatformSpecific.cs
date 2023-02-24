@@ -16,18 +16,25 @@ public class PlatformSpecific : MonoBehaviour
     [SerializeField] GameObject _volumeObjectPrefab;
     [SerializeField] GameObject _qrCodeManager;
     [SerializeField] Material _skyboxMaterial;
+    [SerializeField] GameObject _hololensHandMenu;
+    [SerializeField] GameObject _vrControllerMenu;
+    [SerializeField] GameObject _vrNecessary;
 
     private void Awake()
     {
         if(_targetPlatform==TargetPlatform.Hololens2)
         {
+            _hololensHandMenu.SetActive(true);
             _remotingObject.SetActive(true);
             _qrCodeManager.SetActive(true);
         }
         else if(_targetPlatform== TargetPlatform.PCVR)
         {
+            _vrNecessary.SetActive(true);
+            _vrControllerMenu.SetActive(true);
+
             RenderSettings.skybox = _skyboxMaterial;
-            Instantiate(_volumeObjectPrefab, new Vector3(6,1.2f,1.5f), Quaternion.Euler(new Vector3(0,-180,0)));
+            Instantiate(_volumeObjectPrefab, new Vector3(6.5f,0.5f,2f), Quaternion.Euler(new Vector3(0,-180,0)));
         }
     }
 }
