@@ -23,7 +23,8 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] SliderIntervalUpdater _sliderIntervalUpdater1;
     [SerializeField] SliderIntervalUpdater _sliderIntervalUpdater2;
     [SerializeField] GameObject _secondSliderCheckbox;
-
+    [SerializeField] MeshRenderer _volumeMesh;
+    [SerializeField] TMP_Text _raymarchStepsLabel;
 
     ErrorNotifier _errorNotifier;
     bool _showCutPlane = false;
@@ -39,6 +40,9 @@ public class VolumeDataControl : MonoBehaviour
     Vector3 _startLocalPlaneScale;
 
     bool _isImageSequence = false;
+
+    public static Action<VolumeDataControl> DatasetSpawned { get; set; }
+    public static Action<VolumeDataControl> DatasetDespawned { get; set; }
 
     public static List<string> TF2D { get; set; } = new List<string>();
     public static List<string> TF1D { get; set; } = new List<string>();
@@ -100,10 +104,17 @@ public class VolumeDataControl : MonoBehaviour
     
         ResetInitialPosition();
         UpdateIsoRanges();
-        UpdateLightning();
+        UpdateLighting();
+    }
+    private void Awake()
+    {
+        DatasetSpawned?.Invoke(this);
+    }
+    private void OnDestroy()
+    {
+        DatasetDespawned?.Invoke(this);
     }
 
-    
     public void SetTransferFunction(string tfName)
     {
         if (TF1D.Contains(tfName))
@@ -139,25 +150,12 @@ public class VolumeDataControl : MonoBehaviour
             _volumeData.SetVisibilityWindow(minVal1, maxVal1, minVal2, maxVal2);
         } 
     }
-    public void RenderingModeUpdated()
+    public void UpdateRenderingMode(RenderMode renderMode)
     {
-        if (_renderModes.CurrentIndex == 0)
-        {
-            _volumeData.SetRenderMode(RenderMode.DirectVolumeRendering);
-            UpdateIsoRanges();
-        }
-        else if (_renderModes.CurrentIndex == 1)
-        {
-            _volumeData.SetRenderMode(RenderMode.MaximumIntensityProjectipon);
-            UpdateIsoRanges();
-        }
-        else if (_renderModes.CurrentIndex == 2)
-        {
-            _volumeData.SetRenderMode(RenderMode.IsosurfaceRendering);
-            UpdateIsoRanges();
-        }
+        _volumeData.SetRenderMode(renderMode);
+        UpdateIsoRanges();
     }
-    public void ChangeQuality()
+    public void UpdateCubicInterpolation()
     {
         _useCubicInterpolation = !_useCubicInterpolation;
         _volumeData.SetCubicInterpolationEnabled(_useCubicInterpolation);
@@ -186,7 +184,11 @@ public class VolumeDataControl : MonoBehaviour
 
         UpdateIsoRanges();
     }
-    public void UpdateLightning()
+    public void SetRaymarchStepCount(int value)
+    {
+        _volumeMesh.sharedMaterial.SetInt("_stepNumber", value);
+    }
+    public void UpdateLighting()
     {
         _useLightning= !_useLightning;
 
@@ -233,7 +235,7 @@ public class VolumeDataControl : MonoBehaviour
                 TF2D.Add(i);
         }
     }
-    public void ShowCutPlane()
+    public void UpdateSlicePlane()
     {
         _showCutPlane = !_showCutPlane;
 

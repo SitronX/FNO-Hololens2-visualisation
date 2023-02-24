@@ -1526,6 +1526,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 4436408278160384}
     m_Modifications:
+    - target: {fileID: 1016557814379007664, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1145236822876977287, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -1618,6 +1622,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: -0.412
       objectReference: {fileID: 0}
+    - target: {fileID: 1460966707378228954, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1464089596082302642, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
       propertyPath: m_LocalPosition.x
       value: 19.526
@@ -1629,6 +1637,10 @@ PrefabInstance:
     - target: {fileID: 1464089596082302642, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
       propertyPath: m_LocalPosition.z
       value: 5.551
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774492128166377240, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2780693956558390700, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1653,6 +1665,14 @@ PrefabInstance:
     - target: {fileID: 3192949100246313066, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
       propertyPath: m_LocalPosition.z
       value: 5.55
+      objectReference: {fileID: 0}
+    - target: {fileID: 3195509045980203010, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3298985364056405626, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: startDimensionIndex
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4186097702043771632, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
       propertyPath: m_RootOrder
@@ -1713,6 +1733,10 @@ PrefabInstance:
     - target: {fileID: 6845186209280305959, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
       propertyPath: m_LocalPosition.z
       value: 4.225
+      objectReference: {fileID: 0}
+    - target: {fileID: 7128519867686451138, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7132171069584365482, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1798,6 +1822,10 @@ PrefabInstance:
     - target: {fileID: 1210820392543280, guid: 80cec532ae7b6c1429d0f5494e7dbd8c, type: 3}
       propertyPath: m_Name
       value: ButtonHoloLens1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1210820392543280, guid: 80cec532ae7b6c1429d0f5494e7dbd8c, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4249060311757736, guid: 80cec532ae7b6c1429d0f5494e7dbd8c, type: 3}
       propertyPath: m_RootOrder

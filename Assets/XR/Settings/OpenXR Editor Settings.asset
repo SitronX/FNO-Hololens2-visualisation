@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Keys: 010000000e000000
   Values:
-  - featureSets: []
+  - featureSets:
+    - com.microsoft.openxr.featureset.wmr
+    - com.microsoft.openxr.featureset.appremoting
   - featureSets:
     - com.microsoft.openxr.featureset.hololens
     - com.microsoft.openxr.featureset.appremoting

@@ -83,7 +83,7 @@ public class Console : MonoBehaviour, IQcSuggestor
     [Command]
     public void Quality(int numberOfSteps)
     {
-        GameObject.FindGameObjectWithTag("VolumeObject").GetComponent<MeshRenderer>().sharedMaterial.SetInt("_stepNumber", numberOfSteps);
+        FindObjectOfType<VolumeDataControl>().SetRaymarchStepCount(numberOfSteps);
     }
     [Command]
     public void Disconnect()
