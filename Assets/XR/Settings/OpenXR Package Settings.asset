@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f8ec2975f18d5e479159feb34b4dc86, type: 3}
   m_Name: MixedRealityFeaturePlugin Standalone
   m_EditorClassIdentifier: 
-  m_enabled: 1
+  m_enabled: 0
   nameUi: Mixed Reality Features
   version: 1.7.0
   featureIdInternal: com.microsoft.openxr.feature.hololens
@@ -79,7 +79,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d2e2731103cdda44af77955a0b4814c, type: 3}
   m_Name: AppRemotingPlugin Standalone
   m_EditorClassIdentifier: 
-  m_enabled: 1
+  m_enabled: 0
   nameUi: Holographic Remoting remote app
   version: 1.7.0
   featureIdInternal: com.microsoft.openxr.feature.appremoting
@@ -636,6 +636,7 @@ MonoBehaviour:
   m_Name: Standalone
   m_EditorClassIdentifier: 
   features:
+  - {fileID: -7506738078701695657}
   - {fileID: -6226868296323608800}
   - {fileID: 4258910965838828197}
   - {fileID: 4133929434674300979}
@@ -648,10 +649,9 @@ MonoBehaviour:
   - {fileID: 5954409208853827017}
   - {fileID: -927667732995327651}
   - {fileID: -503725201245881525}
+  - {fileID: -5250980291414505580}
   - {fileID: -2577910590665941632}
   - {fileID: -4130287135931428495}
-  - {fileID: -5250980291414505580}
-  - {fileID: -7506738078701695657}
   m_renderMode: 1
   m_depthSubmissionMode: 2
 --- !u!114 &2178954757778052557

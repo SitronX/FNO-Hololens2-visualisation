@@ -19,6 +19,7 @@ public class PlatformSpecific : MonoBehaviour
     [SerializeField] GameObject _hololensHandMenu;
     [SerializeField] GameObject _vrControllerMenu;
     [SerializeField] GameObject _vrNecessary;
+    [SerializeField] GameObject _mainCamera;
 
     private void Awake()
     {
@@ -34,7 +35,8 @@ public class PlatformSpecific : MonoBehaviour
             _vrControllerMenu.SetActive(true);
 
             RenderSettings.skybox = _skyboxMaterial;
-            Instantiate(_volumeObjectPrefab, new Vector3(6.5f,0.5f,2f), Quaternion.Euler(new Vector3(0,-180,0)));
+
+            Instantiate(_volumeObjectPrefab,new Vector3(-1.5f,0.5f,7), Quaternion.Euler(new Vector3(0,90,0)));
         }
     }
 }

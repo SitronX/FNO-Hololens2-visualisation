@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.XR;
 
 
-//Init script used from here: https://github.com/Fist-Full-of-Shrimp/FFOS-VR-Tutorial-Resources/blob/main/FFOSControllerData/InputData.cs
+//Base script used from here: https://github.com/Fist-Full-of-Shrimp/FFOS-VR-Tutorial-Resources/blob/main/FFOSControllerData/InputData.cs
 public class InputData : MonoBehaviour
 {
     public InputDevice _rightController;
@@ -19,7 +19,6 @@ public class InputData : MonoBehaviour
     }
     private void InitializeInputDevices()
     {
-
         if (!_rightController.isValid)
             InitializeInputDevice(InputDeviceCharacteristics.Controller | InputDeviceCharacteristics.Right, ref _rightController);
         if (!_leftController.isValid)
@@ -38,7 +37,17 @@ public class InputData : MonoBehaviour
         //We check if any devices are found here to avoid errors.
         if (devices.Count > 0)
         {
-            inputDevice = devices[0];
+            InputDeviceCharacteristics characteristics = devices[0].characteristics;                                                            
+            if((characteristics&InputDeviceCharacteristics.Controller)==InputDeviceCharacteristics.Controller)
+            {
+                if (!((devices[0].characteristics & InputDeviceCharacteristics.HandTracking) == InputDeviceCharacteristics.HandTracking))               //VR works only with controllers, so  here is a check against hand tracking
+                    inputDevice = devices[0];
+            }
+            else
+            {
+                inputDevice = devices[0];
+            }
+            
         }
     }
 
