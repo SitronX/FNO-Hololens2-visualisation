@@ -29,6 +29,13 @@ Due to issue with dlls in build, which is issue with [QR tracker](https://github
 ## Running the app
 Make sure you have [Remoting app](https://apps.microsoft.com/store/detail/holographic-remoting-player/9NBLGGH4SV40?hl=cs-cz&gl=cz&rtc=1) opened on Hololens 2. Set hololens IP in the build and click connect. Data is placed when headset scans any QR code.
 
+### Opening the menu
+To open the hand menu with additional controls, show your palm to the camera. Menu can be also grabbed and anchored in the space
+
+![ezgif com-optimize (1)](https://user-images.githubusercontent.com/68167377/221321745-1d85ceb1-d1c1-4cd9-8363-0b3ebc626974.gif)
+
+Additionaly voice commands "Show hand menu" and "Close hand menu" also work.
+
 # PC-VR
 
 ![OculusScreenshot1676931261](https://user-images.githubusercontent.com/68167377/220206498-51574994-79db-4e7d-9172-24713f4bf68f.jpeg)
@@ -46,5 +53,13 @@ Connect to the pc with VR headset before launching the app (eg: [AirLink](https:
 
 Data is placed instantly infront of the user.
 
-##
+### Opening the menu
+To open the controller menu with additional controls, hold <b>Button 1</b> on the left controller. On Quest 2, it is the X button
+
+![quest2controllers](https://user-images.githubusercontent.com/68167377/221322807-1cbd76a1-9683-422a-95f5-278ebebd5908.png)
+
+Menu can be similarly grabbed and anchored in the space with second controller
+
+![OculusScreenshot1677282138](https://user-images.githubusercontent.com/68167377/221322940-1d4d1100-47ef-4470-8cc0-8599dcd3c310.jpeg)
+
 
