@@ -100,6 +100,11 @@ public class Console : MonoBehaviour, IQcSuggestor
     {
         FindObjectOfType<VolumeDataControl>().ResetObjectTransform();
     }
+    [Command]
+    public void SetVolumePosition(Vector3 position,int volumeIndex)
+    {
+        FindObjectsOfType<VolumeDataControl>().ToList()[volumeIndex].SetVolumePosition(position);
+    }
 
     public IEnumerable<IQcSuggestion> GetSuggestions(SuggestionContext context, SuggestorOptions options)
     {

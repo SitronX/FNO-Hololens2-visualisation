@@ -49,11 +49,11 @@ public class VolumeDataControl : MonoBehaviour
 
     VolumeRenderedObject volumeRenderedObject;
 
-    private void Start()
+    public void LoadDatasetData(string dataFolderName)
     {
-        _errorNotifier=FindObjectOfType<ErrorNotifier>();
+        _errorNotifier = FindObjectOfType<ErrorNotifier>();
 
-        LoadDicomDataPath(Application.streamingAssetsPath + "/DicomData/");
+        LoadDicomDataPath(dataFolderName+"/Data/");
         LoadTFDataPath(Application.streamingAssetsPath + "/TransferFunctions/");
 
         _sliderIntervalUpdater1.OnIntervaSliderValueChanged += UpdateIsoRanges;
@@ -69,7 +69,7 @@ public class VolumeDataControl : MonoBehaviour
         {
             // Read all files
             IEnumerable<string> fileCandidates = Directory.EnumerateFiles(_filePath, "*.*", SearchOption.TopDirectoryOnly)
-                .Where(p => p.EndsWith(".dcm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicom", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicm", StringComparison.InvariantCultureIgnoreCase)|| p.EndsWith(".jpg", StringComparison.InvariantCultureIgnoreCase)|| p.EndsWith(".jpeg", StringComparison.InvariantCultureIgnoreCase)|| p.EndsWith(".png", StringComparison.InvariantCultureIgnoreCase));
+                .Where(p => p.EndsWith(".dcm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicom", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpeg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".png", StringComparison.InvariantCultureIgnoreCase));
 
             IEnumerable<IImageSequenceSeries> sequence = sequenceImporter.LoadSeries(fileCandidates);
 
@@ -78,11 +78,11 @@ public class VolumeDataControl : MonoBehaviour
                 _errorNotifier.ShowErrorMessageToUser("DICOM folder contains multiple image series, it must contain single image series at runtime!");
                 return;
             }
-            dataset = sequenceImporter.ImportSeries(sequence.First());  
+            dataset = sequenceImporter.ImportSeries(sequence.First());
         }
         else
         {
-            dataset=fileImporter.Import(_filePath);
+            dataset = fileImporter.Import(_filePath);
         }
 
         if (dataset != null)
@@ -99,7 +99,7 @@ public class VolumeDataControl : MonoBehaviour
 
 
         volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneObject);
-    
+
         ResetInitialPosition();
         UpdateIsoRanges();
 
@@ -166,7 +166,7 @@ public class VolumeDataControl : MonoBehaviour
         {
             _sliderIntervalUpdater2.gameObject.SetActive(true);
             Vector3 tmp = _secondSliderCheckbox.transform.localPosition;
-            tmp.y = 1f;
+            tmp.y = 2.7f;
 
             _secondSliderCheckbox.transform.localPosition = tmp;
         }
@@ -175,7 +175,7 @@ public class VolumeDataControl : MonoBehaviour
             _sliderIntervalUpdater2.gameObject.SetActive(false);
 
             Vector3 tmp = _secondSliderCheckbox.transform.localPosition;
-            tmp.y = 1.2f;
+            tmp.y = 2.55f;
 
             _secondSliderCheckbox.transform.localPosition = tmp;
         }
@@ -256,6 +256,10 @@ public class VolumeDataControl : MonoBehaviour
         _startLocalPlanePosition = new Vector3(_slicingPlaneObject.transform.localPosition.x, _slicingPlaneObject.transform.localPosition.y, _slicingPlaneObject.transform.localPosition.z);
         _startLocalPlaneRotation = new Vector3(_slicingPlaneObject.transform.localRotation.eulerAngles.x, _slicingPlaneObject.transform.localRotation.eulerAngles.y, _slicingPlaneObject.transform.localRotation.eulerAngles.z);
         _startLocalPlaneScale = new Vector3(_slicingPlaneObject.transform.localScale.x, _slicingPlaneObject.transform.localScale.y, _slicingPlaneObject.transform.localScale.z);
+    }
+    public void SetVolumePosition(Vector3 position)
+    {
+        transform.position = position;
     }
 
 }

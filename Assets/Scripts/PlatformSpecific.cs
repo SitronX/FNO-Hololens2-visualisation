@@ -35,8 +35,6 @@ public class PlatformSpecific : MonoBehaviour
             _vrControllerMenu.SetActive(true);
 
             RenderSettings.skybox = _skyboxMaterial;
-
-            Instantiate(_volumeObjectPrefab,new Vector3(-1.5f,0.5f,7), Quaternion.Euler(new Vector3(0,90,0)));
         }
     }
 }
