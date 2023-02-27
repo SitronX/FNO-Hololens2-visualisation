@@ -1,13 +1,16 @@
+</p>
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/68167377/221692005-8307fb03-7175-4b71-8095-1ed2c3d85d4b.png"/>
+</p>
+
+
+
 # FnO-Volume-visualisation
 
 This branch is for raw medical volume data visualisation using AR/VR headsets connected to the PC. [UnityVolumeRendering](https://github.com/mlavik1/UnityVolumeRendering) library by mlavik is used for realtime RayMarching on medical data. Solution is tested to work on Hololens 2 (AR) and Oculus Quest 2 (VR).
 ## Important when loading project
 
 <b>Simple ITK</b> - Assets/VolumeRendering/Assets/3rdparty/SimpleITK folder must contain SimpleITK binaries, otherwise project will not load correctly. Paste binaries from here: https://sourceforge.net/projects/simpleitk/files/SimpleITK/1.2.4/CSharp/. It is then possible to update these libraries thru Unity Menu->VolumeRendering->Settings->Disable/Enable SimpleITK, it asks to download it again, which should download the newest version
-
-## Loading custom datasets
-
-To view custom medical data (NRRD, NIFTI, DICOM, JPG), paste custom dataset to build folder:  <b>HospitalVisualisations_Data/StreamingAssets/DicomData</b>
 
 # Hololens 2 
 
@@ -61,5 +64,34 @@ To open the controller menu with additional controls, hold <b>Button 1</b> on th
 Menu can be similarly grabbed and anchored in the space with second controller
 
 ![OculusScreenshot1677282138](https://user-images.githubusercontent.com/68167377/221322940-1d4d1100-47ef-4470-8cc0-8599dcd3c310.jpeg)
+
+# Working with new Datasets
+
+### Adding new data
+To add custom dataset to build with option to spawn it at runtime, follow these steps:
+
+1. Create new Folder in the following directory:
+    - In build, the path is: HospitalVisualisations_Data/StreamingAssets/DicomData
+    - In editor, the path is: Assets/StreamingAssets/DicomData
+2. Create two additional folders in previously created folder that are named: <b> Data </b> and <b> Snapshot </b>
+3. Paste medical data into the <b>Data</b> folder. Supported files are: <b>NRRD,NIFTI,DICOM,JPG sequence</b>. Files need to have corresponding suffix matching the file they represent (eg: Dicom data will have .dcm suffix)
+4. Paste some thumbnail into the <b>Snapshot</b> folder (.jpg or .png) so dataset is recognizable in spawn menu
+
+### Spawning dataset in app
+
+Open the hand menu. Datasets can be scrolled vertically.
+
+Hold button with data you want to spawn, datasets are differentiated with thumbnails you set previously
+
+![ezgif com-optimize (2)](https://user-images.githubusercontent.com/68167377/221684028-57a0bfc6-2383-491c-bb37-731611036e99.gif)
+
+When the dataset is spawned, it can be enabled/disabled by clicking the previous dataset button
+
+![EnableDisable](https://user-images.githubusercontent.com/68167377/221686384-7e8c374b-4003-4c6d-b214-51807eb2633c.gif)
+
+Dataset can be set as <b> QR active</b>. QR active datasets are placed into exact position where QR code was detected. It is possible to switch between loaded datasets as shown below
+
+![ezgif com-optimize (3)](https://user-images.githubusercontent.com/68167377/221687075-d32c3aee-1407-49df-8f2f-504c9ddce989.gif)
+
 
 
