@@ -33,12 +33,6 @@ public class DatasetLister : MonoBehaviour
             GameObject current= Instantiate(_scrollablePrefab, _scrollableMenuContainer.transform);
             ScrollableButton currentScroll= current.GetComponent<ScrollableButton>();
 
-            if (i == 0)
-            {
-                currentScroll.SetQrLabelActive(true);
-                ActiveQR = currentScroll;
-            }
-
             currentScroll.ChangeBackButtonSprite(_datasetDirectories[i] + "/Snapshot/");
             currentScroll.DatasetPath = _datasetDirectories[i];
             currentScroll.ButtonIndex= i;
@@ -59,12 +53,12 @@ public class DatasetLister : MonoBehaviour
             if (i == index)
             {
                 ActiveQR = _allButtons[i];
-                _allButtons[i].SetQrLabelActive(true);
+                _allButtons[i].SetQrActiveState(true);
                 _allButtons[i].TryUpdateQRVolume();
             }
             else
             {
-                _allButtons[i].SetQrLabelActive(false);
+                _allButtons[i].SetQrActiveState(false);
             }
         }
     }

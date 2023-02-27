@@ -9,15 +9,18 @@ public class QRDataSpawner : MonoBehaviour
 
     private void Start()
     {
-        if (DatasetLister.Instance.ActiveQR.VolumeGameObject == null)
+        if (DatasetLister.Instance.ActiveQR != null)
         {
-            DatasetLister.Instance.ActiveQR.LoadDataset();
-            DatasetLister.Instance.ActiveQR.TryUpdateQRVolume();
-        }
-        else
-        {
-            DatasetLister.Instance.ActiveQR.EnableVolume();
-            ChangeVolumeData(DatasetLister.Instance.ActiveQR.VolumeGameObject);
+            if (DatasetLister.Instance.ActiveQR.VolumeGameObject == null)
+            {
+                DatasetLister.Instance.ActiveQR.LoadDataset();
+                DatasetLister.Instance.ActiveQR.TryUpdateQRVolume();
+            }
+            else
+            {
+                DatasetLister.Instance.ActiveQR.EnableVolume();
+                ChangeVolumeData(DatasetLister.Instance.ActiveQR.VolumeGameObject);
+            }
         }
     }
     public void ChangeVolumeData(GameObject volume)

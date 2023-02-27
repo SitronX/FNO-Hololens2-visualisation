@@ -15,11 +15,15 @@ public class ScrollableButton : MonoBehaviour
     [SerializeField] GameObject _qrActiveLabel;
     [SerializeField] GameObject _disableButton;
     [SerializeField] GameObject _enableButton;
+    [SerializeField] GameObject _qrButton;
 
     ErrorNotifier _errorNotifier;
     float _buttonHoldTime = 1.0f;  //second
     bool _loadButtonPressed = false;
     Camera _mainCamera;
+    bool _hasDatasetLoaded = false;
+
+    
 
     public GameObject VolumeGameObject { get; set; }
     public string DatasetPath { get; set; } 
@@ -57,6 +61,8 @@ public class ScrollableButton : MonoBehaviour
             VolumeGameObject.GetComponent<VolumeDataControl>().LoadDatasetData(DatasetPath);
             _disableButton.gameObject.SetActive(true);
             _loadButton.SetActive(false);
+            _hasDatasetLoaded= true;
+            _qrButton.SetActive(true);
         }
     }
     public void TryUpdateQRVolume()
@@ -78,9 +84,10 @@ public class ScrollableButton : MonoBehaviour
     {
         QrCodeDatasetActivated?.Invoke(ButtonIndex);
     }
-    public void SetQrLabelActive(bool value)
+    public void SetQrActiveState(bool value)
     {
-        _qrActiveLabel.SetActive(value);
+        if(_hasDatasetLoaded)
+            _qrActiveLabel.SetActive(value);
        
     }
     public void DisableVolume()
