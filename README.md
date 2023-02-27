@@ -79,7 +79,7 @@ To add custom dataset to build with option to spawn it at runtime, follow these 
 
 ### Spawning dataset in app
 
-Open the hand menu. Datasets can be scrolled vertically.
+Open the hand menu. Datasets can be scrolled horizontally.
 
 Hold button with data you want to spawn, datasets are differentiated with thumbnails you set previously
 
