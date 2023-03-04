@@ -29,6 +29,7 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] TMP_Text _raymarchStepsLabel;
     [SerializeField] ProgressIndicatorOrbsRotator _dataLoadingIndicator;
     [SerializeField] ProgressIndicatorOrbsRotator _gradientLoadingIndicator;
+    [SerializeField] CutoutBox _cutoutBox;
 
     ErrorNotifier _errorNotifier;
 
@@ -127,6 +128,26 @@ public class VolumeDataControl : MonoBehaviour
     private void OnDestroy()
     {
         DatasetDespawned?.Invoke(this);
+    }
+    public void SetCrossSectionType(CrossSectionType type)
+    {
+        if(type ==CrossSectionType.Plane)
+        {
+            _slicingPlaneObject.SetActive(true);
+            _cutoutBox.gameObject.SetActive(false);
+        }
+        else if(type== CrossSectionType.BoxInclusive)
+        {
+            _slicingPlaneObject.SetActive(false);
+            _cutoutBox.gameObject.SetActive(true);
+            _cutoutBox.cutoutType = CutoutType.Inclusive;
+        }
+        else if (type == CrossSectionType.BoxExclusive)
+        {
+            _slicingPlaneObject.SetActive(false);
+            _cutoutBox.gameObject.SetActive(true);
+            _cutoutBox.cutoutType = CutoutType.Exclusive;
+        }
     }
 
     public void SetTransferFunction(string tfName)

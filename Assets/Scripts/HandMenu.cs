@@ -12,12 +12,15 @@ public class HandMenu : MonoBehaviour
 {
     [SerializeField] InteractableToggleCollection _renderModes;
     [SerializeField] TMP_Text _raymarchStepLabel;
+    [SerializeField] Animator _additionalSettingAnimator;
+    [SerializeField] InteractableToggleCollection _crossSectionModes;
 
     List<VolumeDataControl> _volumeObjects = new List<VolumeDataControl>();
 
     bool _showCutPlane = false;
     bool _useCubicInterpolation = false;
     bool _useLighting = false;
+    bool _additionalSettingShown = false;
 
     private void Start()
     {
@@ -47,6 +50,13 @@ public class HandMenu : MonoBehaviour
             volumeDataControl.UpdateRenderingMode(UnityVolumeRendering.RenderMode.MaximumIntensityProjectipon);
         else if (_renderModes.CurrentIndex == 2)
             volumeDataControl.UpdateRenderingMode(UnityVolumeRendering.RenderMode.IsosurfaceRendering);
+
+        if (_crossSectionModes.CurrentIndex == 0)
+            volumeDataControl.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.Plane);
+        else if (_crossSectionModes.CurrentIndex == 1)
+            volumeDataControl.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.BoxInclusive);
+        else if (_crossSectionModes.CurrentIndex == 2)
+            volumeDataControl.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.BoxExclusive);
 
     }
     private void OnNewDatasetDespawned(VolumeDataControl volumeDataControl)
@@ -87,4 +97,20 @@ public class HandMenu : MonoBehaviour
     {
         _volumeObjects.ForEach(_x => _x.ResetObjectTransform());
     }
+    public void UpdateAdditionalSettings()
+    {
+        _additionalSettingShown = !_additionalSettingShown;
+
+        _additionalSettingAnimator.SetBool("AdditionalSettings", _additionalSettingShown);
+    }
+    public void CrossSectionTypeChanged()
+    {
+        if (_crossSectionModes.CurrentIndex == 0)
+            _volumeObjects.ForEach(x => x.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.Plane));
+        else if (_crossSectionModes.CurrentIndex == 1)
+            _volumeObjects.ForEach(x => x.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.BoxInclusive));
+        else if (_crossSectionModes.CurrentIndex == 2)
+            _volumeObjects.ForEach(x => x.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.BoxExclusive));
+    }
+
 }
