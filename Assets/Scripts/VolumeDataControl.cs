@@ -6,6 +6,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -25,6 +27,8 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] GameObject _secondSliderCheckbox;
     [SerializeField] MeshRenderer _volumeMesh;
     [SerializeField] TMP_Text _raymarchStepsLabel;
+    [SerializeField] ProgressIndicatorOrbsRotator _dataLoadingIndicator;
+    [SerializeField] ProgressIndicatorOrbsRotator _gradientLoadingIndicator;
 
     ErrorNotifier _errorNotifier;
 
@@ -47,11 +51,16 @@ public class VolumeDataControl : MonoBehaviour
 
     string _filePath;            
 
-    VolumeRenderedObject volumeRenderedObject;
+    VolumeRenderedObject _volumeRenderedObject;
 
-    public void LoadDatasetData(string dataFolderName)
+    private void Start()
     {
         _errorNotifier = FindObjectOfType<ErrorNotifier>();
+        _volumeRenderedObject = _volumetricDataMainParentObject.GetComponent<VolumeRenderedObject>();
+    }
+    public async void LoadDatasetData(string dataFolderName)        //Async addition so all the loading doesnt freeze the app
+    {
+        await _dataLoadingIndicator.OpenAsync();
 
         LoadDicomDataPath(dataFolderName+"/Data/");
         LoadTFDataPath(Application.streamingAssetsPath + "/TransferFunctions/");
@@ -59,7 +68,7 @@ public class VolumeDataControl : MonoBehaviour
         _sliderIntervalUpdater1.OnIntervaSliderValueChanged += UpdateIsoRanges;
         _sliderIntervalUpdater2.OnIntervaSliderValueChanged += UpdateIsoRanges;
 
-        volumeRenderedObject = _volumetricDataMainParentObject.GetComponent<VolumeRenderedObject>();
+        
 
         SimpleITKImageSequenceImporter sequenceImporter = new SimpleITKImageSequenceImporter();
         SimpleITKImageFileImporter fileImporter = new SimpleITKImageFileImporter();
@@ -71,23 +80,23 @@ public class VolumeDataControl : MonoBehaviour
             IEnumerable<string> fileCandidates = Directory.EnumerateFiles(_filePath, "*.*", SearchOption.TopDirectoryOnly)
                 .Where(p => p.EndsWith(".dcm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicom", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpeg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".png", StringComparison.InvariantCultureIgnoreCase));
 
-            IEnumerable<IImageSequenceSeries> sequence = sequenceImporter.LoadSeries(fileCandidates);
+            IEnumerable<IImageSequenceSeries> sequence = await sequenceImporter.LoadSeriesAsync(fileCandidates);
 
             if (sequence.Count() > 1)
             {
                 _errorNotifier.ShowErrorMessageToUser("DICOM folder contains multiple image series, it must contain single image series at runtime!");
                 return;
             }
-            dataset = sequenceImporter.ImportSeries(sequence.First());
+            dataset = await sequenceImporter.ImportSeriesAsync(sequence.First()); 
         }
         else
         {
-            dataset = fileImporter.Import(_filePath);
+            dataset = await fileImporter.ImportAsync(_filePath);
         }
 
         if (dataset != null)
         {
-            VolumeObjectFactory.FillObjectWithDatasetData(dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject);      //Long load
+            await VolumeObjectFactory.FillObjectWithDatasetDataAsync(dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject);   
         }
 
         if (TF1D.Count > 0)
@@ -96,14 +105,23 @@ public class VolumeDataControl : MonoBehaviour
             SetTransferFunction(TF2D[0]);
         else
             _errorNotifier.ShowErrorMessageToUser("No transfer function found. Create and paste atleast one transfer functions in /TransferFunctionsFolder");
-
-
-        volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneObject);
-
+       
+       
+        _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneObject);
+       
         ResetInitialPosition();
         UpdateIsoRanges();
+       
+        await _dataLoadingIndicator.CloseAsync();
+
+        await _gradientLoadingIndicator.OpenAsync();
+
+        await dataset.CreateGradientTextureInternalAsync();
+
+        await _gradientLoadingIndicator.CloseAsync();
 
         DatasetSpawned?.Invoke(this);
+
     }
 
     private void OnDestroy()
@@ -117,15 +135,15 @@ public class VolumeDataControl : MonoBehaviour
         {
             TransferFunction transferFunction = TransferFunctionDatabase.LoadTransferFunction(tfName);
 
-            volumeRenderedObject.SetTransferFunction(transferFunction);
-            volumeRenderedObject.SetTransferFunctionMode(TFRenderMode.TF1D);
+            _volumeRenderedObject.SetTransferFunction(transferFunction);
+            _volumeRenderedObject.SetTransferFunctionMode(TFRenderMode.TF1D);
         }
         else if (TF2D.Contains(tfName))
         {
             TransferFunction2D transferFunction = TransferFunctionDatabase.LoadTransferFunction2D(tfName);
 
-            volumeRenderedObject.SetTransferFunction2D(transferFunction);
-            volumeRenderedObject.SetTransferFunctionMode(TFRenderMode.TF2D);
+            _volumeRenderedObject.SetTransferFunction2D(transferFunction);
+            _volumeRenderedObject.SetTransferFunctionMode(TFRenderMode.TF2D);
         }
         else
         {

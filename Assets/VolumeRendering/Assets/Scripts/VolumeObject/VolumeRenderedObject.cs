@@ -285,9 +285,9 @@ namespace UnityVolumeRendering
 
         }
 
-        private void Start()
-        {
-            UpdateMaterialProperties();
-        }
+        //private void Start()
+        //{
+        //    UpdateMaterialProperties();
+        //}
     }
 }

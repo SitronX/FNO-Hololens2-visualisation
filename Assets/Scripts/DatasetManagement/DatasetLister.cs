@@ -13,7 +13,7 @@ public class DatasetLister : MonoBehaviour
     [SerializeField] GridObjectCollection _gridObjectCollection;
     [SerializeField] ScrollingObjectCollection _scrollingObjectCollection;
 
-    List<ScrollableButton> _allButtons = new List<ScrollableButton>();
+    public List<ScrollableButton> AllButtons { get; set; } = new List<ScrollableButton>();
     public ScrollableButton ActiveQR { get; set; }
 
     public static DatasetLister Instance { get; private set; }              //Singleton
@@ -38,7 +38,7 @@ public class DatasetLister : MonoBehaviour
             currentScroll.ButtonIndex= i;
 
             currentScroll.QrCodeDatasetActivated += OnAnyQrActivated;
-            _allButtons.Add(currentScroll);
+            AllButtons.Add(currentScroll);
         }
         yield return new WaitForEndOfFrame();
         _gridObjectCollection.UpdateCollection();
@@ -48,17 +48,17 @@ public class DatasetLister : MonoBehaviour
 
     private void OnAnyQrActivated(int index)
     {
-        for(int i=0;i< _allButtons.Count;i++)
+        for(int i=0;i< AllButtons.Count;i++)
         {
             if (i == index)
             {
-                ActiveQR = _allButtons[i];
-                _allButtons[i].SetQrActiveState(true);
-                _allButtons[i].TryUpdateQRVolume();
+                ActiveQR = AllButtons[i];
+                AllButtons[i].SetQrActiveState(true);
+                AllButtons[i].TryUpdateQRVolume();
             }
             else
             {
-                _allButtons[i].SetQrActiveState(false);
+                AllButtons[i].SetQrActiveState(false);
             }
         }
     }

@@ -60,8 +60,8 @@ namespace UnityVolumeRendering
             string jsonstring = File.ReadAllText(filepath);
             TF1DSerialisationData data = JsonUtility.FromJson<TF1DSerialisationData>(jsonstring);
             Debug.Log(jsonstring);
-            Debug.Log(data.colourPoints.ToString());
-            Debug.Log(data.alphaPoints.ToString());
+            //Debug.Log(data.colourPoints.ToString());
+            //Debug.Log(data.alphaPoints.ToString());
             TransferFunction tf = new TransferFunction();
             tf.colourControlPoints = data.colourPoints;
             tf.alphaControlPoints = data.alphaPoints;
@@ -73,8 +73,8 @@ namespace UnityVolumeRendering
             string jsonstring = Resources.Load<TextAsset>(fileName).text;
             TF1DSerialisationData data = JsonUtility.FromJson<TF1DSerialisationData>(jsonstring);
             Debug.Log(jsonstring);
-            Debug.Log(data.colourPoints.ToString());
-            Debug.Log(data.alphaPoints.ToString());
+            //Debug.Log(data.colourPoints.ToString());
+            //Debug.Log(data.alphaPoints.ToString());
             TransferFunction tf = new TransferFunction();
             tf.colourControlPoints = data.colourPoints;
             tf.alphaControlPoints = data.alphaPoints;

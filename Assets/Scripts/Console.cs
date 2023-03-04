@@ -23,6 +23,7 @@ public class Console : MonoBehaviour, IQcSuggestor
     [SerializeField] MixedRealityToolkitConfigurationProfile _diagnostics;
     [SerializeField] MixedRealityToolkitConfigurationProfile _noSpatial;
     [SerializeField] MixedRealityToolkit _toolkit;
+    [SerializeField] ErrorNotifier _errorNotifier;
 
     public enum MRTKModule
     {
@@ -46,9 +47,16 @@ public class Console : MonoBehaviour, IQcSuggestor
         }
     }
     [Command]
-    public void SpawnModel()
+    public void SpawnModel(int index)
     {
-        Instantiate(_prefab, Vector3.zero, Quaternion.identity);
+        try
+        {
+            DatasetLister.Instance.AllButtons[index].LoadDataset();
+        }
+        catch
+        {
+            _errorNotifier.ShowErrorMessageToUser("Hand menu must be initialized before spawning anything");
+        }
     }
     [Command]
     public void Quit()

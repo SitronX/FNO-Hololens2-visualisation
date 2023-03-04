@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace UnityVolumeRendering
@@ -50,8 +51,7 @@ namespace UnityVolumeRendering
 
             return volObj;
         }
-
-        public static void FillObjectWithDatasetData(VolumeDataset dataset,GameObject objectToFill,GameObject meshContainer)
+        public static async Task FillObjectWithDatasetDataAsync(VolumeDataset dataset,GameObject objectToFill,GameObject meshContainer)
         {
             VolumeRenderedObject volObj = objectToFill.GetComponent<VolumeRenderedObject>();
 
@@ -71,7 +71,7 @@ namespace UnityVolumeRendering
 
         
 
-            meshRenderer.sharedMaterial.SetTexture("_DataTex", dataset.GetDataTexture());
+            meshRenderer.sharedMaterial.SetTexture("_DataTex", await dataset.GetDataTextureAsync());           //Very long
             meshRenderer.sharedMaterial.SetTexture("_GradientTex", null);
             meshRenderer.sharedMaterial.SetTexture("_NoiseTex", noiseTexture);
 

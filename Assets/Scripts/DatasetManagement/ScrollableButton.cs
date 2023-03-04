@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityVolumeRendering;
 
 public class ScrollableButton : MonoBehaviour
 {
@@ -58,7 +59,9 @@ public class ScrollableButton : MonoBehaviour
         if (VolumeGameObject == null)
         {
             VolumeGameObject = Instantiate(_placeableVolumePrefab, _mainCamera.transform.position+=new Vector3(1,0,0), Quaternion.identity);
-            VolumeGameObject.GetComponent<VolumeDataControl>().LoadDatasetData(DatasetPath);
+            VolumeDataControl obj= VolumeGameObject.GetComponent<VolumeDataControl>();
+            obj.LoadDatasetData(DatasetPath);
+
             _disableButton.gameObject.SetActive(true);
             _loadButton.SetActive(false);
             _hasDatasetLoaded= true;
