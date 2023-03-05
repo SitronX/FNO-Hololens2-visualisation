@@ -27,7 +27,7 @@ public class QRDataSpawner : MonoBehaviour
     {
         if (_activeVolume != null)
         {
-            _activeVolume.transform.position+= new Vector3(0, 0, 2);        //Move it away little bit
+            _activeVolume.transform.position = transform.position + new Vector3(1, 0, 0);
             _activeVolume.transform.parent = null;
         }
 

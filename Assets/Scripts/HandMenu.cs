@@ -14,6 +14,7 @@ public class HandMenu : MonoBehaviour
     [SerializeField] TMP_Text _raymarchStepLabel;
     [SerializeField] Animator _additionalSettingAnimator;
     [SerializeField] InteractableToggleCollection _crossSectionModes;
+    [SerializeField] PinchSlider _raymarchSlider;
 
     List<VolumeDataControl> _volumeObjects = new List<VolumeDataControl>();
 
@@ -43,6 +44,7 @@ public class HandMenu : MonoBehaviour
         volumeDataControl.UpdateSlicePlane(_showCutPlane);                              //Check if all volume objects are set same as handmenu
         volumeDataControl.UpdateCubicInterpolation(_useCubicInterpolation);
         volumeDataControl.UpdateLighting(_useLighting);
+        volumeDataControl.UpdateIsoRanges();
 
         if (_renderModes.CurrentIndex == 0)
             volumeDataControl.UpdateRenderingMode(UnityVolumeRendering.RenderMode.DirectVolumeRendering);
@@ -58,6 +60,9 @@ public class HandMenu : MonoBehaviour
         else if (_crossSectionModes.CurrentIndex == 2)
             volumeDataControl.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.BoxExclusive);
 
+
+        int steps = (int)(_raymarchSlider.SliderValue * 1000);
+        volumeDataControl.SetRaymarchStepCount(steps);
     }
     private void OnNewDatasetDespawned(VolumeDataControl volumeDataControl)
     {

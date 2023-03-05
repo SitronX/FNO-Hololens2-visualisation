@@ -32,6 +32,7 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] GameObject _slicingPlaneXNormalAxisObject;
     [SerializeField] GameObject _slicingPlaneYNormalAxisObject;
     [SerializeField] GameObject _slicingPlaneZNormalAxisObject;
+    [SerializeField] GameObject _controlHandle;
 
     ErrorNotifier _errorNotifier;
 
@@ -43,6 +44,14 @@ public class VolumeDataControl : MonoBehaviour
     Vector3 _startLocalPlanePosition;
     Vector3 _startLocalPlaneRotation;
     Vector3 _startLocalPlaneScale;
+
+    Vector3 _startLocalBoxPosition;
+    Vector3 _startLocalBoxRotation;
+    Vector3 _startLocalBoxScale;
+
+    Vector3 _startLocalHandlePosition;
+    Vector3 _startLocalHandleRotation;
+    Vector3 _startLocalHandleScale;
 
     bool _isImageSequence = false;
 
@@ -60,10 +69,13 @@ public class VolumeDataControl : MonoBehaviour
     {
         _errorNotifier = FindObjectOfType<ErrorNotifier>();
         _volumeRenderedObject = _volumetricDataMainParentObject.GetComponent<VolumeRenderedObject>();
+        ResetInitialPosition();
+
     }
     public async void LoadDatasetData(string dataFolderName)        //Async addition so all the loading doesnt freeze the app
     {
         await _dataLoadingIndicator.OpenAsync();
+
 
         LoadDicomDataPath(dataFolderName+"/Data/");
         LoadTFDataPath(Application.streamingAssetsPath + "/TransferFunctions/");
@@ -113,9 +125,6 @@ public class VolumeDataControl : MonoBehaviour
         _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneXNormalAxisObject);
         _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneYNormalAxisObject);
         _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneZNormalAxisObject);
-
-        ResetInitialPosition();
-        UpdateIsoRanges();
        
         await _dataLoadingIndicator.CloseAsync();
 
@@ -129,7 +138,7 @@ public class VolumeDataControl : MonoBehaviour
 
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
         DatasetDespawned?.Invoke(this);
     }
@@ -178,16 +187,20 @@ public class VolumeDataControl : MonoBehaviour
    
     public void UpdateIsoRanges()
     {
-        _sliderIntervalUpdater1.GetSliderValues(out float minVal1,out float maxVal1);
-        if (!_showSecondSlider)
+        try                                                                                 //ON app start sliders are defaultly updated, but volume object is not present yet
         {
-            _volumeData.SetVisibilityWindow(minVal1, maxVal1, 0, 0);
+            _sliderIntervalUpdater1.GetSliderValues(out float minVal1, out float maxVal1);
+            if (!_showSecondSlider)
+            {
+                _volumeData.SetVisibilityWindow(minVal1, maxVal1, 0, 0);
+            }
+            else
+            {
+                _sliderIntervalUpdater2.GetSliderValues(out float minVal2, out float maxVal2);
+                _volumeData.SetVisibilityWindow(minVal1, maxVal1, minVal2, maxVal2);
+            }
         }
-        else
-        {
-            _sliderIntervalUpdater2.GetSliderValues(out float minVal2, out float maxVal2);
-            _volumeData.SetVisibilityWindow(minVal1, maxVal1, minVal2, maxVal2);
-        } 
+        catch { }                   
     }
     public void UpdateRenderingMode(RenderMode renderMode)
     {
@@ -209,7 +222,7 @@ public class VolumeDataControl : MonoBehaviour
         {
             _sliderIntervalUpdater2.gameObject.SetActive(true);
             Vector3 tmp = _secondSliderCheckbox.transform.localPosition;
-            tmp.y = 2.7f;
+            tmp.x = -0.17f;
 
             _secondSliderCheckbox.transform.localPosition = tmp;
         }
@@ -218,7 +231,7 @@ public class VolumeDataControl : MonoBehaviour
             _sliderIntervalUpdater2.gameObject.SetActive(false);
 
             Vector3 tmp = _secondSliderCheckbox.transform.localPosition;
-            tmp.y = 2.55f;
+            tmp.x = -0.06f;
 
             _secondSliderCheckbox.transform.localPosition = tmp;
         }
@@ -289,6 +302,25 @@ public class VolumeDataControl : MonoBehaviour
         _cutoutPlane.transform.localPosition = _startLocalPlanePosition;
         _cutoutPlane.transform.localRotation= Quaternion.Euler(_startLocalPlaneRotation);
         _cutoutPlane.transform.localScale = _startLocalPlaneScale;
+
+        _cutoutBox.transform.localPosition = _startLocalBoxPosition;
+        _cutoutBox.transform.localRotation = Quaternion.Euler(_startLocalBoxRotation);
+        _cutoutBox.transform.localScale = _startLocalBoxScale;
+
+        _controlHandle.transform.localPosition = _startLocalHandlePosition;
+        _controlHandle.transform.localRotation = Quaternion.Euler(_startLocalHandleRotation);
+        _controlHandle.transform.localScale = _startLocalHandleScale;
+
+
+        _slicingPlaneXNormalAxisObject.transform.localPosition = Vector3.zero;
+        _slicingPlaneXNormalAxisObject.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
+
+        _slicingPlaneYNormalAxisObject.transform.localPosition = Vector3.zero;
+        _slicingPlaneYNormalAxisObject.transform.localRotation = Quaternion.Euler(new Vector3(90, 0, 0));
+
+        _slicingPlaneZNormalAxisObject.transform.localPosition = Vector3.zero;
+        _slicingPlaneZNormalAxisObject.transform.localRotation = Quaternion.Euler(new Vector3(90, 0, -90));
+
     }
 
     private void ResetInitialPosition()
@@ -300,6 +332,15 @@ public class VolumeDataControl : MonoBehaviour
         _startLocalPlanePosition = new Vector3(_cutoutPlane.transform.localPosition.x, _cutoutPlane.transform.localPosition.y, _cutoutPlane.transform.localPosition.z);
         _startLocalPlaneRotation = new Vector3(_cutoutPlane.transform.localRotation.eulerAngles.x, _cutoutPlane.transform.localRotation.eulerAngles.y, _cutoutPlane.transform.localRotation.eulerAngles.z);
         _startLocalPlaneScale = new Vector3(_cutoutPlane.transform.localScale.x, _cutoutPlane.transform.localScale.y, _cutoutPlane.transform.localScale.z);
+
+        _startLocalBoxPosition = new Vector3(_cutoutBox.transform.localPosition.x, _cutoutBox.transform.localPosition.y, _cutoutBox.transform.localPosition.z);
+        _startLocalBoxRotation = new Vector3(_cutoutBox.transform.localRotation.eulerAngles.x, _cutoutBox.transform.localRotation.eulerAngles.y, _cutoutBox.transform.localRotation.eulerAngles.z);
+        _startLocalBoxScale = new Vector3(_cutoutBox.transform.localScale.x, _cutoutBox.transform.localScale.y, _cutoutBox.transform.localScale.z);
+
+        _startLocalHandlePosition = new Vector3(_controlHandle.transform.localPosition.x, _controlHandle.transform.localPosition.y, _controlHandle.transform.localPosition.z);
+        _startLocalHandleRotation = new Vector3(_controlHandle.transform.localRotation.eulerAngles.x, _controlHandle.transform.localRotation.eulerAngles.y, _controlHandle.transform.localRotation.eulerAngles.z);
+        _startLocalHandleScale = new Vector3(_controlHandle.transform.localScale.x, _controlHandle.transform.localScale.y, _controlHandle.transform.localScale.z);
+
     }
     public void SetVolumePosition(Vector3 position)
     {

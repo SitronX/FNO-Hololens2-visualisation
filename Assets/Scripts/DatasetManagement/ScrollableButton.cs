@@ -47,7 +47,6 @@ public class ScrollableButton : MonoBehaviour
             _loadButtonSprite.sprite = IMG2Sprite.LoadNewSprite(imgFiles[0]);
             _removeButtonSprite.sprite = _loadButtonSprite.sprite;
             _enableButtonSprite.sprite = _loadButtonSprite.sprite;
-
         }
         catch
         {
@@ -58,7 +57,12 @@ public class ScrollableButton : MonoBehaviour
     {      
         if (VolumeGameObject == null)
         {
-            VolumeGameObject = Instantiate(_placeableVolumePrefab, _mainCamera.transform.position+=new Vector3(1,0,0), Quaternion.identity);
+            Vector3 rot = _mainCamera.transform.rotation.eulerAngles;
+            rot.y += 90;
+            rot.x= 0;
+            rot.z = 0;
+
+            VolumeGameObject = Instantiate(_placeableVolumePrefab, _mainCamera.transform.position+(_mainCamera.transform.forward), Quaternion.Euler(rot));
             VolumeDataControl obj= VolumeGameObject.GetComponent<VolumeDataControl>();
             obj.LoadDatasetData(DatasetPath);
 
