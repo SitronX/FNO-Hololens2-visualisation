@@ -19,9 +19,7 @@ public class VolumeDataControl : MonoBehaviour
 {
     [SerializeField] VolumeRenderedObject _volumeData;
     [SerializeField] InteractableToggleCollection _renderModes;
-    [SerializeField] MeshRenderer _blackPlaneRenderer;
     [SerializeField] GameObject _volumetricDataMainParentObject;
-    [SerializeField] GameObject _slicingPlaneObject;
     [SerializeField] SliderIntervalUpdater _sliderIntervalUpdater1;
     [SerializeField] SliderIntervalUpdater _sliderIntervalUpdater2;
     [SerializeField] GameObject _secondSliderCheckbox;
@@ -30,6 +28,10 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] ProgressIndicatorOrbsRotator _dataLoadingIndicator;
     [SerializeField] ProgressIndicatorOrbsRotator _gradientLoadingIndicator;
     [SerializeField] CutoutBox _cutoutBox;
+    [SerializeField] GameObject _cutoutPlane;
+    [SerializeField] GameObject _slicingPlaneXNormalAxisObject;
+    [SerializeField] GameObject _slicingPlaneYNormalAxisObject;
+    [SerializeField] GameObject _slicingPlaneZNormalAxisObject;
 
     ErrorNotifier _errorNotifier;
 
@@ -108,8 +110,10 @@ public class VolumeDataControl : MonoBehaviour
             _errorNotifier.ShowErrorMessageToUser("No transfer function found. Create and paste atleast one transfer functions in /TransferFunctionsFolder");
        
        
-        _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneObject);
-       
+        _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneXNormalAxisObject);
+        _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneYNormalAxisObject);
+        _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneZNormalAxisObject);
+
         ResetInitialPosition();
         UpdateIsoRanges();
        
@@ -133,18 +137,18 @@ public class VolumeDataControl : MonoBehaviour
     {
         if(type ==CrossSectionType.Plane)
         {
-            _slicingPlaneObject.SetActive(true);
+            _cutoutPlane.SetActive(true);
             _cutoutBox.gameObject.SetActive(false);
         }
         else if(type== CrossSectionType.BoxInclusive)
         {
-            _slicingPlaneObject.SetActive(false);
+            _cutoutPlane.SetActive(false);
             _cutoutBox.gameObject.SetActive(true);
             _cutoutBox.cutoutType = CutoutType.Inclusive;
         }
         else if (type == CrossSectionType.BoxExclusive)
         {
-            _slicingPlaneObject.SetActive(false);
+            _cutoutPlane.SetActive(false);
             _cutoutBox.gameObject.SetActive(true);
             _cutoutBox.cutoutType = CutoutType.Exclusive;
         }
@@ -272,18 +276,19 @@ public class VolumeDataControl : MonoBehaviour
     }
     public void UpdateSlicePlane(bool value)
     {
-        _blackPlaneRenderer.enabled = value;
+        _slicingPlaneXNormalAxisObject.SetActive(value);
+        _slicingPlaneYNormalAxisObject.SetActive(value);
+        _slicingPlaneZNormalAxisObject.SetActive(value);
     }
-    
     public void ResetObjectTransform()
     {
         transform.localPosition = _startLocalPosition;
         transform.localRotation= Quaternion.Euler(_startLocalRotation);
         transform.localScale = _startLocalScale;
 
-        _slicingPlaneObject.transform.localPosition = _startLocalPlanePosition;
-        _slicingPlaneObject.transform.localRotation= Quaternion.Euler(_startLocalPlaneRotation);
-        _slicingPlaneObject.transform.localScale = _startLocalPlaneScale;
+        _cutoutPlane.transform.localPosition = _startLocalPlanePosition;
+        _cutoutPlane.transform.localRotation= Quaternion.Euler(_startLocalPlaneRotation);
+        _cutoutPlane.transform.localScale = _startLocalPlaneScale;
     }
 
     private void ResetInitialPosition()
@@ -292,9 +297,9 @@ public class VolumeDataControl : MonoBehaviour
         _startLocalRotation = new Vector3(transform.localRotation.eulerAngles.x, transform.localRotation.eulerAngles.y, transform.localRotation.eulerAngles.z);
         _startLocalScale = new Vector3(transform.localScale.x, transform.localScale.y, transform.localScale.z);
 
-        _startLocalPlanePosition = new Vector3(_slicingPlaneObject.transform.localPosition.x, _slicingPlaneObject.transform.localPosition.y, _slicingPlaneObject.transform.localPosition.z);
-        _startLocalPlaneRotation = new Vector3(_slicingPlaneObject.transform.localRotation.eulerAngles.x, _slicingPlaneObject.transform.localRotation.eulerAngles.y, _slicingPlaneObject.transform.localRotation.eulerAngles.z);
-        _startLocalPlaneScale = new Vector3(_slicingPlaneObject.transform.localScale.x, _slicingPlaneObject.transform.localScale.y, _slicingPlaneObject.transform.localScale.z);
+        _startLocalPlanePosition = new Vector3(_cutoutPlane.transform.localPosition.x, _cutoutPlane.transform.localPosition.y, _cutoutPlane.transform.localPosition.z);
+        _startLocalPlaneRotation = new Vector3(_cutoutPlane.transform.localRotation.eulerAngles.x, _cutoutPlane.transform.localRotation.eulerAngles.y, _cutoutPlane.transform.localRotation.eulerAngles.z);
+        _startLocalPlaneScale = new Vector3(_cutoutPlane.transform.localScale.x, _cutoutPlane.transform.localScale.y, _cutoutPlane.transform.localScale.z);
     }
     public void SetVolumePosition(Vector3 position)
     {

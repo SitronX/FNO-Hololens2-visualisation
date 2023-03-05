@@ -7555,7 +7555,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 611597233232026699, guid: f1dfa3ff1f171964fa0717ff4d0131cb, type: 3}
       propertyPath: m_text
-      value: Slice plane
+      value: Slice planes
       objectReference: {fileID: 0}
     - target: {fileID: 611597233232026699, guid: f1dfa3ff1f171964fa0717ff4d0131cb, type: 3}
       propertyPath: m_textAlignment

@@ -50,7 +50,9 @@ Shader "VolumeRendering/SliceRenderingShader"
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 // Calculate plane vertex world position.
-                float3 vert = mul(_planeMat, float4(0.5f -v.uv.x, 0.0f, 0.5f -v.uv.y, 1.0f));
+                //float3 vert = mul(_planeMat, float4(0.5f -v.uv.x, 0.0f, 0.5f -v.uv.y, 1.0f));
+                float2 uvMod = float2((0.5f - v.uv.x) * 10.0f, (0.5f - v.uv.y) * 10.0f);
+                 float3 vert = mul(_planeMat, float4(uvMod.x, 0.0f, uvMod.y, 1.0f));
                 // Convert from world space to volume space.
                 o.relVert = mul(_parentInverseMat, float4(vert, 1.0f));
                 o.uv = v.uv;

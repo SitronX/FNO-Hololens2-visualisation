@@ -19,6 +19,9 @@ namespace UnityVolumeRendering
         public float[] data;
 
         [SerializeField]
+        public int[] labelData;
+
+        [SerializeField]
         public int dimX, dimY, dimZ;
 
         [SerializeField]
@@ -38,6 +41,9 @@ namespace UnityVolumeRendering
 
         private Texture3D dataTexture = null;
         private Texture3D gradientTexture = null;
+
+        //TODO
+        private Texture3D labelTexture = null;
 
 
         public Texture3D GetDataTexture()
@@ -68,6 +74,14 @@ namespace UnityVolumeRendering
                 await CreateGradientTextureInternalAsync();
             }
             return gradientTexture;
+        }
+        public async Task<Texture3D> GetLabelTextureAsync()
+        {
+            if (labelTexture == null)
+            {
+                await CreateLabelTextureInternalAsync();
+            }
+            return labelTexture;
         }
 
         public float GetMinDataValue()
@@ -211,6 +225,83 @@ namespace UnityVolumeRendering
         private async Task CreateTextureInternalAsync()                                             //This method can be also called in custom logic to load it before continuing
         {
             Debug.Log("Async texture generation. Hold on.");
+
+            Texture3D.allowThreadedTextureCreation = true;
+            TextureFormat texformat = SystemInfo.SupportsTextureFormat(TextureFormat.RHalf) ? TextureFormat.RHalf : TextureFormat.RFloat;
+
+            float minValue = 0;
+            float maxValue = 0;
+            float maxRange = 0;
+
+            await Task.Run(() =>
+            {
+                minValue = GetMinDataValue();
+                maxValue = GetMaxDataValue();
+                maxRange = maxValue - minValue;
+            });
+
+            bool isHalfFloat = texformat == TextureFormat.RHalf;
+
+            try
+            {
+                if (isHalfFloat)
+                {
+                    NativeArray<ushort> pixelBytes = default;
+
+                    await Task.Run(() => {
+                        pixelBytes = new NativeArray<ushort>(data.Length, Allocator.TempJob);
+                        for (int iData = 0; iData < data.Length; iData++)
+                            pixelBytes[iData] = Mathf.FloatToHalf((float)(data[iData] - minValue) / maxRange);
+                    });
+
+                    Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
+                    texture.wrapMode = TextureWrapMode.Clamp;
+                    texture.SetPixelData(pixelBytes, 0);
+                    texture.Apply();
+                    dataTexture = texture;
+
+                    pixelBytes.Dispose();
+                }
+                else
+                {
+                    NativeArray<float> pixelBytes = default;
+
+                    await Task.Run(() => {
+                        pixelBytes = new NativeArray<float>(data.Length, Allocator.TempJob);
+                        for (int iData = 0; iData < data.Length; iData++)
+                            pixelBytes[iData] = (float)(data[iData] - minValue) / maxRange;
+                    });
+
+                    Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
+                    texture.wrapMode = TextureWrapMode.Clamp;
+                    texture.SetPixelData(pixelBytes, 0);
+                    texture.Apply();
+                    dataTexture = texture;
+
+                    pixelBytes.Dispose();
+                }
+            }
+            catch (OutOfMemoryException)
+            {
+                Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
+                texture.wrapMode = TextureWrapMode.Clamp;
+
+
+                Debug.LogWarning("Out of memory when creating texture. Using fallback method.");
+                for (int x = 0; x < dimX; x++)
+                    for (int y = 0; y < dimY; y++)
+                        for (int z = 0; z < dimZ; z++)
+                            texture.SetPixel(x, y, z, new Color((float)(data[x + y * dimX + z * (dimX * dimY)] - minValue) / maxRange, 0.0f, 0.0f, 0.0f));
+
+                texture.Apply();
+                dataTexture = texture;
+            }
+
+            Debug.Log("Texture generation done.");
+        }
+        private async Task CreateLabelTextureInternalAsync()                                         
+        {
+            Debug.Log("Async label texture generation. Hold on.");
 
             Texture3D.allowThreadedTextureCreation = true;
             TextureFormat texformat = SystemInfo.SupportsTextureFormat(TextureFormat.RHalf) ? TextureFormat.RHalf : TextureFormat.RFloat;
