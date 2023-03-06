@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,6 +7,8 @@ public class QRDataSpawner : MonoBehaviour
 {
     GameObject _activeVolume = null;
     Vector3 _defaultVolumScale = new Vector3(0.3f, 0.3f, 0.3f);
+
+    public static Action QrCodeSpawned { get; set; }
 
     private void Start()
     {
@@ -18,10 +21,12 @@ public class QRDataSpawner : MonoBehaviour
             }
             else
             {
-                DatasetLister.Instance.ActiveQR.EnableVolume();
+                DatasetLister.Instance.ActiveQR.VolumeGameObject.SetActive(true);
+                DatasetLister.Instance.ActiveQR.SetButtonState(ScrollableButton.LoadButtonState.Active);
                 ChangeVolumeData(DatasetLister.Instance.ActiveQR.VolumeGameObject);
             }
         }
+        QrCodeSpawned?.Invoke();
     }
     public void ChangeVolumeData(GameObject volume)
     {
@@ -36,6 +41,11 @@ public class QRDataSpawner : MonoBehaviour
         _activeVolume.transform.localPosition= Vector3.zero;
         _activeVolume.transform.localRotation= Quaternion.identity;
         _activeVolume.transform.localScale = _defaultVolumScale;
+
+        VolumeDataControl contr=_activeVolume.GetComponent<VolumeDataControl>();
+        contr.ResetCrossSectionToolsTransform();
+        contr.ResetHandleTransform();
+        contr.ResetSlicesTransform();
         
     }
 }

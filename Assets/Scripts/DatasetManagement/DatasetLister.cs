@@ -38,6 +38,7 @@ public class DatasetLister : MonoBehaviour
             currentScroll.ButtonIndex= i;
 
             currentScroll.QrCodeDatasetActivated += OnAnyQrActivated;
+            currentScroll.LoadButtonPressed += OnLoadButtonClicked;
             AllButtons.Add(currentScroll);
         }
         yield return new WaitForEndOfFrame();
@@ -46,7 +47,7 @@ public class DatasetLister : MonoBehaviour
         _scrollingObjectCollection.UpdateContent();     //This needs to be here like this in coroutine due to bug : https://github.com/microsoft/MixedRealityToolkit-Unity/issues/10350
     }
 
-    private void OnAnyQrActivated(int index)
+    public void OnAnyQrActivated(int index)
     {
         for(int i=0;i< AllButtons.Count;i++)
         {
@@ -59,6 +60,41 @@ public class DatasetLister : MonoBehaviour
             else
             {
                 AllButtons[i].SetQrActiveState(false);
+            }
+        }
+    }
+    private void OnLoadButtonClicked(int index)
+    {
+        for (int i = 0; i < AllButtons.Count; i++)
+        {
+            if (i == index)
+            {
+                ScrollableButton button = AllButtons[i];
+
+                if (button.ButtonState == ScrollableButton.LoadButtonState.Selectable)
+                {
+                    button.SetButtonState(ScrollableButton.LoadButtonState.ReadyToLoad);
+                }
+                else if (button.ButtonState == ScrollableButton.LoadButtonState.ReadyToLoad)
+                {
+                    button.SetButtonState(ScrollableButton.LoadButtonState.Active);
+                    button.LoadDataset();
+                }
+                else if (button.ButtonState == ScrollableButton.LoadButtonState.Active)
+                {
+                    button.SetButtonState(ScrollableButton.LoadButtonState.Disabled);
+                    button.VolumeGameObject.SetActive(false);
+                }
+                else if (button.ButtonState == ScrollableButton.LoadButtonState.Disabled)
+                {
+                    button.SetButtonState(ScrollableButton.LoadButtonState.Active);
+                    button.VolumeGameObject.SetActive(true);
+                }
+            }
+            else
+            {
+                if (AllButtons[i].ButtonState == ScrollableButton.LoadButtonState.ReadyToLoad)
+                    AllButtons[i].SetButtonState(ScrollableButton.LoadButtonState.Selectable);
             }
         }
     }

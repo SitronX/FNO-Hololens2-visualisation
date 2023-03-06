@@ -30,11 +30,6 @@ public class Console : MonoBehaviour, IQcSuggestor
         WireFrame,Default,Diagnostics,NoSpatial
     }
 
-    [Command]
-    public void InitQR()
-    {
-        _qrCodeManager.SetupQRTracking();
-    }
     public void OpenConsole()
     {
         if (!_quantumConsole.IsActive)
@@ -57,6 +52,11 @@ public class Console : MonoBehaviour, IQcSuggestor
         {
             _errorNotifier.ShowErrorMessageToUser("Hand menu must be initialized before spawning anything");
         }
+    }
+    [Command]
+    public void SetQr(int index)
+    {
+        DatasetLister.Instance.OnAnyQrActivated(index);
     }
     [Command]
     public void Quit()
@@ -101,12 +101,12 @@ public class Console : MonoBehaviour, IQcSuggestor
     [Command]
     public void SetTransferFunction(string tf)
     {
-        FindObjectOfType<VolumeDataControl>().SetTransferFunction(tf);
+        FindObjectsOfType<VolumeDataControl>().ToList().ForEach(x=>x.SetTransferFunction(tf));
     }
     [Command]
-    public void ResetObjectTransform()
+    public void ResetObjectsTransform()
     {
-        FindObjectOfType<VolumeDataControl>().ResetObjectTransform();
+        FindObjectsOfType<VolumeDataControl>().ToList().ForEach(x=>x.ResetAllTransforms());
     }
     [Command]
     public void SetVolumePosition(Vector3 position,int volumeIndex)

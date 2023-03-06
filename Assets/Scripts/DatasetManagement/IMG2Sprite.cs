@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.IO;
+using System.Threading.Tasks;
 
 public static class IMG2Sprite
 {
@@ -16,7 +17,6 @@ public static class IMG2Sprite
 
         return NewSprite;
     }
-
     public static Sprite ConvertTextureToSprite(Texture2D texture, float PixelsPerUnit = 100.0f, SpriteMeshType spriteType = SpriteMeshType.Tight)
     {
         // Converts a Texture2D to a sprite, assign this texture to a new sprite and return its reference
@@ -26,6 +26,24 @@ public static class IMG2Sprite
         return NewSprite;
     }
 
+    public async static Task<Texture2D> LoadTextureAsync(string FilePath)
+    {
+
+        // Load a PNG or JPG file from disk to a Texture2D
+        // Returns null if load fails
+
+        Texture2D Tex2D = new Texture2D(2, 2);
+        byte[] FileData = null;
+
+        await Task.Run(() => {
+            if (File.Exists(FilePath))
+            {
+                FileData = File.ReadAllBytes(FilePath);
+            }
+        });
+        Tex2D.LoadImage(FileData);
+        return Tex2D;        
+    }
     public static Texture2D LoadTexture(string FilePath)
     {
 

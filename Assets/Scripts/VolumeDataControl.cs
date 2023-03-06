@@ -26,7 +26,6 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] MeshRenderer _volumeMesh;
     [SerializeField] TMP_Text _raymarchStepsLabel;
     [SerializeField] ProgressIndicatorOrbsRotator _dataLoadingIndicator;
-    [SerializeField] ProgressIndicatorOrbsRotator _gradientLoadingIndicator;
     [SerializeField] CutoutBox _cutoutBox;
     [SerializeField] GameObject _cutoutPlane;
     [SerializeField] GameObject _slicingPlaneXNormalAxisObject;
@@ -69,12 +68,14 @@ public class VolumeDataControl : MonoBehaviour
     {
         _errorNotifier = FindObjectOfType<ErrorNotifier>();
         _volumeRenderedObject = _volumetricDataMainParentObject.GetComponent<VolumeRenderedObject>();
-        ResetInitialPosition();
+        SetInitialTransforms();
 
     }
     public async void LoadDatasetData(string dataFolderName)        //Async addition so all the loading doesnt freeze the app
     {
         await _dataLoadingIndicator.OpenAsync();
+        _dataLoadingIndicator.Message = "Loading data...";
+
 
 
         LoadDicomDataPath(dataFolderName+"/Data/");
@@ -114,6 +115,7 @@ public class VolumeDataControl : MonoBehaviour
             await VolumeObjectFactory.FillObjectWithDatasetDataAsync(dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject);   
         }
 
+
         if (TF1D.Count > 0)
             SetTransferFunction(TF1D[0]);
         else if (TF2D.Count > 0)
@@ -125,20 +127,20 @@ public class VolumeDataControl : MonoBehaviour
         _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneXNormalAxisObject);
         _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneYNormalAxisObject);
         _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneZNormalAxisObject);
-       
-        await _dataLoadingIndicator.CloseAsync();
 
-        await _gradientLoadingIndicator.OpenAsync();
+
+        _dataLoadingIndicator.Message = "Creating gradient";
 
         await dataset.CreateGradientTextureInternalAsync();
 
-        await _gradientLoadingIndicator.CloseAsync();
+        await _dataLoadingIndicator.CloseAsync();
+
 
         DatasetSpawned?.Invoke(this);
 
     }
 
-    private void OnDisable()
+    private void OnDestroy()
     {
         DatasetDespawned?.Invoke(this);
     }
@@ -293,25 +295,37 @@ public class VolumeDataControl : MonoBehaviour
         _slicingPlaneYNormalAxisObject.SetActive(value);
         _slicingPlaneZNormalAxisObject.SetActive(value);
     }
-    public void ResetObjectTransform()
+    public void ResetAllTransforms()
+    {
+        ResetMainObjectTransform();
+        ResetCrossSectionToolsTransform();
+        ResetHandleTransform();
+        ResetSlicesTransform();
+    }
+    public void ResetMainObjectTransform()
     {
         transform.localPosition = _startLocalPosition;
-        transform.localRotation= Quaternion.Euler(_startLocalRotation);
+        transform.localRotation = Quaternion.Euler(_startLocalRotation);
         transform.localScale = _startLocalScale;
-
+    }
+    public void ResetCrossSectionToolsTransform()
+    {
         _cutoutPlane.transform.localPosition = _startLocalPlanePosition;
-        _cutoutPlane.transform.localRotation= Quaternion.Euler(_startLocalPlaneRotation);
+        _cutoutPlane.transform.localRotation = Quaternion.Euler(_startLocalPlaneRotation);
         _cutoutPlane.transform.localScale = _startLocalPlaneScale;
 
         _cutoutBox.transform.localPosition = _startLocalBoxPosition;
         _cutoutBox.transform.localRotation = Quaternion.Euler(_startLocalBoxRotation);
         _cutoutBox.transform.localScale = _startLocalBoxScale;
-
+    }
+    public void ResetHandleTransform()
+    {
         _controlHandle.transform.localPosition = _startLocalHandlePosition;
         _controlHandle.transform.localRotation = Quaternion.Euler(_startLocalHandleRotation);
         _controlHandle.transform.localScale = _startLocalHandleScale;
-
-
+    }
+    public void ResetSlicesTransform()
+    {
         _slicingPlaneXNormalAxisObject.transform.localPosition = Vector3.zero;
         _slicingPlaneXNormalAxisObject.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
 
@@ -320,10 +334,9 @@ public class VolumeDataControl : MonoBehaviour
 
         _slicingPlaneZNormalAxisObject.transform.localPosition = Vector3.zero;
         _slicingPlaneZNormalAxisObject.transform.localRotation = Quaternion.Euler(new Vector3(90, 0, -90));
-
     }
 
-    private void ResetInitialPosition()
+    private void SetInitialTransforms()
     {
         _startLocalPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, transform.localPosition.z);
         _startLocalRotation = new Vector3(transform.localRotation.eulerAngles.x, transform.localRotation.eulerAngles.y, transform.localRotation.eulerAngles.z);
@@ -340,7 +353,6 @@ public class VolumeDataControl : MonoBehaviour
         _startLocalHandlePosition = new Vector3(_controlHandle.transform.localPosition.x, _controlHandle.transform.localPosition.y, _controlHandle.transform.localPosition.z);
         _startLocalHandleRotation = new Vector3(_controlHandle.transform.localRotation.eulerAngles.x, _controlHandle.transform.localRotation.eulerAngles.y, _controlHandle.transform.localRotation.eulerAngles.z);
         _startLocalHandleScale = new Vector3(_controlHandle.transform.localScale.x, _controlHandle.transform.localScale.y, _controlHandle.transform.localScale.z);
-
     }
     public void SetVolumePosition(Vector3 position)
     {

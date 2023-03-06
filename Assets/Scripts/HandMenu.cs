@@ -22,20 +22,24 @@ public class HandMenu : MonoBehaviour
     bool _useCubicInterpolation = false;
     bool _useLighting = false;
     bool _additionalSettingShown = false;
+    bool _qrUpdatesEnabled = true;
 
     private void Start()
     {
         FindObjectsOfType<VolumeDataControl>().ToList().ForEach(x=>_volumeObjects.Add(x));
 
         LightingUpdated();
+        UpdateQrStatus();
 
         VolumeDataControl.DatasetSpawned += OnNewDatasetSpawned;
         VolumeDataControl.DatasetDespawned+= OnNewDatasetDespawned;
+        QRDataSpawner.QrCodeSpawned += UpdateQrStatus;
     } 
     private void OnDestroy()
     {
         VolumeDataControl.DatasetSpawned -= OnNewDatasetSpawned;
         VolumeDataControl.DatasetDespawned -= OnNewDatasetDespawned;
+        QRDataSpawner.QrCodeSpawned -= UpdateQrStatus;
     }
     private void OnNewDatasetSpawned(VolumeDataControl volumeDataControl)
     {
@@ -100,7 +104,7 @@ public class HandMenu : MonoBehaviour
     }  
     public void ResetPositionClicked()
     {
-        _volumeObjects.ForEach(_x => _x.ResetObjectTransform());
+        _volumeObjects.ForEach(_x => _x.ResetAllTransforms());
     }
     public void UpdateAdditionalSettings()
     {
@@ -116,6 +120,15 @@ public class HandMenu : MonoBehaviour
             _volumeObjects.ForEach(x => x.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.BoxInclusive));
         else if (_crossSectionModes.CurrentIndex == 2)
             _volumeObjects.ForEach(x => x.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.BoxExclusive));
+    }
+    public void ChangeQRUpdates()
+    {
+        _qrUpdatesEnabled= !_qrUpdatesEnabled;
+        UpdateQrStatus();
+    }
+    public void UpdateQrStatus()
+    {
+        FindObjectsOfType<MonoBehaviour>().OfType<IQRUpdateDisable>().ToList().ForEach(x => x.EnableQRUpdate(_qrUpdatesEnabled));
     }
 
 }

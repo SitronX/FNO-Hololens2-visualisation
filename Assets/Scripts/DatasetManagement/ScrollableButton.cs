@@ -4,33 +4,34 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityVolumeRendering;
 
 public class ScrollableButton : MonoBehaviour
 {
-    [SerializeField] SpriteRenderer _loadButtonSprite;
-    [SerializeField] SpriteRenderer _removeButtonSprite;
-    [SerializeField] SpriteRenderer _enableButtonSprite;
+    [SerializeField] MeshRenderer _loadButtonBackMesh;
     [SerializeField] GameObject _placeableVolumePrefab;
     [SerializeField] GameObject _loadButton;
     [SerializeField] GameObject _qrActiveLabel;
-    [SerializeField] GameObject _disableButton;
-    [SerializeField] GameObject _enableButton;
     [SerializeField] GameObject _qrButton;
+    [SerializeField] ButtonConfigHelper _configHelper;
 
     ErrorNotifier _errorNotifier;
-    float _buttonHoldTime = 1.0f;  //second
-    bool _loadButtonPressed = false;
     Camera _mainCamera;
     bool _hasDatasetLoaded = false;
 
-    
+    public enum LoadButtonState
+    {
+        Selectable,ReadyToLoad,Active,Disabled
+    }
+    public LoadButtonState ButtonState { private set; get; }
 
     public GameObject VolumeGameObject { get; set; }
     public string DatasetPath { get; set; } 
     public int ButtonIndex { get; set; }
     public DatasetLister ParentDatasetLister { get; set; }
     public Action<int> QrCodeDatasetActivated { get; set; }
+    public Action<int> LoadButtonPressed { get; set; }
 
     private void Start()
     {
@@ -44,9 +45,7 @@ public class ScrollableButton : MonoBehaviour
         try
         {
             string[] imgFiles = Directory.GetFiles(path);
-            _loadButtonSprite.sprite = IMG2Sprite.LoadNewSprite(imgFiles[0]);
-            _removeButtonSprite.sprite = _loadButtonSprite.sprite;
-            _enableButtonSprite.sprite = _loadButtonSprite.sprite;
+            _loadButtonBackMesh.material.mainTexture = IMG2Sprite.LoadTexture(imgFiles[0]);
         }
         catch
         {
@@ -66,10 +65,40 @@ public class ScrollableButton : MonoBehaviour
             VolumeDataControl obj= VolumeGameObject.GetComponent<VolumeDataControl>();
             obj.LoadDatasetData(DatasetPath);
 
-            _disableButton.gameObject.SetActive(true);
-            _loadButton.SetActive(false);
             _hasDatasetLoaded= true;
             _qrButton.SetActive(true);
+        }
+    }
+    public void ButtonPressed()
+    {
+        LoadButtonPressed?.Invoke(ButtonIndex);
+    }
+    public void SetButtonState(LoadButtonState state)
+    {
+        if (state != ButtonState)
+        {
+            ButtonState= state;
+
+            if (state == LoadButtonState.Selectable)
+            {
+                _configHelper.MainLabelText = "Select";
+                _configHelper.SetQuadIconByName("IconHandJoint");
+            }
+            else if (state == LoadButtonState.ReadyToLoad)
+            {
+                _configHelper.MainLabelText = "Press again to load";
+                _configHelper.SetQuadIconByName("IconAdd");
+            }
+            else if (state == LoadButtonState.Active)
+            {
+                _configHelper.MainLabelText = "Disable";
+                _configHelper.SetQuadIconByName("IconClose");
+            }
+            else if (state == LoadButtonState.Disabled)
+            {
+                _configHelper.MainLabelText = "Enable";
+                _configHelper.SetQuadIconByName("IconDone");
+            }
         }
     }
     public void TryUpdateQRVolume()
@@ -82,7 +111,8 @@ public class ScrollableButton : MonoBehaviour
                 if (VolumeGameObject == null)
                     LoadDataset();
 
-                EnableVolume();
+                VolumeGameObject.SetActive(true);
+                SetButtonState(LoadButtonState.Active);
                 qrPlaced.ChangeVolumeData(VolumeGameObject);
             }
         }
@@ -97,41 +127,5 @@ public class ScrollableButton : MonoBehaviour
             _qrActiveLabel.SetActive(value);
        
     }
-    public void DisableVolume()
-    {
-        VolumeGameObject.SetActive(false);
-        _disableButton.SetActive(false);
-        _enableButton.SetActive(true);
-    }
-    public void EnableVolume()
-    {
-        VolumeGameObject.SetActive(true);
-        _disableButton.SetActive(true);
-        _enableButton.SetActive(false);
-    }
-    public void LoadButtonPressed()
-    {
-        StartCoroutine(LoadButtonPressedCoroutine(0.1f));
-    }
-    private IEnumerator LoadButtonPressedCoroutine(float checkInterval)     //So user doesnt accidently click load dataset, here is coroutine so player must hold the button for specified time 
-    {
-        _loadButtonPressed = true;
-        float time = 0;
-        while(_loadButtonPressed)
-        {
-            time += checkInterval;
-
-            if(time> _buttonHoldTime)
-            {
-                LoadDataset();
-                TryUpdateQRVolume();
-                _loadButtonPressed = false;
-            }
-            yield return new WaitForSeconds(checkInterval);
-        }
-    }
-    public void LoadButtonReleased()
-    {
-        _loadButtonPressed = false;
-    }
+    
 }
