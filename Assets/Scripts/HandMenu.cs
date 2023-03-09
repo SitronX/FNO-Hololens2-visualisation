@@ -60,9 +60,9 @@ public class HandMenu : MonoBehaviour
         if (_crossSectionModes.CurrentIndex == 0)
             volumeDataControl.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.Plane);
         else if (_crossSectionModes.CurrentIndex == 1)
-            volumeDataControl.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.BoxInclusive);
+            volumeDataControl.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.SphereInclusive);
         else if (_crossSectionModes.CurrentIndex == 2)
-            volumeDataControl.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.BoxExclusive);
+            volumeDataControl.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.SphereExclusive);
 
 
         int steps = (int)(_raymarchSlider.SliderValue * 1000);
@@ -117,9 +117,9 @@ public class HandMenu : MonoBehaviour
         if (_crossSectionModes.CurrentIndex == 0)
             _volumeObjects.ForEach(x => x.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.Plane));
         else if (_crossSectionModes.CurrentIndex == 1)
-            _volumeObjects.ForEach(x => x.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.BoxInclusive));
+            _volumeObjects.ForEach(x => x.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.SphereInclusive));
         else if (_crossSectionModes.CurrentIndex == 2)
-            _volumeObjects.ForEach(x => x.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.BoxExclusive));
+            _volumeObjects.ForEach(x => x.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.SphereExclusive));
     }
     public void ChangeQRUpdates()
     {

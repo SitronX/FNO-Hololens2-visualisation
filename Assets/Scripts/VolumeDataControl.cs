@@ -26,7 +26,7 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] MeshRenderer _volumeMesh;
     [SerializeField] TMP_Text _raymarchStepsLabel;
     [SerializeField] ProgressIndicatorOrbsRotator _dataLoadingIndicator;
-    [SerializeField] CutoutBox _cutoutBox;
+    [SerializeField] CrossSectionSphere _cutoutSphere;
     [SerializeField] GameObject _cutoutPlane;
     [SerializeField] GameObject _slicingPlaneXNormalAxisObject;
     [SerializeField] GameObject _slicingPlaneYNormalAxisObject;
@@ -149,19 +149,19 @@ public class VolumeDataControl : MonoBehaviour
         if(type ==CrossSectionType.Plane)
         {
             _cutoutPlane.SetActive(true);
-            _cutoutBox.gameObject.SetActive(false);
+            _cutoutSphere.gameObject.SetActive(false);
         }
-        else if(type== CrossSectionType.BoxInclusive)
+        else if(type== CrossSectionType.SphereInclusive)
         {
             _cutoutPlane.SetActive(false);
-            _cutoutBox.gameObject.SetActive(true);
-            _cutoutBox.cutoutType = CutoutType.Inclusive;
+            _cutoutSphere.gameObject.SetActive(true);
+            _cutoutSphere.CutoutType = CutoutType.Inclusive;
         }
-        else if (type == CrossSectionType.BoxExclusive)
+        else if (type == CrossSectionType.SphereExclusive)
         {
             _cutoutPlane.SetActive(false);
-            _cutoutBox.gameObject.SetActive(true);
-            _cutoutBox.cutoutType = CutoutType.Exclusive;
+            _cutoutSphere.gameObject.SetActive(true);
+            _cutoutSphere.CutoutType = CutoutType.Exclusive;
         }
     }
 
@@ -314,9 +314,9 @@ public class VolumeDataControl : MonoBehaviour
         _cutoutPlane.transform.localRotation = Quaternion.Euler(_startLocalPlaneRotation);
         _cutoutPlane.transform.localScale = _startLocalPlaneScale;
 
-        _cutoutBox.transform.localPosition = _startLocalBoxPosition;
-        _cutoutBox.transform.localRotation = Quaternion.Euler(_startLocalBoxRotation);
-        _cutoutBox.transform.localScale = _startLocalBoxScale;
+        _cutoutSphere.transform.localPosition = _startLocalBoxPosition;
+        _cutoutSphere.transform.localRotation = Quaternion.Euler(_startLocalBoxRotation);
+        _cutoutSphere.transform.localScale = _startLocalBoxScale;
     }
     public void ResetHandleTransform()
     {
@@ -346,9 +346,9 @@ public class VolumeDataControl : MonoBehaviour
         _startLocalPlaneRotation = new Vector3(_cutoutPlane.transform.localRotation.eulerAngles.x, _cutoutPlane.transform.localRotation.eulerAngles.y, _cutoutPlane.transform.localRotation.eulerAngles.z);
         _startLocalPlaneScale = new Vector3(_cutoutPlane.transform.localScale.x, _cutoutPlane.transform.localScale.y, _cutoutPlane.transform.localScale.z);
 
-        _startLocalBoxPosition = new Vector3(_cutoutBox.transform.localPosition.x, _cutoutBox.transform.localPosition.y, _cutoutBox.transform.localPosition.z);
-        _startLocalBoxRotation = new Vector3(_cutoutBox.transform.localRotation.eulerAngles.x, _cutoutBox.transform.localRotation.eulerAngles.y, _cutoutBox.transform.localRotation.eulerAngles.z);
-        _startLocalBoxScale = new Vector3(_cutoutBox.transform.localScale.x, _cutoutBox.transform.localScale.y, _cutoutBox.transform.localScale.z);
+        _startLocalBoxPosition = new Vector3(_cutoutSphere.transform.localPosition.x, _cutoutSphere.transform.localPosition.y, _cutoutSphere.transform.localPosition.z);
+        _startLocalBoxRotation = new Vector3(_cutoutSphere.transform.localRotation.eulerAngles.x, _cutoutSphere.transform.localRotation.eulerAngles.y, _cutoutSphere.transform.localRotation.eulerAngles.z);
+        _startLocalBoxScale = new Vector3(_cutoutSphere.transform.localScale.x, _cutoutSphere.transform.localScale.y, _cutoutSphere.transform.localScale.z);
 
         _startLocalHandlePosition = new Vector3(_controlHandle.transform.localPosition.x, _controlHandle.transform.localPosition.y, _controlHandle.transform.localPosition.z);
         _startLocalHandleRotation = new Vector3(_controlHandle.transform.localRotation.eulerAngles.x, _controlHandle.transform.localRotation.eulerAngles.y, _controlHandle.transform.localRotation.eulerAngles.z);

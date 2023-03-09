@@ -3642,7 +3642,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6177759129021259294, guid: 963058749caf8b4419fbe17c440aaafa, type: 3}
       propertyPath: m_text
-      value: Box Inside
+      value: Sphere in
       objectReference: {fileID: 0}
     - target: {fileID: 6177759129021259294, guid: 963058749caf8b4419fbe17c440aaafa, type: 3}
       propertyPath: m_textAlignment
@@ -3662,7 +3662,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6177759129608228846, guid: 963058749caf8b4419fbe17c440aaafa, type: 3}
       propertyPath: m_Name
-      value: CutoutBoxInclude
+      value: CutoutSphereInclude
       objectReference: {fileID: 0}
     - target: {fileID: 6177759129608228850, guid: 963058749caf8b4419fbe17c440aaafa, type: 3}
       propertyPath: m_Size.x
@@ -7481,7 +7481,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6177759129021259294, guid: 963058749caf8b4419fbe17c440aaafa, type: 3}
       propertyPath: m_text
-      value: Box outside
+      value: Sphere out
       objectReference: {fileID: 0}
     - target: {fileID: 6177759129021259294, guid: 963058749caf8b4419fbe17c440aaafa, type: 3}
       propertyPath: m_textAlignment
@@ -7501,7 +7501,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6177759129608228846, guid: 963058749caf8b4419fbe17c440aaafa, type: 3}
       propertyPath: m_Name
-      value: CutoutBoxExclude
+      value: CutoutSphereExclude
       objectReference: {fileID: 0}
     - target: {fileID: 6177759129608228850, guid: 963058749caf8b4419fbe17c440aaafa, type: 3}
       propertyPath: m_Size.x
