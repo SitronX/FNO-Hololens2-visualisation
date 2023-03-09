@@ -72,6 +72,8 @@ namespace UnityVolumeRendering
         
 
             meshRenderer.sharedMaterial.SetTexture("_DataTex", await dataset.GetDataTextureAsync());           //Very long
+
+            meshRenderer.sharedMaterial.SetTexture("_LabelTex",await dataset.GetLabelTextureAsync());           //Very long
             meshRenderer.sharedMaterial.SetTexture("_GradientTex", null);
             meshRenderer.sharedMaterial.SetTexture("_NoiseTex", noiseTexture);
 

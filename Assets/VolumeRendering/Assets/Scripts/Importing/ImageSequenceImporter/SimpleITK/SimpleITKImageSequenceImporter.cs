@@ -234,6 +234,56 @@ namespace UnityVolumeRendering
             
             return volumeDataset;
         }
+        public async Task ImportSeriesSegmentationAsync(IImageSequenceSeries series,VolumeDataset volumeDataset)
+        {
+            Image image = null;
+            float[] pixelData = null;
+            VectorUInt32 size = null;
+            VectorString dicomNames = null;
+
+
+            ImageSequenceSeries sequenceSeries = (ImageSequenceSeries)series;
+            if (sequenceSeries.files.Count == 0)
+            {
+                Debug.LogError("Empty series. No files to load.");
+                return;
+            }
+
+            await Task.Run(() => {
+
+                ImageSeriesReader reader = new ImageSeriesReader();
+
+                dicomNames = new VectorString();
+
+                foreach (var dicomFile in sequenceSeries.files)
+                    dicomNames.Add(dicomFile.filePath);
+                reader.SetFileNames(dicomNames);
+
+                image = reader.Execute();
+
+                // Cast to 32-bit float
+                image = SimpleITK.Cast(image, PixelIDValueEnum.sitkFloat32);
+
+                size = image.GetSize();
+
+                int numPixels = 1;
+                for (int dim = 0; dim < image.GetDimension(); dim++)
+                    numPixels *= (int)size[dim];
+
+                // Read pixel data
+                pixelData = new float[numPixels];
+                IntPtr imgBuffer = image.GetBufferAsFloat();
+                Marshal.Copy(imgBuffer, pixelData, 0, numPixels);
+
+                for (int i = 0; i < pixelData.Length; i++)
+                    pixelData[i] = Mathf.Clamp(pixelData[i], -1024, 3071);
+
+                VectorDouble spacing = image.GetSpacing();
+
+                volumeDataset.labelData = pixelData;              
+            });
+
+        }
     }
 }
 #endif

@@ -3,6 +3,7 @@
     Properties
     {
         _DataTex ("Data Texture (Generated)", 3D) = "" {}
+        _LabelTex("Label Texture (Generated)",3D)=""{}
         _GradientTex("Gradient Texture (Generated)", 3D) = "" {}
         _NoiseTex("Noise Texture (Generated)", 2D) = "white" {}
         _TFTex("Transfer Function Texture (Generated)", 2D) = "" {}
@@ -68,6 +69,7 @@
             };
 
             sampler3D _DataTex;
+            sampler3D _LabelTex;
             sampler3D _GradientTex;
             sampler2D _NoiseTex;
             sampler2D _TFTex;
@@ -190,6 +192,11 @@
 #else
                 return tex3Dlod(_DataTex, float4(pos.x, pos.y, pos.z, 0.0f));
 #endif
+            }
+
+            int getLabel(float3 pos)
+            {
+                return tex3Dlod(_LabelTex, float4(pos.x, pos.y, pos.z, 0.0f));
             }
 
             // Gets the gradient at the specified position
@@ -318,6 +325,10 @@
                     // Get the dansity/sample value of the current position
                     const float density = getDensity(currPos);
 
+                    const float label = getLabel(currPos);
+                    if (label != 1)
+                        continue;
+                     
                     // Apply visibility window
                     if (density < _MinVal1 || density > _MaxVal1)
                         if (density < _MinVal2 || density > _MaxVal2)

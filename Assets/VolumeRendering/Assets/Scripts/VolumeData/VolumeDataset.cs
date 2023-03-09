@@ -19,7 +19,7 @@ namespace UnityVolumeRendering
         public float[] data;
 
         [SerializeField]
-        public int[] labelData;
+        public float[] labelData;
 
         [SerializeField]
         public int dimX, dimY, dimZ;
@@ -44,6 +44,9 @@ namespace UnityVolumeRendering
 
         //TODO
         private Texture3D labelTexture = null;
+
+        private float minLabelValue = float.MaxValue;
+        private float maxLabelValue = float.MinValue;
 
 
         public Texture3D GetDataTexture()
@@ -96,6 +99,20 @@ namespace UnityVolumeRendering
             if (maxDataValue == float.MinValue)
                 CalculateValueBounds();
             return maxDataValue;
+        }
+
+        public float GetMinLabelValue()
+        {
+            if (minLabelValue == float.MaxValue)
+                CalculateLabelBounds();
+            return minLabelValue;
+        }
+
+        public float GetMaxLabelValue()
+        {
+            if (maxLabelValue == float.MinValue)
+                CalculateLabelBounds();
+            return maxLabelValue;
         }
 
         /// <summary>
@@ -179,6 +196,21 @@ namespace UnityVolumeRendering
                     float val = data[i];
                     minDataValue = Mathf.Min(minDataValue, val);
                     maxDataValue = Mathf.Max(maxDataValue, val);
+                }
+            }
+        }
+        private void CalculateLabelBounds()
+        {
+            minLabelValue = float.MaxValue;
+            maxLabelValue = float.MinValue;
+
+            if (labelData != null)
+            {
+                for (int i = 0; i < dimX * dimY * dimZ; i++)
+                {
+                    float val = labelData[i];
+                    minLabelValue = Mathf.Min(minLabelValue, val);
+                    maxLabelValue = Mathf.Max(maxLabelValue, val);
                 }
             }
         }
@@ -312,51 +344,52 @@ namespace UnityVolumeRendering
 
             await Task.Run(() =>
             {
-                minValue = GetMinDataValue();
-                maxValue = GetMaxDataValue();
+                minValue = GetMinLabelValue();
+                maxValue = GetMaxLabelValue();
                 maxRange = maxValue - minValue;
+                TODO THE LABELS ARE NOT LOADED CORRECTLY AS SHOW IN SLICER, THEY STILL CONTAIN THE CORRECT DENSITY. SO THESE DENSITIES MUST BE CONVERTED TO LABEL MAP CORRECTLy
             });
 
-            bool isHalfFloat = texformat == TextureFormat.RHalf;
+            //bool isHalfFloat = texformat == TextureFormat.RHalf;
 
             try
             {
-                if (isHalfFloat)
-                {
-                    NativeArray<ushort> pixelBytes = default;
-
-                    await Task.Run(() => {
-                        pixelBytes = new NativeArray<ushort>(data.Length, Allocator.TempJob);
-                        for (int iData = 0; iData < data.Length; iData++)
-                            pixelBytes[iData] = Mathf.FloatToHalf((float)(data[iData] - minValue) / maxRange);
-                    });
-
-                    Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
-                    texture.wrapMode = TextureWrapMode.Clamp;
-                    texture.SetPixelData(pixelBytes, 0);
-                    texture.Apply();
-                    dataTexture = texture;
-
-                    pixelBytes.Dispose();
-                }
-                else
-                {
+               //if (isHalfFloat)
+               //{
+               //    NativeArray<ushort> pixelBytes = default;
+               //
+               //    await Task.Run(() => {
+               //        pixelBytes = new NativeArray<ushort>(labelData.Length, Allocator.TempJob);
+               //        for (int iData = 0; iData < labelData.Length; iData++)
+               //            pixelBytes[iData] = Mathf.FloatToHalf((float)(labelData[iData] - minValue) / maxRange);
+               //    });
+               //
+               //    Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
+               //    texture.wrapMode = TextureWrapMode.Clamp;
+               //    texture.SetPixelData(pixelBytes, 0);
+               //    texture.Apply();
+               //    labelTexture = texture;
+               //
+               //    pixelBytes.Dispose();
+               //}
+               //else
+               //{
                     NativeArray<float> pixelBytes = default;
 
                     await Task.Run(() => {
-                        pixelBytes = new NativeArray<float>(data.Length, Allocator.TempJob);
-                        for (int iData = 0; iData < data.Length; iData++)
-                            pixelBytes[iData] = (float)(data[iData] - minValue) / maxRange;
+                        pixelBytes = new NativeArray<float>(labelData.Length, Allocator.TempJob);
+                        for (int iData = 0; iData < labelData.Length; iData++)
+                            pixelBytes[iData] = labelData[iData];//(float)(labelData[iData] - minValue) / maxRange;
                     });
 
                     Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
                     texture.wrapMode = TextureWrapMode.Clamp;
                     texture.SetPixelData(pixelBytes, 0);
                     texture.Apply();
-                    dataTexture = texture;
+                    labelTexture = texture;
 
                     pixelBytes.Dispose();
-                }
+                //}
             }
             catch (OutOfMemoryException)
             {
@@ -368,10 +401,10 @@ namespace UnityVolumeRendering
                 for (int x = 0; x < dimX; x++)
                     for (int y = 0; y < dimY; y++)
                         for (int z = 0; z < dimZ; z++)
-                            texture.SetPixel(x, y, z, new Color((float)(data[x + y * dimX + z * (dimX * dimY)] - minValue) / maxRange, 0.0f, 0.0f, 0.0f));
+                            texture.SetPixel(x, y, z, new Color((float)(labelData[x + y * dimX + z * (dimX * dimY)] - minValue) / maxRange, 0.0f, 0.0f, 0.0f));
 
                 texture.Apply();
-                dataTexture = texture;
+                labelTexture = texture;
             }
 
             Debug.Log("Texture generation done.");
