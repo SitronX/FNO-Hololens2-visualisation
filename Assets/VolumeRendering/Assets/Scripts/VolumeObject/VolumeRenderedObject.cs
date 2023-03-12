@@ -38,6 +38,7 @@ namespace UnityVolumeRendering
 
         private CrossSectionManager crossSectionManager;
 
+
         public SlicingPlane CreateSlicingPlane()
         {
             GameObject sliceRenderingPlane = GameObject.Instantiate(Resources.Load<GameObject>("SlicingPlane"));
@@ -285,9 +286,5 @@ namespace UnityVolumeRendering
 
         }
 
-        //private void Start()
-        //{
-        //    UpdateMaterialProperties();
-        //}
     }
 }

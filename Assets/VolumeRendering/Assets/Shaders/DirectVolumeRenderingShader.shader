@@ -11,6 +11,7 @@
         _Max1Val("Max1 val", Range(0.0, 1.0)) = 1.0
         _Min2Val("Min2 val", Range(0.0, 1.0)) = 0.0
         _Max2Val("Max2 val", Range(0.0, 1.0)) = 1.0
+        _SegmentNumber("Segment number",int)=0
         _stepNumber("Step number",int)=512
     }
     SubShader
@@ -34,6 +35,7 @@
             #pragma multi_compile __ RAY_TERMINATE_ON
             #pragma multi_compile __ USE_MAIN_LIGHT
             #pragma multi_compile __ CUBIC_INTERPOLATION_ON
+            #pragma multi_compile __ LABELING_SUPPORT_ON
             #pragma vertex vert
             #pragma fragment frag
 
@@ -80,6 +82,8 @@
             float _MaxVal2;
             float3 _TextureSize;
             int _stepNumber;
+            int _SegmentNumber;
+            float _SegmentsVisibility[500];                                       //Dynamic arrays are not possible, so here it is capped to 500 segments, it should not be really possible to overcome this number (i hope?)
 
 #if CROSS_SECTION_ON
 #define CROSS_SECTION_TYPE_PLANE 1 
@@ -194,7 +198,7 @@
 #endif
             }
 
-            int getLabel(float3 pos)
+            float getLabel(float3 pos)
             {
                 return tex3Dlod(_LabelTex, float4(pos.x, pos.y, pos.z, 0.0f));
             }
@@ -203,7 +207,7 @@
             float3 getGradient(float3 pos)
             {
 #if CUBIC_INTERPOLATION_ON
-                return interpolateTricubicFast(_GradientTex, float3(pos.x, pos.y, pos.z), _TextureSize).rgb;
+                return interpolateTricubicFast(_GradientTex, float3(pos.x, pos.y, pos.z), _TextureSize);
 #else
                 return tex3Dlod(_GradientTex, float4(pos.x, pos.y, pos.z, 0.0f)).rgb;
 #endif
@@ -322,13 +326,16 @@
                     	continue;
 #endif
 
+
+#ifdef LABELING_SUPPORT_ON
+                    const float label = getLabel(currPos);        
+                    if (_SegmentsVisibility[label] == 0)
+                        continue;
+#endif
+                     
                     // Get the dansity/sample value of the current position
                     const float density = getDensity(currPos);
 
-                    const float label = getLabel(currPos);
-                    if (label != 1)
-                        continue;
-                     
                     // Apply visibility window
                     if (density < _MinVal1 || density > _MaxVal1)
                         if (density < _MinVal2 || density > _MaxVal2)
@@ -409,6 +416,12 @@
                         continue;
 #endif
 
+#ifdef LABELING_SUPPORT_ON
+                    const float label = getLabel(currPos);
+                    if (_SegmentsVisibility[label] == 0)
+                        continue;
+#endif
+
                     const float density = getDensity(currPos);
                     if (density > maxDensity &&(( density > _MinVal1 && density < _MaxVal1)|| (density > _MinVal2 && density < _MaxVal2)))
                     {
@@ -446,6 +459,13 @@
                     
 #ifdef CROSS_SECTION_ON
                     if (IsCutout(currPos))
+                        continue;
+#endif
+
+
+#ifdef LABELING_SUPPORT_ON
+                    const float label = getLabel(currPos);
+                    if (_SegmentsVisibility[label] == 0)
                         continue;
 #endif
 

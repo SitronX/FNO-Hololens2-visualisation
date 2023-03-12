@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Unity.Collections;
 using UnityEngine;
@@ -20,6 +22,8 @@ namespace UnityVolumeRendering
 
         [SerializeField]
         public float[] labelData;
+
+        public Dictionary<float,float> LabelValues { get; set; } =new Dictionary<float,float>();      //Label value and position
 
         [SerializeField]
         public int dimX, dimY, dimZ;
@@ -101,18 +105,18 @@ namespace UnityVolumeRendering
             return maxDataValue;
         }
 
-        public float GetMinLabelValue()
+        public void FindAllSegments()
         {
-            if (minLabelValue == float.MaxValue)
-                CalculateLabelBounds();
-            return minLabelValue;
-        }
-
-        public float GetMaxLabelValue()
-        {
-            if (maxLabelValue == float.MinValue)
-                CalculateLabelBounds();
-            return maxLabelValue;
+            if (labelData != null)
+            {
+                for (int i = 0; i < dimX * dimY * dimZ; i++)
+                {
+                    float val = labelData[i];
+                    
+                    if (!LabelValues.ContainsKey(val))
+                        LabelValues.Add(val, 0);
+                }
+            }
         }
 
         /// <summary>
@@ -199,21 +203,7 @@ namespace UnityVolumeRendering
                 }
             }
         }
-        private void CalculateLabelBounds()
-        {
-            minLabelValue = float.MaxValue;
-            maxLabelValue = float.MinValue;
-
-            if (labelData != null)
-            {
-                for (int i = 0; i < dimX * dimY * dimZ; i++)
-                {
-                    float val = labelData[i];
-                    minLabelValue = Mathf.Min(minLabelValue, val);
-                    maxLabelValue = Mathf.Max(maxLabelValue, val);
-                }
-            }
-        }
+     
 
         private Texture3D CreateTextureInternal()
         {
@@ -331,55 +321,31 @@ namespace UnityVolumeRendering
 
             Debug.Log("Texture generation done.");
         }
-        private async Task CreateLabelTextureInternalAsync()                                         
+        private async Task CreateLabelTextureInternalAsync()                                         //It would be ideal to represent label values as Int, but i didnt manage to get it working
         {
             Debug.Log("Async label texture generation. Hold on.");
 
             Texture3D.allowThreadedTextureCreation = true;
             TextureFormat texformat = SystemInfo.SupportsTextureFormat(TextureFormat.RHalf) ? TextureFormat.RHalf : TextureFormat.RFloat;
 
-            float minValue = 0;
-            float maxValue = 0;
-            float maxRange = 0;
 
             await Task.Run(() =>
             {
-                minValue = GetMinLabelValue();
-                maxValue = GetMaxLabelValue();
-                maxRange = maxValue - minValue;
-                TODO THE LABELS ARE NOT LOADED CORRECTLY AS SHOW IN SLICER, THEY STILL CONTAIN THE CORRECT DENSITY. SO THESE DENSITIES MUST BE CONVERTED TO LABEL MAP CORRECTLy
+                FindAllSegments();
+                OrderLabelDictionary();
             });
-
-            //bool isHalfFloat = texformat == TextureFormat.RHalf;
 
             try
             {
-               //if (isHalfFloat)
-               //{
-               //    NativeArray<ushort> pixelBytes = default;
-               //
-               //    await Task.Run(() => {
-               //        pixelBytes = new NativeArray<ushort>(labelData.Length, Allocator.TempJob);
-               //        for (int iData = 0; iData < labelData.Length; iData++)
-               //            pixelBytes[iData] = Mathf.FloatToHalf((float)(labelData[iData] - minValue) / maxRange);
-               //    });
-               //
-               //    Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
-               //    texture.wrapMode = TextureWrapMode.Clamp;
-               //    texture.SetPixelData(pixelBytes, 0);
-               //    texture.Apply();
-               //    labelTexture = texture;
-               //
-               //    pixelBytes.Dispose();
-               //}
-               //else
-               //{
-                    NativeArray<float> pixelBytes = default;
+                if (texformat == TextureFormat.RHalf)
+                {
+                    NativeArray<ushort> pixelBytes = default;
 
-                    await Task.Run(() => {
-                        pixelBytes = new NativeArray<float>(labelData.Length, Allocator.TempJob);
+                    await Task.Run(() =>
+                    {
+                        pixelBytes = new NativeArray<ushort>(labelData.Length, Allocator.TempJob);
                         for (int iData = 0; iData < labelData.Length; iData++)
-                            pixelBytes[iData] = labelData[iData];//(float)(labelData[iData] - minValue) / maxRange;
+                            pixelBytes[iData] = Mathf.FloatToHalf(LabelValues[labelData[iData]]);                             //Assigning correct label map values
                     });
 
                     Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
@@ -389,11 +355,30 @@ namespace UnityVolumeRendering
                     labelTexture = texture;
 
                     pixelBytes.Dispose();
-                //}
+                }
+                else
+                {
+                    NativeArray<float> pixelBytes = default;
+
+                    await Task.Run(() =>
+                    {
+                        pixelBytes = new NativeArray<float>(labelData.Length, Allocator.TempJob);
+                        for (int iData = 0; iData < labelData.Length; iData++)
+                            pixelBytes[iData] = LabelValues[labelData[iData]];                             //Assigning correct label map values
+                    });
+
+                    Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
+                    texture.wrapMode = TextureWrapMode.Clamp;
+                    texture.SetPixelData(pixelBytes, 0);
+                    texture.Apply();
+                    labelTexture = texture;
+
+                    pixelBytes.Dispose();
+                }
             }
             catch (OutOfMemoryException)
             {
-                Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
+                Texture3D texture = new Texture3D(dimX, dimY, dimZ, TextureFormat.RFloat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
                 texture.wrapMode = TextureWrapMode.Clamp;
 
 
@@ -401,13 +386,25 @@ namespace UnityVolumeRendering
                 for (int x = 0; x < dimX; x++)
                     for (int y = 0; y < dimY; y++)
                         for (int z = 0; z < dimZ; z++)
-                            texture.SetPixel(x, y, z, new Color((float)(labelData[x + y * dimX + z * (dimX * dimY)] - minValue) / maxRange, 0.0f, 0.0f, 0.0f));
+                            texture.SetPixel(x, y, z, new Color(LabelValues[labelData[x + y * dimX + z * (dimX * dimY)]], 0.0f, 0.0f, 0.0f));
 
                 texture.Apply();
                 labelTexture = texture;
             }
 
-            Debug.Log("Texture generation done.");
+            Debug.Log("Label Texture generation done.");
+        }
+        private void OrderLabelDictionary()
+        {
+            List<float> values = new List<float>();
+
+            foreach(float i in LabelValues.Keys)
+                values.Add(i);
+
+            values=values.OrderBy(x=>x).ToList();
+
+            for (int i = 0; i < values.Count; i++)
+                LabelValues[values[i]] = i;
         }
 
         private Texture3D CreateGradientTextureInternal()

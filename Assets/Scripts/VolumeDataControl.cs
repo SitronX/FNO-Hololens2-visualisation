@@ -23,7 +23,6 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] SliderIntervalUpdater _sliderIntervalUpdater1;
     [SerializeField] SliderIntervalUpdater _sliderIntervalUpdater2;
     [SerializeField] GameObject _secondSliderCheckbox;
-    [SerializeField] MeshRenderer _volumeMesh;
     [SerializeField] TMP_Text _raymarchStepsLabel;
     [SerializeField] ProgressIndicatorOrbsRotator _dataLoadingIndicator;
     [SerializeField] CutoutBox _cutoutBox;
@@ -32,6 +31,14 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] GameObject _slicingPlaneYNormalAxisObject;
     [SerializeField] GameObject _slicingPlaneZNormalAxisObject;
     [SerializeField] GameObject _controlHandle;
+    [SerializeField] GameObject _segmentationSliderPrefab;
+    [SerializeField] GameObject _segmentationParentContainer;
+
+    [field: SerializeField] public MeshRenderer VolumeMesh { get; set; }
+
+    public VolumeDataset Dataset { get; set; }
+    List<float> _segmentsVisibility = new List<float>();
+
 
     ErrorNotifier _errorNotifier;
 
@@ -69,7 +76,7 @@ public class VolumeDataControl : MonoBehaviour
         SetInitialTransforms();
 
     }
-    public async Task LoadDatasetData(string dataFolderName)        //Async addition so all the loading doesnt freeze the app
+    public async void LoadDataset(string datasetFolderName)        //Async addition so all the loading doesnt freeze the app
     {
         await _dataLoadingIndicator.OpenAsync();
         _dataLoadingIndicator.Message = "Loading data...";
@@ -80,13 +87,17 @@ public class VolumeDataControl : MonoBehaviour
         _sliderIntervalUpdater1.OnIntervaSliderValueChanged += UpdateIsoRanges;
         _sliderIntervalUpdater2.OnIntervaSliderValueChanged += UpdateIsoRanges;
 
-        VolumeDataset dataset = await CreateVolumeDatasetAsync(dataFolderName);
+        Dataset = await CreateVolumeDatasetAsync(datasetFolderName);
 
-        await LoadSegmentationToVolumeAsync(dataFolderName, dataset);
-
-        if (dataset != null)
+        if (Dataset != null)
         {
-            await VolumeObjectFactory.FillObjectWithDatasetDataAsync(dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject);
+            await VolumeObjectFactory.FillObjectWithDatasetDataAsync(Dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject);
+        }
+
+        if (await TryLoadSegmentationToVolumeAsync(datasetFolderName, Dataset))
+        {
+            _dataLoadingIndicator.Message = "Loading segmentation...";
+            await InitSegmentation();
         }
 
 
@@ -105,7 +116,7 @@ public class VolumeDataControl : MonoBehaviour
 
         _dataLoadingIndicator.Message = "Creating gradient";
 
-        await dataset.CreateGradientTextureInternalAsync();
+        await Dataset.CreateGradientTextureInternalAsync();
 
         await _dataLoadingIndicator.CloseAsync();
 
@@ -113,9 +124,15 @@ public class VolumeDataControl : MonoBehaviour
         DatasetSpawned?.Invoke(this);
 
     }
-    public async Task<VolumeDataset> CreateVolumeDatasetAsync(string dataFolderName)
+    public async Task<VolumeDataset> CreateVolumeDatasetAsync(string datasetFolderName)
     {
-        LoadDicomDataPath(dataFolderName + "/Data/", out string filePath, out bool isDicomImageSequence);
+        string dataFolderName = datasetFolderName + "/Data/";
+        if (!Directory.Exists(dataFolderName))
+        {
+            _errorNotifier.ShowErrorMessageToUser("Data folder for selected dataset doesnt exist!!!");
+        }
+
+        LoadDicomDataPath(dataFolderName, out string filePath, out bool isDicomImageSequence);
 
         SimpleITKImageSequenceImporter sequenceImporter = new SimpleITKImageSequenceImporter();
         SimpleITKImageFileImporter fileImporter = new SimpleITKImageFileImporter();
@@ -143,9 +160,14 @@ public class VolumeDataControl : MonoBehaviour
         return dataset;
     }
 
-    public async Task LoadSegmentationToVolumeAsync(string dataFolderName,VolumeDataset volumeDataset)
+    public async Task<bool> TryLoadSegmentationToVolumeAsync(string datasetFolderName, VolumeDataset volumeDataset)
     {
-        LoadDicomDataPath(dataFolderName + "/Segmentation/", out string filePath, out bool isDicomImageSequence);
+        string segmentationFolderName = datasetFolderName + "/Segmentation/";
+        if (!Directory.Exists(segmentationFolderName))
+        {
+            return false;
+        }
+        LoadDicomDataPath(segmentationFolderName, out string filePath, out bool isDicomImageSequence);
 
         SimpleITKImageSequenceImporter sequenceImporter = new SimpleITKImageSequenceImporter();
         SimpleITKImageFileImporter fileImporter = new SimpleITKImageFileImporter();
@@ -160,8 +182,8 @@ public class VolumeDataControl : MonoBehaviour
 
             if (sequence.Count() > 1)
             {
-                _errorNotifier.ShowErrorMessageToUser("DICOM folder contains multiple image series, it must contain single image series at runtime!");
-                return;
+                _errorNotifier.ShowErrorMessageToUser("Segmentation folder contains multiple image series, it must contain single image series at runtime!");
+                return false;
             }
             await sequenceImporter.ImportSeriesSegmentationAsync(sequence.First(),volumeDataset);
         }
@@ -169,6 +191,7 @@ public class VolumeDataControl : MonoBehaviour
         {
             await fileImporter.ImportSegmentationAsync(filePath,volumeDataset);
         }
+        return true;
     }
 
     private void OnDestroy()
@@ -273,14 +296,14 @@ public class VolumeDataControl : MonoBehaviour
     }
     public void SetRaymarchStepCount(int value)
     {
-        _volumeMesh.sharedMaterial.SetInt("_stepNumber", value);
+        VolumeMesh.sharedMaterial.SetInt("_stepNumber", value);
     }
     public void UpdateLighting(bool value)
     {
         _volumeData.SetLightingEnabled(value);
     }
     public void LoadDicomDataPath(string dicomFolderPath,out string dicomPath,out bool isImageSequence)
-    {      
+    {
         List<string> dicomFilesCandidates = Directory.GetFiles(dicomFolderPath).ToList();
 
         dicomFilesCandidates.RemoveAll(x => x.EndsWith(".meta"));
@@ -322,6 +345,36 @@ public class VolumeDataControl : MonoBehaviour
                 TF2D.Add(i);
         }
     }
+    public async Task InitSegmentation()
+    {
+        MeshRenderer meshRenderer = VolumeMesh.GetComponent<MeshRenderer>();
+        meshRenderer.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync());           //Very long
+
+        for (int i = 0; i < Dataset.LabelValues.Keys.Count; i++)
+        {
+            _segmentsVisibility.Add(0);
+            GameObject tmp = Instantiate(_segmentationSliderPrefab, _segmentationParentContainer.transform);
+            tmp.transform.localPosition = new Vector3(0.4f,0.3f -(0.05f * i), 0.7f);
+            tmp.transform.localRotation = Quaternion.Euler(new Vector3(0,-90,0));
+            SegmentationSliderHelper helper = tmp.GetComponent<SegmentationSliderHelper>();
+            helper.SliderID= i;
+            helper.SliderUpdated += SliderUpdated;
+        }
+
+        UpdateShaderLabelArray();
+
+        meshRenderer.sharedMaterial.EnableKeyword("LABELING_SUPPORT_ON");
+    }
+    public void UpdateShaderLabelArray()
+    {
+        VolumeMesh.material.SetFloatArray("_SegmentsVisibility", _segmentsVisibility);
+    }
+    public void SliderUpdated(int sliderID, float value)
+    {
+        _segmentsVisibility[sliderID] = value;
+        UpdateShaderLabelArray();
+    }
+
     public void UpdateSlicePlane(bool value)
     {
         _slicingPlaneXNormalAxisObject.SetActive(value);

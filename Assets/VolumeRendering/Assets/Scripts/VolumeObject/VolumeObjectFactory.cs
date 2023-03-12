@@ -73,7 +73,6 @@ namespace UnityVolumeRendering
 
             meshRenderer.sharedMaterial.SetTexture("_DataTex", await dataset.GetDataTextureAsync());           //Very long
 
-            meshRenderer.sharedMaterial.SetTexture("_LabelTex",await dataset.GetLabelTextureAsync());           //Very long
             meshRenderer.sharedMaterial.SetTexture("_GradientTex", null);
             meshRenderer.sharedMaterial.SetTexture("_NoiseTex", noiseTexture);
 
@@ -86,7 +85,6 @@ namespace UnityVolumeRendering
                 float maxScale = Mathf.Max(dataset.scaleX, dataset.scaleY, dataset.scaleZ);
                 volObj.transform.localScale = new Vector3(dataset.scaleX / maxScale, dataset.scaleY / maxScale, dataset.scaleZ / maxScale);     
             }
-
         }
 
         public static void SpawnCrossSectionPlane(VolumeRenderedObject volobj)
