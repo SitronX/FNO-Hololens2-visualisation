@@ -11,7 +11,6 @@
         _Max1Val("Max1 val", Range(0.0, 1.0)) = 1.0
         _Min2Val("Min2 val", Range(0.0, 1.0)) = 0.0
         _Max2Val("Max2 val", Range(0.0, 1.0)) = 1.0
-        _SegmentNumber("Segment number",int)=0
         _stepNumber("Step number",int)=512
     }
     SubShader
@@ -26,11 +25,12 @@
         Pass
         {
             CGPROGRAM
+// Upgrade NOTE: excluded shader from DX11 because it uses wrong array syntax (type[size] name)
             #pragma multi_compile MODE_DVR MODE_MIP MODE_SURF
             #pragma multi_compile __ TF2D_ON
             #pragma multi_compile __ CROSS_SECTION_ON
             #pragma multi_compile __ LIGHTING_ON
-            //#pragma multi_compile DEPTHWRITE_ON DEPTHWRITE_OFF
+            #pragma multi_compile DEPTHWRITE_ON DEPTHWRITE_OFF
             #pragma multi_compile __ DVR_BACKWARD_ON
             #pragma multi_compile __ RAY_TERMINATE_ON
             #pragma multi_compile __ USE_MAIN_LIGHT
@@ -82,7 +82,6 @@
             float _MaxVal2;
             float3 _TextureSize;
             int _stepNumber;
-            int _SegmentNumber;
             float _SegmentsVisibility[500];                                       //Dynamic arrays are not possible, so here it is capped to 500 segments, it should not be really possible to overcome this number (i hope?)
 
 #if CROSS_SECTION_ON
@@ -199,7 +198,7 @@
             }
 
             float getLabel(float3 pos)
-            {
+            {   
                 return tex3Dlod(_LabelTex, float4(pos.x, pos.y, pos.z, 0.0f));
             }
 
@@ -325,14 +324,8 @@
                     if(IsCutout(currPos))
                     	continue;
 #endif
+                    
 
-
-#ifdef LABELING_SUPPORT_ON
-                    const float label = getLabel(currPos);        
-                    if (_SegmentsVisibility[label] == 0)
-                        continue;
-#endif
-                     
                     // Get the dansity/sample value of the current position
                     const float density = getDensity(currPos);
 
@@ -369,6 +362,21 @@
                     // Optimisation: A branchless version of: if (src.a > 0.15f) tDepth = t;
                     tDepth = max(tDepth, t * step(0.15, src.a));
 #else
+
+    #ifdef LABELING_SUPPORT_ON
+    
+                    int label = getLabel(currPos);
+
+                    if (label == 0)
+                        continue;
+
+                    float alpha = _SegmentsVisibility[label-1];
+                    if (alpha == 0)
+                        continue;
+
+                    
+                    src.a = alpha;                   
+    #endif
                     src.rgb *= src.a;
                     col = (1.0f - col.a) * src + col;
 
@@ -376,6 +384,7 @@
                         tDepth = t;
                     }
 #endif
+           
 
                     // Early ray termination
 #if !defined(DVR_BACKWARD_ON) && defined(RAY_TERMINATE_ON)
@@ -388,6 +397,7 @@
                 // Write fragment output
                 frag_out output;
                 output.colour = col;
+
 #if DEPTHWRITE_ON
                 tDepth += (step(col.a, 0.0) * 1000.0); // Write large depth if no hit
                 const float3 depthPos = lerp(ray.startPos, ray.endPos, tDepth) - float3(0.5f, 0.5f, 0.5f);
@@ -464,7 +474,7 @@
 
 
 #ifdef LABELING_SUPPORT_ON
-                    const float label = getLabel(currPos);
+                    const int label = getLabel(currPos);
                     if (_SegmentsVisibility[label] == 0)
                         continue;
 #endif

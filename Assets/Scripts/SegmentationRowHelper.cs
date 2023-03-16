@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SegmentationSliderHelper : MonoBehaviour
+public class SegmentationRowHelper : MonoBehaviour
 {
     public int SliderID { get; set; }
 
@@ -14,5 +14,9 @@ public class SegmentationSliderHelper : MonoBehaviour
     public void SliderUpdate(SliderEventData data)
     {
         SliderUpdated?.Invoke(SliderID, data.NewValue);
+    }
+    public void OpenColorPicker()
+    {
+
     }
 }

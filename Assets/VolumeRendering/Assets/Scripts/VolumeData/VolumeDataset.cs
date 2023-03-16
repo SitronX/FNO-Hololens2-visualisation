@@ -328,7 +328,6 @@ namespace UnityVolumeRendering
             Texture3D.allowThreadedTextureCreation = true;
             TextureFormat texformat = SystemInfo.SupportsTextureFormat(TextureFormat.RHalf) ? TextureFormat.RHalf : TextureFormat.RFloat;
 
-
             await Task.Run(() =>
             {
                 FindAllSegments();
@@ -351,6 +350,7 @@ namespace UnityVolumeRendering
                     Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
                     texture.wrapMode = TextureWrapMode.Clamp;
                     texture.SetPixelData(pixelBytes, 0);
+                    texture.filterMode= FilterMode.Point;           //Main culprit of impossible shader issue. Without point interpolation, it refused to round out to whole int number and was giving strangest results
                     texture.Apply();
                     labelTexture = texture;
 
@@ -370,6 +370,7 @@ namespace UnityVolumeRendering
                     Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
                     texture.wrapMode = TextureWrapMode.Clamp;
                     texture.SetPixelData(pixelBytes, 0);
+                    //texture.filterMode = FilterMode.Point;
                     texture.Apply();
                     labelTexture = texture;
 

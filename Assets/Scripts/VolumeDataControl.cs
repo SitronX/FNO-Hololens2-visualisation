@@ -350,20 +350,20 @@ public class VolumeDataControl : MonoBehaviour
         MeshRenderer meshRenderer = VolumeMesh.GetComponent<MeshRenderer>();
         meshRenderer.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync());           //Very long
 
-        for (int i = 0; i < Dataset.LabelValues.Keys.Count; i++)
+        for (int i = 1; i < Dataset.LabelValues.Keys.Count; i++)
         {
-            _segmentsVisibility.Add(0);
+            _segmentsVisibility.Add(0.0f);
             GameObject tmp = Instantiate(_segmentationSliderPrefab, _segmentationParentContainer.transform);
-            tmp.transform.localPosition = new Vector3(0.4f,0.3f -(0.05f * i), 0.7f);
+            tmp.transform.localPosition = new Vector3(0,0.3f -(0.06f * i), 0.2f);
             tmp.transform.localRotation = Quaternion.Euler(new Vector3(0,-90,0));
-            SegmentationSliderHelper helper = tmp.GetComponent<SegmentationSliderHelper>();
-            helper.SliderID= i;
+            SegmentationRowHelper helper = tmp.GetComponent<SegmentationRowHelper>();
+            helper.SliderID= i-1;
             helper.SliderUpdated += SliderUpdated;
         }
 
         UpdateShaderLabelArray();
 
-        meshRenderer.sharedMaterial.EnableKeyword("LABELING_SUPPORT_ON");
+        meshRenderer.material.EnableKeyword("LABELING_SUPPORT_ON");
     }
     public void UpdateShaderLabelArray()
     {
@@ -373,6 +373,10 @@ public class VolumeDataControl : MonoBehaviour
     {
         _segmentsVisibility[sliderID] = value;
         UpdateShaderLabelArray();
+    }
+    public void OpenColorPicker(int sliderID)
+    {
+
     }
 
     public void UpdateSlicePlane(bool value)
