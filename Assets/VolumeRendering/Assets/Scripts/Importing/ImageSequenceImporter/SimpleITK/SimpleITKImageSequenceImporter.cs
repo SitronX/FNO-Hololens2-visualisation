@@ -170,7 +170,7 @@ namespace UnityVolumeRendering
 
             return volumeDataset;
         }
-        public async Task<VolumeDataset> ImportSeriesAsync(IImageSequenceSeries series)
+        public async Task<VolumeDataset> ImportSeriesAsync(IImageSequenceSeries series,string datasetName)
         {
             Image image = null;
             float[] pixelData = null;
@@ -223,7 +223,7 @@ namespace UnityVolumeRendering
                 volumeDataset.dimX = (int)size[0];
                 volumeDataset.dimY = (int)size[1];
                 volumeDataset.dimZ = (int)size[2];
-                volumeDataset.datasetName = "test";
+                volumeDataset.datasetName = datasetName;
                 volumeDataset.filePath = dicomNames[0];
                 volumeDataset.scaleX = (float)(spacing[0] * size[0]);
                 volumeDataset.scaleY = (float)(spacing[1] * size[1]);
@@ -265,6 +265,9 @@ namespace UnityVolumeRendering
                 image = SimpleITK.Cast(image, PixelIDValueEnum.sitkFloat32);
 
                 size = image.GetSize();
+
+                if (size[0] != volumeDataset.dimX || size[1] != volumeDataset.dimY || size[2] != volumeDataset.dimZ)
+                    ErrorNotifier.Instance.AddErrorMessageToUser($"Segmentation file in dataset named: {volumeDataset.datasetName} in folder Data has other dimensions than base dataset.");
 
                 int numPixels = 1;
                 for (int dim = 0; dim < image.GetDimension(); dim++)

@@ -3769,9 +3769,17 @@ PrefabInstance:
       propertyPath: localCenter.x
       value: 0.068
       objectReference: {fileID: 0}
+    - target: {fileID: 1451407488319853168, guid: b5cf405f479d7994db626b670ac77dc6, type: 3}
+      propertyPath: localCenter.z
+      value: -0.012
+      objectReference: {fileID: 0}
     - target: {fileID: 1451407488319853169, guid: b5cf405f479d7994db626b670ac77dc6, type: 3}
       propertyPath: m_Size.x
       value: 0.136
+      objectReference: {fileID: 0}
+    - target: {fileID: 1451407488319853169, guid: b5cf405f479d7994db626b670ac77dc6, type: 3}
+      propertyPath: m_Size.z
+      value: 0.001
       objectReference: {fileID: 0}
     - target: {fileID: 1451407488319853169, guid: b5cf405f479d7994db626b670ac77dc6, type: 3}
       propertyPath: m_Center.x
@@ -4865,6 +4873,38 @@ PrefabInstance:
       propertyPath: renderers.Array.data[265]
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 1451407489014760339, guid: b5cf405f479d7994db626b670ac77dc6, type: 3}
+      propertyPath: m_Size.x
+      value: 1.0334667
+      objectReference: {fileID: 0}
+    - target: {fileID: 1451407489014760339, guid: b5cf405f479d7994db626b670ac77dc6, type: 3}
+      propertyPath: m_Center.x
+      value: 0.012930172
+      objectReference: {fileID: 0}
+    - target: {fileID: 1451407489122412781, guid: b5cf405f479d7994db626b670ac77dc6, type: 3}
+      propertyPath: layout
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1451407489122412781, guid: b5cf405f479d7994db626b670ac77dc6, type: 3}
+      propertyPath: cellWidth
+      value: 0.033
+      objectReference: {fileID: 0}
+    - target: {fileID: 1451407489122412781, guid: b5cf405f479d7994db626b670ac77dc6, type: 3}
+      propertyPath: cellHeight
+      value: 0.033
+      objectReference: {fileID: 0}
+    - target: {fileID: 1451407489122412781, guid: b5cf405f479d7994db626b670ac77dc6, type: 3}
+      propertyPath: rowAlignment
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1451407489122412781, guid: b5cf405f479d7994db626b670ac77dc6, type: 3}
+      propertyPath: anchorAlongAxis
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1451407489122412781, guid: b5cf405f479d7994db626b670ac77dc6, type: 3}
+      propertyPath: ignoreInactiveTransforms
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2679933902682662710, guid: b5cf405f479d7994db626b670ac77dc6, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
@@ -5839,11 +5879,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5454817027862010470, guid: b5cf405f479d7994db626b670ac77dc6, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.0064
+      value: 0.0111
       objectReference: {fileID: 0}
     - target: {fileID: 5454817027862010470, guid: b5cf405f479d7994db626b670ac77dc6, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.1792
+      value: 0.181
       objectReference: {fileID: 0}
     - target: {fileID: 5454817027862010470, guid: b5cf405f479d7994db626b670ac77dc6, type: 3}
       propertyPath: m_LocalPosition.z
@@ -6873,7 +6913,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8016368837075936024, guid: f1dfa3ff1f171964fa0717ff4d0131cb, type: 3}
       propertyPath: startDimensionIndex
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8016368837075936024, guid: f1dfa3ff1f171964fa0717ff4d0131cb, type: 3}
       propertyPath: OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target

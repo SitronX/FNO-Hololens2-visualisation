@@ -33,7 +33,7 @@ public class DatasetLister : MonoBehaviour
             GameObject current= Instantiate(_scrollablePrefab, _scrollableMenuContainer.transform);
             ScrollableButton currentScroll= current.GetComponent<ScrollableButton>();
 
-            currentScroll.ChangeBackButtonSprite(_datasetDirectories[i] + "/Snapshot/");
+            currentScroll.SetNameSprite(_datasetDirectories[i] + "/Thumbnail/", _datasetDirectories[i].Split('/').Last());
             currentScroll.DatasetPath = _datasetDirectories[i];
             currentScroll.ButtonIndex= i;
 

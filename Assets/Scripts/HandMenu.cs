@@ -28,7 +28,7 @@ public class HandMenu : MonoBehaviour
     {
         FindObjectsOfType<VolumeDataControl>().ToList().ForEach(x=>_volumeObjects.Add(x));
 
-        LightingUpdated();
+        //LightingUpdated();
         UpdateQrStatus();
 
         VolumeDataControl.DatasetSpawned += OnNewDatasetSpawned;

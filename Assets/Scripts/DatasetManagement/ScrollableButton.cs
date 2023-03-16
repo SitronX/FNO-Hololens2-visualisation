@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityVolumeRendering;
@@ -15,8 +16,8 @@ public class ScrollableButton : MonoBehaviour
     [SerializeField] GameObject _qrActiveLabel;
     [SerializeField] GameObject _qrButton;
     [SerializeField] ButtonConfigHelper _configHelper;
+    [SerializeField] TMP_Text _datasetName;
 
-    ErrorNotifier _errorNotifier;
     Camera _mainCamera;
     bool _hasDatasetLoaded = false;
 
@@ -35,21 +36,27 @@ public class ScrollableButton : MonoBehaviour
 
     private void Start()
     {
-        _errorNotifier=FindObjectOfType<ErrorNotifier>();
         _mainCamera = FindObjectOfType<Camera>();
 
     }
 
-    public void ChangeBackButtonSprite(string path)
+    public void SetNameSprite(string spriteFolder,string name)
     {
         try
         {
-            string[] imgFiles = Directory.GetFiles(path);
+            if (!Directory.Exists(spriteFolder))
+            {
+                ErrorNotifier.Instance.AddErrorMessageToUser($"Thumbnail folder missing for dataset named: {name}!");
+                return;
+            }
+
+            string[] imgFiles = Directory.GetFiles(spriteFolder);
             _loadButtonBackMesh.material.mainTexture = IMG2Sprite.LoadTexture(imgFiles[0]);
+            _datasetName.text = name;
         }
         catch
         {
-            _errorNotifier.ShowErrorMessageToUser($"Dataset thumbnail is missing. Searched path: {path}");
+            ErrorNotifier.Instance.AddErrorMessageToUser($"Thumbnail is missing for dataset named: {name} (.jpg or .png expected)");
         }
     }
     public void LoadDataset()

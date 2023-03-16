@@ -50,7 +50,7 @@ public class Console : MonoBehaviour, IQcSuggestor
         }
         catch
         {
-            _errorNotifier.ShowErrorMessageToUser("Hand menu must be initialized before spawning anything");
+            _errorNotifier.AddErrorMessageToUser("Hand menu must be initialized before spawning anything");
         }
     }
     [Command]

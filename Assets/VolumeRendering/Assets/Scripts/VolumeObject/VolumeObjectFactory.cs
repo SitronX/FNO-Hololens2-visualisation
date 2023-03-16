@@ -79,6 +79,7 @@ namespace UnityVolumeRendering
             meshRenderer.sharedMaterial.EnableKeyword("MODE_DVR");
             meshRenderer.sharedMaterial.DisableKeyword("MODE_MIP");
             meshRenderer.sharedMaterial.DisableKeyword("MODE_SURF");
+            meshRenderer.sharedMaterial.DisableKeyword("LABELING_SUPPORT_ON");
 
             if (dataset.scaleX != 0.0f && dataset.scaleY != 0.0f && dataset.scaleZ != 0.0f)
             {

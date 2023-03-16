@@ -33,14 +33,13 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] GameObject _controlHandle;
     [SerializeField] GameObject _segmentationSliderPrefab;
     [SerializeField] GameObject _segmentationParentContainer;
+    [SerializeField] GameObject _segmentationPanelButton;
 
     [field: SerializeField] public MeshRenderer VolumeMesh { get; set; }
 
     public VolumeDataset Dataset { get; set; }
     List<float> _segmentsVisibility = new List<float>();
-
-
-    ErrorNotifier _errorNotifier;
+    List<SegmentationRowHelper> _segments = new List<SegmentationRowHelper>();
 
     bool _showSecondSlider = false;
     Vector3 _startLocalPosition;
@@ -66,12 +65,12 @@ public class VolumeDataControl : MonoBehaviour
     public static List<string> TF1D { get; set; } = new List<string>();
 
                
-
     VolumeRenderedObject _volumeRenderedObject;
+
+    bool _segmentationPanelVisible = false;
 
     private void Start()
     {
-        _errorNotifier = FindObjectOfType<ErrorNotifier>();
         _volumeRenderedObject = _volumetricDataMainParentObject.GetComponent<VolumeRenderedObject>();
         SetInitialTransforms();
 
@@ -81,7 +80,7 @@ public class VolumeDataControl : MonoBehaviour
         await _dataLoadingIndicator.OpenAsync();
         _dataLoadingIndicator.Message = "Loading data...";
 
-        
+
         LoadTFDataPath(Application.streamingAssetsPath + "/TransferFunctions/");
 
         _sliderIntervalUpdater1.OnIntervaSliderValueChanged += UpdateIsoRanges;
@@ -98,17 +97,18 @@ public class VolumeDataControl : MonoBehaviour
         {
             _dataLoadingIndicator.Message = "Loading segmentation...";
             await InitSegmentation();
+            _segmentationPanelButton.SetActive(true);
         }
-
+        VolumeMesh.gameObject.SetActive(true);                          //It is disabled to this point, otherwise default mat is blocking loading indicator
 
         if (TF1D.Count > 0)
             SetTransferFunction(TF1D[0]);
         else if (TF2D.Count > 0)
             SetTransferFunction(TF2D[0]);
         else
-            _errorNotifier.ShowErrorMessageToUser("No transfer function found. Create and paste atleast one transfer functions in /TransferFunctionsFolder");
-       
-       
+            ErrorNotifier.Instance.AddErrorMessageToUser("No transfer function found. Create and paste atleast one transfer functions in /TransferFunctionsFolder");
+
+
         _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneXNormalAxisObject);
         _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneYNormalAxisObject);
         _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneZNormalAxisObject);
@@ -120,19 +120,24 @@ public class VolumeDataControl : MonoBehaviour
 
         await _dataLoadingIndicator.CloseAsync();
 
-
         DatasetSpawned?.Invoke(this);
-
     }
     public async Task<VolumeDataset> CreateVolumeDatasetAsync(string datasetFolderName)
     {
+        string datasetName = datasetFolderName.Split('/').Last();
         string dataFolderName = datasetFolderName + "/Data/";
         if (!Directory.Exists(dataFolderName))
         {
-            _errorNotifier.ShowErrorMessageToUser("Data folder for selected dataset doesnt exist!!!");
+            ErrorNotifier.Instance.AddErrorMessageToUser($"Data folder for dataset named: {datasetName} doesnt exist!!!");
         }
 
-        LoadDicomDataPath(dataFolderName, out string filePath, out bool isDicomImageSequence);
+        LoadDicomDataPath(dataFolderName, out string filePath, out bool isDicomImageSequence,out int errorFlag);
+
+        if(errorFlag==1)
+            ErrorNotifier.Instance.AddErrorMessageToUser($"No data detected in dataset named: {datasetName} in folder Data");
+        else if (errorFlag==2)
+            ErrorNotifier.Instance.AddErrorMessageToUser($"Unknown data detected in dataset named: {datasetName} in folder Data");
+
 
         SimpleITKImageSequenceImporter sequenceImporter = new SimpleITKImageSequenceImporter();
         SimpleITKImageFileImporter fileImporter = new SimpleITKImageFileImporter();
@@ -146,16 +151,25 @@ public class VolumeDataControl : MonoBehaviour
 
             IEnumerable<IImageSequenceSeries> sequence = await sequenceImporter.LoadSeriesAsync(fileCandidates);
 
-            if (sequence.Count() > 1)
+            try
             {
-                _errorNotifier.ShowErrorMessageToUser("DICOM folder contains multiple image series, it must contain single image series at runtime!");
-                return null;
+                dataset = await sequenceImporter.ImportSeriesAsync(sequence.First(), datasetName);
             }
-            dataset = await sequenceImporter.ImportSeriesAsync(sequence.First());
+            catch
+            {
+                ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted image series in dataset named: {datasetName} in folder Data");
+            }
         }
         else
         {
-            dataset = await fileImporter.ImportAsync(filePath);
+            try
+            {
+                dataset = await fileImporter.ImportAsync(filePath,datasetName);
+            }
+            catch
+            {
+                ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted data in dataset named: {datasetName} in folder Segmentation");
+            }
         }
         return dataset;
     }
@@ -167,7 +181,18 @@ public class VolumeDataControl : MonoBehaviour
         {
             return false;
         }
-        LoadDicomDataPath(segmentationFolderName, out string filePath, out bool isDicomImageSequence);
+        LoadDicomDataPath(segmentationFolderName, out string filePath, out bool isDicomImageSequence,out int errorFlag);
+
+        if (errorFlag == 1)
+        {
+            ErrorNotifier.Instance.AddErrorMessageToUser($"No data detected in dataset named: {datasetFolderName.Split('/').Last()} in folder Segmentation");
+            return false;
+        }
+        else if (errorFlag == 2)
+        {
+            ErrorNotifier.Instance.AddErrorMessageToUser($"Unknown data detected in dataset named: {datasetFolderName.Split('/').Last()} in folder Segmentation");
+            return false;
+        }
 
         SimpleITKImageSequenceImporter sequenceImporter = new SimpleITKImageSequenceImporter();
         SimpleITKImageFileImporter fileImporter = new SimpleITKImageFileImporter();
@@ -180,16 +205,26 @@ public class VolumeDataControl : MonoBehaviour
 
             IEnumerable<IImageSequenceSeries> sequence = await sequenceImporter.LoadSeriesAsync(fileCandidates);
 
-            if (sequence.Count() > 1)
+            try
             {
-                _errorNotifier.ShowErrorMessageToUser("Segmentation folder contains multiple image series, it must contain single image series at runtime!");
-                return false;
+                await sequenceImporter.ImportSeriesSegmentationAsync(sequence.First(), volumeDataset);
             }
-            await sequenceImporter.ImportSeriesSegmentationAsync(sequence.First(),volumeDataset);
+            catch
+            {
+                ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted image series in dataset named: {datasetFolderName.Split('/').Last()} in folder Segmentation");
+            }
         }
         else
         {
-            await fileImporter.ImportSegmentationAsync(filePath,volumeDataset);
+            try
+            {
+                if(volumeDataset!=null)
+                    await fileImporter.ImportSegmentationAsync(filePath, volumeDataset);
+            }
+            catch
+            {
+                ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted data in dataset named: {datasetFolderName.Split('/').Last()} in folder Segmentation");
+            }
         }
         return true;
     }
@@ -237,7 +272,7 @@ public class VolumeDataControl : MonoBehaviour
         }
         else
         {
-            _errorNotifier.ShowErrorMessageToUser("Wrong TF name, try to use the suggestor");
+            ErrorNotifier.Instance.AddErrorMessageToUser("Wrong TF name, try to use the suggestor");
         }
     }
    
@@ -265,6 +300,12 @@ public class VolumeDataControl : MonoBehaviour
             _volumeData.SetRenderMode(renderMode);
             UpdateIsoRanges();
         }    
+    }
+    public void SwitchSegmentationPanel()
+    {
+        _segmentationPanelVisible=!_segmentationPanelVisible;
+        _segmentationParentContainer.SetActive(_segmentationPanelVisible);
+        TurnMaterialLabelingKeyword(_segmentationPanelVisible);
     }
     public void UpdateCubicInterpolation(bool value)
     {
@@ -302,11 +343,19 @@ public class VolumeDataControl : MonoBehaviour
     {
         _volumeData.SetLightingEnabled(value);
     }
-    public void LoadDicomDataPath(string dicomFolderPath,out string dicomPath,out bool isImageSequence)
+    public void LoadDicomDataPath(string dicomFolderPath,out string dicomPath,out bool isImageSequence,out int errorFlag)
     {
         List<string> dicomFilesCandidates = Directory.GetFiles(dicomFolderPath).ToList();
 
         dicomFilesCandidates.RemoveAll(x => x.EndsWith(".meta"));
+
+        if(dicomFilesCandidates.Count==0)
+        {
+            errorFlag = 1;
+            dicomPath = null;
+            isImageSequence = false;
+            return;
+        }
 
         DatasetType datasetType = DatasetImporterUtility.GetDatasetType(dicomFilesCandidates.First());
 
@@ -314,17 +363,19 @@ public class VolumeDataControl : MonoBehaviour
         {
             isImageSequence = true;
             dicomPath = dicomFolderPath;
+            errorFlag = 0;
         }
         else if(datasetType==DatasetType.Unknown)
         {
             isImageSequence = false;
-            _errorNotifier.ShowErrorMessageToUser("Unknown file/data detected in DicomFolder");
             dicomPath = dicomFilesCandidates[0];
+            errorFlag = 2;
         }
         else
         {
             isImageSequence = false;
             dicomPath = dicomFilesCandidates[0];
+            errorFlag = 0;
         }
     }
     public void LoadTFDataPath(string transferFunctionFolderPath)
@@ -347,8 +398,7 @@ public class VolumeDataControl : MonoBehaviour
     }
     public async Task InitSegmentation()
     {
-        MeshRenderer meshRenderer = VolumeMesh.GetComponent<MeshRenderer>();
-        meshRenderer.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync());           //Very long
+        VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync());           //Very long
 
         for (int i = 1; i < Dataset.LabelValues.Keys.Count; i++)
         {
@@ -359,12 +409,23 @@ public class VolumeDataControl : MonoBehaviour
             SegmentationRowHelper helper = tmp.GetComponent<SegmentationRowHelper>();
             helper.SliderID= i-1;
             helper.SliderUpdated += SliderUpdated;
+            _segments.Add(helper);
         }
 
         UpdateShaderLabelArray();
-
-        meshRenderer.material.EnableKeyword("LABELING_SUPPORT_ON");
     }
+    public void TurnAllSegmentAlphas(bool value)
+    {
+        _segments.ForEach(x => x.SetSliderValue(value ? 1 : 0));
+    }
+    private void TurnMaterialLabelingKeyword(bool value)
+    {
+        if(value)
+            VolumeMesh.material.EnableKeyword("LABELING_SUPPORT_ON");
+        else
+            VolumeMesh.material.DisableKeyword("LABELING_SUPPORT_ON");
+    }
+
     public void UpdateShaderLabelArray()
     {
         VolumeMesh.material.SetFloatArray("_SegmentsVisibility", _segmentsVisibility);
@@ -376,7 +437,7 @@ public class VolumeDataControl : MonoBehaviour
     }
     public void OpenColorPicker(int sliderID)
     {
-
+        //TODO
     }
 
     public void UpdateSlicePlane(bool value)
