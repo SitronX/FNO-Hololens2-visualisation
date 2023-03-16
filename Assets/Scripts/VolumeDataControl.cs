@@ -23,7 +23,6 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] SliderIntervalUpdater _sliderIntervalUpdater1;
     [SerializeField] SliderIntervalUpdater _sliderIntervalUpdater2;
     [SerializeField] GameObject _secondSliderCheckbox;
-    [SerializeField] MeshRenderer _volumeMesh;
     [SerializeField] TMP_Text _raymarchStepsLabel;
     [SerializeField] ProgressIndicatorOrbsRotator _dataLoadingIndicator;
     [SerializeField] CrossSectionSphere _cutoutSphere;
@@ -32,6 +31,14 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] GameObject _slicingPlaneYNormalAxisObject;
     [SerializeField] GameObject _slicingPlaneZNormalAxisObject;
     [SerializeField] GameObject _controlHandle;
+    [SerializeField] GameObject _segmentationSliderPrefab;
+    [SerializeField] GameObject _segmentationParentContainer;
+
+    [field: SerializeField] public MeshRenderer VolumeMesh { get; set; }
+
+    public VolumeDataset Dataset { get; set; }
+    List<float> _segmentsVisibility = new List<float>();
+
 
     ErrorNotifier _errorNotifier;
 
@@ -52,15 +59,13 @@ public class VolumeDataControl : MonoBehaviour
     Vector3 _startLocalHandleRotation;
     Vector3 _startLocalHandleScale;
 
-    bool _isImageSequence = false;
-
     public static Action<VolumeDataControl> DatasetSpawned { get; set; }
     public static Action<VolumeDataControl> DatasetDespawned { get; set; }
 
     public static List<string> TF2D { get; set; } = new List<string>();
     public static List<string> TF1D { get; set; } = new List<string>();
 
-    string _filePath;            
+               
 
     VolumeRenderedObject _volumeRenderedObject;
 
@@ -71,48 +76,28 @@ public class VolumeDataControl : MonoBehaviour
         SetInitialTransforms();
 
     }
-    public async void LoadDatasetData(string dataFolderName)        //Async addition so all the loading doesnt freeze the app
+    public async void LoadDataset(string datasetFolderName)        //Async addition so all the loading doesnt freeze the app
     {
         await _dataLoadingIndicator.OpenAsync();
         _dataLoadingIndicator.Message = "Loading data...";
 
-
-
-        LoadDicomDataPath(dataFolderName+"/Data/");
+        
         LoadTFDataPath(Application.streamingAssetsPath + "/TransferFunctions/");
 
         _sliderIntervalUpdater1.OnIntervaSliderValueChanged += UpdateIsoRanges;
         _sliderIntervalUpdater2.OnIntervaSliderValueChanged += UpdateIsoRanges;
 
-        
+        Dataset = await CreateVolumeDatasetAsync(datasetFolderName);
 
-        SimpleITKImageSequenceImporter sequenceImporter = new SimpleITKImageSequenceImporter();
-        SimpleITKImageFileImporter fileImporter = new SimpleITKImageFileImporter();
-        VolumeDataset dataset = null;
-
-        if (_isImageSequence)
+        if (Dataset != null)
         {
-            // Read all files
-            IEnumerable<string> fileCandidates = Directory.EnumerateFiles(_filePath, "*.*", SearchOption.TopDirectoryOnly)
-                .Where(p => p.EndsWith(".dcm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicom", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpeg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".png", StringComparison.InvariantCultureIgnoreCase));
-
-            IEnumerable<IImageSequenceSeries> sequence = await sequenceImporter.LoadSeriesAsync(fileCandidates);
-
-            if (sequence.Count() > 1)
-            {
-                _errorNotifier.ShowErrorMessageToUser("DICOM folder contains multiple image series, it must contain single image series at runtime!");
-                return;
-            }
-            dataset = await sequenceImporter.ImportSeriesAsync(sequence.First()); 
-        }
-        else
-        {
-            dataset = await fileImporter.ImportAsync(_filePath);
+            await VolumeObjectFactory.FillObjectWithDatasetDataAsync(Dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject);
         }
 
-        if (dataset != null)
+        if (await TryLoadSegmentationToVolumeAsync(datasetFolderName, Dataset))
         {
-            await VolumeObjectFactory.FillObjectWithDatasetDataAsync(dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject);   
+            _dataLoadingIndicator.Message = "Loading segmentation...";
+            await InitSegmentation();
         }
 
 
@@ -131,13 +116,82 @@ public class VolumeDataControl : MonoBehaviour
 
         _dataLoadingIndicator.Message = "Creating gradient";
 
-        await dataset.CreateGradientTextureInternalAsync();
+        await Dataset.CreateGradientTextureInternalAsync();
 
         await _dataLoadingIndicator.CloseAsync();
 
 
         DatasetSpawned?.Invoke(this);
 
+    }
+    public async Task<VolumeDataset> CreateVolumeDatasetAsync(string datasetFolderName)
+    {
+        string dataFolderName = datasetFolderName + "/Data/";
+        if (!Directory.Exists(dataFolderName))
+        {
+            _errorNotifier.ShowErrorMessageToUser("Data folder for selected dataset doesnt exist!!!");
+        }
+
+        LoadDicomDataPath(dataFolderName, out string filePath, out bool isDicomImageSequence);
+
+        SimpleITKImageSequenceImporter sequenceImporter = new SimpleITKImageSequenceImporter();
+        SimpleITKImageFileImporter fileImporter = new SimpleITKImageFileImporter();
+        VolumeDataset dataset = null;
+
+        if (isDicomImageSequence)
+        {
+            // Read all files
+            IEnumerable<string> fileCandidates = Directory.EnumerateFiles(filePath, "*.*", SearchOption.TopDirectoryOnly)
+                .Where(p => p.EndsWith(".dcm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicom", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpeg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".png", StringComparison.InvariantCultureIgnoreCase));
+
+            IEnumerable<IImageSequenceSeries> sequence = await sequenceImporter.LoadSeriesAsync(fileCandidates);
+
+            if (sequence.Count() > 1)
+            {
+                _errorNotifier.ShowErrorMessageToUser("DICOM folder contains multiple image series, it must contain single image series at runtime!");
+                return null;
+            }
+            dataset = await sequenceImporter.ImportSeriesAsync(sequence.First());
+        }
+        else
+        {
+            dataset = await fileImporter.ImportAsync(filePath);
+        }
+        return dataset;
+    }
+
+    public async Task<bool> TryLoadSegmentationToVolumeAsync(string datasetFolderName, VolumeDataset volumeDataset)
+    {
+        string segmentationFolderName = datasetFolderName + "/Segmentation/";
+        if (!Directory.Exists(segmentationFolderName))
+        {
+            return false;
+        }
+        LoadDicomDataPath(segmentationFolderName, out string filePath, out bool isDicomImageSequence);
+
+        SimpleITKImageSequenceImporter sequenceImporter = new SimpleITKImageSequenceImporter();
+        SimpleITKImageFileImporter fileImporter = new SimpleITKImageFileImporter();
+
+        if (isDicomImageSequence)
+        {
+            // Read all files
+            IEnumerable<string> fileCandidates = Directory.EnumerateFiles(filePath, "*.*", SearchOption.TopDirectoryOnly)
+                .Where(p => p.EndsWith(".dcm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicom", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpeg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".png", StringComparison.InvariantCultureIgnoreCase));
+
+            IEnumerable<IImageSequenceSeries> sequence = await sequenceImporter.LoadSeriesAsync(fileCandidates);
+
+            if (sequence.Count() > 1)
+            {
+                _errorNotifier.ShowErrorMessageToUser("Segmentation folder contains multiple image series, it must contain single image series at runtime!");
+                return false;
+            }
+            await sequenceImporter.ImportSeriesSegmentationAsync(sequence.First(),volumeDataset);
+        }
+        else
+        {
+            await fileImporter.ImportSegmentationAsync(filePath,volumeDataset);
+        }
+        return true;
     }
 
     private void OnDestroy()
@@ -242,14 +296,14 @@ public class VolumeDataControl : MonoBehaviour
     }
     public void SetRaymarchStepCount(int value)
     {
-        _volumeMesh.sharedMaterial.SetInt("_stepNumber", value);
+        VolumeMesh.sharedMaterial.SetInt("_stepNumber", value);
     }
     public void UpdateLighting(bool value)
     {
         _volumeData.SetLightingEnabled(value);
     }
-    public void LoadDicomDataPath(string dicomFolderPath)
-    {      
+    public void LoadDicomDataPath(string dicomFolderPath,out string dicomPath,out bool isImageSequence)
+    {
         List<string> dicomFilesCandidates = Directory.GetFiles(dicomFolderPath).ToList();
 
         dicomFilesCandidates.RemoveAll(x => x.EndsWith(".meta"));
@@ -258,17 +312,19 @@ public class VolumeDataControl : MonoBehaviour
 
         if(datasetType==DatasetType.ImageSequence||datasetType==DatasetType.DICOM)
         {
-            _isImageSequence = true;
-            _filePath= dicomFolderPath;
+            isImageSequence = true;
+            dicomPath = dicomFolderPath;
         }
         else if(datasetType==DatasetType.Unknown)
         {
+            isImageSequence = false;
             _errorNotifier.ShowErrorMessageToUser("Unknown file/data detected in DicomFolder");
-            _filePath = dicomFilesCandidates[0];
+            dicomPath = dicomFilesCandidates[0];
         }
         else
         {
-            _filePath = dicomFilesCandidates[0];
+            isImageSequence = false;
+            dicomPath = dicomFilesCandidates[0];
         }
     }
     public void LoadTFDataPath(string transferFunctionFolderPath)
@@ -289,6 +345,40 @@ public class VolumeDataControl : MonoBehaviour
                 TF2D.Add(i);
         }
     }
+    public async Task InitSegmentation()
+    {
+        MeshRenderer meshRenderer = VolumeMesh.GetComponent<MeshRenderer>();
+        meshRenderer.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync());           //Very long
+
+        for (int i = 1; i < Dataset.LabelValues.Keys.Count; i++)
+        {
+            _segmentsVisibility.Add(0.0f);
+            GameObject tmp = Instantiate(_segmentationSliderPrefab, _segmentationParentContainer.transform);
+            tmp.transform.localPosition = new Vector3(0,0.3f -(0.06f * i), 0.2f);
+            tmp.transform.localRotation = Quaternion.Euler(new Vector3(0,-90,0));
+            SegmentationRowHelper helper = tmp.GetComponent<SegmentationRowHelper>();
+            helper.SliderID= i-1;
+            helper.SliderUpdated += SliderUpdated;
+        }
+
+        UpdateShaderLabelArray();
+
+        meshRenderer.material.EnableKeyword("LABELING_SUPPORT_ON");
+    }
+    public void UpdateShaderLabelArray()
+    {
+        VolumeMesh.material.SetFloatArray("_SegmentsVisibility", _segmentsVisibility);
+    }
+    public void SliderUpdated(int sliderID, float value)
+    {
+        _segmentsVisibility[sliderID] = value;
+        UpdateShaderLabelArray();
+    }
+    public void OpenColorPicker(int sliderID)
+    {
+
+    }
+
     public void UpdateSlicePlane(bool value)
     {
         _slicingPlaneXNormalAxisObject.SetActive(value);

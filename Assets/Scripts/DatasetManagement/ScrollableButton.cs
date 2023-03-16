@@ -63,7 +63,7 @@ public class ScrollableButton : MonoBehaviour
 
             VolumeGameObject = Instantiate(_placeableVolumePrefab, _mainCamera.transform.position+(_mainCamera.transform.forward), Quaternion.Euler(rot));
             VolumeDataControl obj= VolumeGameObject.GetComponent<VolumeDataControl>();
-            obj.LoadDatasetData(DatasetPath);
+            obj.LoadDataset(DatasetPath);
 
             _hasDatasetLoaded= true;
             _qrButton.SetActive(true);

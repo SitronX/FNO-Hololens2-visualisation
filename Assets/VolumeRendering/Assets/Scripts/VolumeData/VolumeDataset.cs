@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Unity.Collections;
 using UnityEngine;
@@ -19,7 +21,9 @@ namespace UnityVolumeRendering
         public float[] data;
 
         [SerializeField]
-        public int[] labelData;
+        public float[] labelData;
+
+        public Dictionary<float,float> LabelValues { get; set; } =new Dictionary<float,float>();      //Label value and position
 
         [SerializeField]
         public int dimX, dimY, dimZ;
@@ -44,6 +48,9 @@ namespace UnityVolumeRendering
 
         //TODO
         private Texture3D labelTexture = null;
+
+        private float minLabelValue = float.MaxValue;
+        private float maxLabelValue = float.MinValue;
 
 
         public Texture3D GetDataTexture()
@@ -96,6 +103,20 @@ namespace UnityVolumeRendering
             if (maxDataValue == float.MinValue)
                 CalculateValueBounds();
             return maxDataValue;
+        }
+
+        public void FindAllSegments()
+        {
+            if (labelData != null)
+            {
+                for (int i = 0; i < dimX * dimY * dimZ; i++)
+                {
+                    float val = labelData[i];
+                    
+                    if (!LabelValues.ContainsKey(val))
+                        LabelValues.Add(val, 0);
+                }
+            }
         }
 
         /// <summary>
@@ -182,6 +203,7 @@ namespace UnityVolumeRendering
                 }
             }
         }
+     
 
         private Texture3D CreateTextureInternal()
         {
@@ -299,43 +321,38 @@ namespace UnityVolumeRendering
 
             Debug.Log("Texture generation done.");
         }
-        private async Task CreateLabelTextureInternalAsync()                                         
+        private async Task CreateLabelTextureInternalAsync()                                         //It would be ideal to represent label values as Int, but i didnt manage to get it working
         {
             Debug.Log("Async label texture generation. Hold on.");
 
             Texture3D.allowThreadedTextureCreation = true;
             TextureFormat texformat = SystemInfo.SupportsTextureFormat(TextureFormat.RHalf) ? TextureFormat.RHalf : TextureFormat.RFloat;
 
-            float minValue = 0;
-            float maxValue = 0;
-            float maxRange = 0;
-
             await Task.Run(() =>
             {
-                minValue = GetMinDataValue();
-                maxValue = GetMaxDataValue();
-                maxRange = maxValue - minValue;
+                FindAllSegments();
+                OrderLabelDictionary();
             });
-
-            bool isHalfFloat = texformat == TextureFormat.RHalf;
 
             try
             {
-                if (isHalfFloat)
+                if (texformat == TextureFormat.RHalf)
                 {
                     NativeArray<ushort> pixelBytes = default;
 
-                    await Task.Run(() => {
-                        pixelBytes = new NativeArray<ushort>(data.Length, Allocator.TempJob);
-                        for (int iData = 0; iData < data.Length; iData++)
-                            pixelBytes[iData] = Mathf.FloatToHalf((float)(data[iData] - minValue) / maxRange);
+                    await Task.Run(() =>
+                    {
+                        pixelBytes = new NativeArray<ushort>(labelData.Length, Allocator.TempJob);
+                        for (int iData = 0; iData < labelData.Length; iData++)
+                            pixelBytes[iData] = Mathf.FloatToHalf(LabelValues[labelData[iData]]);                             //Assigning correct label map values
                     });
 
                     Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
                     texture.wrapMode = TextureWrapMode.Clamp;
                     texture.SetPixelData(pixelBytes, 0);
+                    texture.filterMode= FilterMode.Point;           //Main culprit of impossible shader issue. Without point interpolation, it refused to round out to whole int number and was giving strangest results
                     texture.Apply();
-                    dataTexture = texture;
+                    labelTexture = texture;
 
                     pixelBytes.Dispose();
                 }
@@ -343,24 +360,26 @@ namespace UnityVolumeRendering
                 {
                     NativeArray<float> pixelBytes = default;
 
-                    await Task.Run(() => {
-                        pixelBytes = new NativeArray<float>(data.Length, Allocator.TempJob);
-                        for (int iData = 0; iData < data.Length; iData++)
-                            pixelBytes[iData] = (float)(data[iData] - minValue) / maxRange;
+                    await Task.Run(() =>
+                    {
+                        pixelBytes = new NativeArray<float>(labelData.Length, Allocator.TempJob);
+                        for (int iData = 0; iData < labelData.Length; iData++)
+                            pixelBytes[iData] = LabelValues[labelData[iData]];                             //Assigning correct label map values
                     });
 
                     Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
                     texture.wrapMode = TextureWrapMode.Clamp;
                     texture.SetPixelData(pixelBytes, 0);
+                    //texture.filterMode = FilterMode.Point;
                     texture.Apply();
-                    dataTexture = texture;
+                    labelTexture = texture;
 
                     pixelBytes.Dispose();
                 }
             }
             catch (OutOfMemoryException)
             {
-                Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
+                Texture3D texture = new Texture3D(dimX, dimY, dimZ, TextureFormat.RFloat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
                 texture.wrapMode = TextureWrapMode.Clamp;
 
 
@@ -368,13 +387,25 @@ namespace UnityVolumeRendering
                 for (int x = 0; x < dimX; x++)
                     for (int y = 0; y < dimY; y++)
                         for (int z = 0; z < dimZ; z++)
-                            texture.SetPixel(x, y, z, new Color((float)(data[x + y * dimX + z * (dimX * dimY)] - minValue) / maxRange, 0.0f, 0.0f, 0.0f));
+                            texture.SetPixel(x, y, z, new Color(LabelValues[labelData[x + y * dimX + z * (dimX * dimY)]], 0.0f, 0.0f, 0.0f));
 
                 texture.Apply();
-                dataTexture = texture;
+                labelTexture = texture;
             }
 
-            Debug.Log("Texture generation done.");
+            Debug.Log("Label Texture generation done.");
+        }
+        private void OrderLabelDictionary()
+        {
+            List<float> values = new List<float>();
+
+            foreach(float i in LabelValues.Keys)
+                values.Add(i);
+
+            values=values.OrderBy(x=>x).ToList();
+
+            for (int i = 0; i < values.Count; i++)
+                LabelValues[values[i]] = i;
         }
 
         private Texture3D CreateGradientTextureInternal()

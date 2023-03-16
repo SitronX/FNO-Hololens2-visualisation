@@ -3,6 +3,7 @@
     Properties
     {
         _DataTex ("Data Texture (Generated)", 3D) = "" {}
+        _LabelTex("Label Texture (Generated)",3D)=""{}
         _GradientTex("Gradient Texture (Generated)", 3D) = "" {}
         _NoiseTex("Noise Texture (Generated)", 2D) = "white" {}
         _TFTex("Transfer Function Texture (Generated)", 2D) = "" {}
@@ -24,15 +25,17 @@
         Pass
         {
             CGPROGRAM
+// Upgrade NOTE: excluded shader from DX11 because it uses wrong array syntax (type[size] name)
             #pragma multi_compile MODE_DVR MODE_MIP MODE_SURF
             #pragma multi_compile __ TF2D_ON
             #pragma multi_compile __ CROSS_SECTION_ON
             #pragma multi_compile __ LIGHTING_ON
-            //#pragma multi_compile DEPTHWRITE_ON DEPTHWRITE_OFF
+            #pragma multi_compile DEPTHWRITE_ON DEPTHWRITE_OFF
             #pragma multi_compile __ DVR_BACKWARD_ON
             #pragma multi_compile __ RAY_TERMINATE_ON
             #pragma multi_compile __ USE_MAIN_LIGHT
             #pragma multi_compile __ CUBIC_INTERPOLATION_ON
+            #pragma multi_compile __ LABELING_SUPPORT_ON
             #pragma vertex vert
             #pragma fragment frag
 
@@ -68,6 +71,7 @@
             };
 
             sampler3D _DataTex;
+            sampler3D _LabelTex;
             sampler3D _GradientTex;
             sampler2D _NoiseTex;
             sampler2D _TFTex;
@@ -78,6 +82,7 @@
             float _MaxVal2;
             float3 _TextureSize;
             int _stepNumber;
+            float _SegmentsVisibility[500];                                       //Dynamic arrays are not possible, so here it is capped to 500 segments, it should not be really possible to overcome this number (i hope?)
 
 #if CROSS_SECTION_ON
 #define CROSS_SECTION_TYPE_PLANE 1 
@@ -194,11 +199,16 @@
 #endif
             }
 
+            float getLabel(float3 pos)
+            {   
+                return tex3Dlod(_LabelTex, float4(pos.x, pos.y, pos.z, 0.0f));
+            }
+
             // Gets the gradient at the specified position
             float3 getGradient(float3 pos)
             {
 #if CUBIC_INTERPOLATION_ON
-                return interpolateTricubicFast(_GradientTex, float3(pos.x, pos.y, pos.z), _TextureSize).rgb;
+                return interpolateTricubicFast(_GradientTex, float3(pos.x, pos.y, pos.z), _TextureSize);
 #else
                 return tex3Dlod(_GradientTex, float4(pos.x, pos.y, pos.z, 0.0f)).rgb;
 #endif
@@ -320,6 +330,7 @@
                     if(IsCutout(currPos))
                     	continue;
 #endif
+                    
 
                     // Get the dansity/sample value of the current position
                     const float density = getDensity(currPos);
@@ -357,6 +368,21 @@
                     // Optimisation: A branchless version of: if (src.a > 0.15f) tDepth = t;
                     tDepth = max(tDepth, t * step(0.15, src.a));
 #else
+
+    #ifdef LABELING_SUPPORT_ON
+    
+                    int label = getLabel(currPos);
+
+                    if (label == 0)
+                        continue;
+
+                    float alpha = _SegmentsVisibility[label-1];
+                    if (alpha == 0)
+                        continue;
+
+                    
+                    src.a = alpha;                   
+    #endif
                     src.rgb *= src.a;
                     col = (1.0f - col.a) * src + col;
 
@@ -364,6 +390,7 @@
                         tDepth = t;
                     }
 #endif
+           
 
                     // Early ray termination
 #if !defined(DVR_BACKWARD_ON) && defined(RAY_TERMINATE_ON)
@@ -376,6 +403,7 @@
                 // Write fragment output
                 frag_out output;
                 output.colour = col;
+
 #if DEPTHWRITE_ON
                 tDepth += (step(col.a, 0.0) * 1000.0); // Write large depth if no hit
                 const float3 depthPos = lerp(ray.startPos, ray.endPos, tDepth) - float3(0.5f, 0.5f, 0.5f);
@@ -401,6 +429,12 @@
                     
 #ifdef CROSS_SECTION_ON
                     if (IsCutout(currPos))
+                        continue;
+#endif
+
+#ifdef LABELING_SUPPORT_ON
+                    const float label = getLabel(currPos);
+                    if (_SegmentsVisibility[label] == 0)
                         continue;
 #endif
 
@@ -441,6 +475,13 @@
                     
 #ifdef CROSS_SECTION_ON
                     if (IsCutout(currPos))
+                        continue;
+#endif
+
+
+#ifdef LABELING_SUPPORT_ON
+                    const int label = getLabel(currPos);
+                    if (_SegmentsVisibility[label] == 0)
                         continue;
 #endif
 

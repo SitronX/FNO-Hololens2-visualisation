@@ -100,7 +100,35 @@ namespace UnityVolumeRendering
 
             return volumeDataset;
         }
+        public async Task ImportSegmentationAsync(string filePath,VolumeDataset volumeDataset)
+        {
+            float[] pixelData = null;
+            VectorUInt32 size = null;
 
+            await Task.Run(() => {
+                ImageFileReader reader = new ImageFileReader();
+
+                reader.SetFileName(filePath);
+
+                Image image = reader.Execute();
+
+                // Cast to 32-bit float
+                image = SimpleITK.Cast(image, PixelIDValueEnum.sitkFloat32);
+
+                size = image.GetSize();
+
+                int numPixels = 1;
+                for (int dim = 0; dim < image.GetDimension(); dim++)
+                    numPixels *= (int)size[dim];
+
+                // Read pixel data
+                pixelData = new float[numPixels];
+                IntPtr imgBuffer = image.GetBufferAsFloat();
+                Marshal.Copy(imgBuffer, pixelData, 0, numPixels);
+
+                volumeDataset.labelData = pixelData;            
+            });
+        }
     }
 }
 #endif
