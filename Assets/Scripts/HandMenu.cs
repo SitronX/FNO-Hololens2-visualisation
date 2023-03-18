@@ -102,10 +102,6 @@ public class HandMenu : MonoBehaviour
         _raymarchStepLabel.text = $"{steps} Steps";
         _volumeObjects.ForEach(_x => _x.SetRaymarchStepCount(steps));
     }  
-    public void ResetPositionClicked()
-    {
-        _volumeObjects.ForEach(_x => _x.ResetAllTransforms());
-    }
     public void UpdateAdditionalSettings()
     {
         _additionalSettingShown = !_additionalSettingShown;

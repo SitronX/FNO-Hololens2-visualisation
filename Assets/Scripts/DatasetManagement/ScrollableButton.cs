@@ -17,13 +17,12 @@ public class ScrollableButton : MonoBehaviour
     [SerializeField] GameObject _qrButton;
     [SerializeField] ButtonConfigHelper _configHelper;
     [SerializeField] TMP_Text _datasetName;
-
     Camera _mainCamera;
     bool _hasDatasetLoaded = false;
 
     public enum LoadButtonState
     {
-        Selectable,ReadyToLoad,Active,Disabled
+        Selectable,ReadyToLoad,Active
     }
     public LoadButtonState ButtonState { private set; get; }
 
@@ -98,13 +97,8 @@ public class ScrollableButton : MonoBehaviour
             }
             else if (state == LoadButtonState.Active)
             {
-                _configHelper.MainLabelText = "Disable";
-                _configHelper.SetQuadIconByName("IconClose");
-            }
-            else if (state == LoadButtonState.Disabled)
-            {
-                _configHelper.MainLabelText = "Enable";
-                _configHelper.SetQuadIconByName("IconDone");
+                _configHelper.MainLabelText = "Reset";
+                _configHelper.SetQuadIconByName("IconRefresh");
             }
         }
     }
@@ -115,9 +109,6 @@ public class ScrollableButton : MonoBehaviour
             QRDataSpawner qrPlaced = FindObjectOfType<QRDataSpawner>();
             if (qrPlaced != null)
             {
-                if (VolumeGameObject == null)
-                    LoadDataset();
-
                 VolumeGameObject.SetActive(true);
                 SetButtonState(LoadButtonState.Active);
                 qrPlaced.ChangeVolumeData(VolumeGameObject);
@@ -128,11 +119,15 @@ public class ScrollableButton : MonoBehaviour
     {
         QrCodeDatasetActivated?.Invoke(ButtonIndex);
     }
+    public void ResetClicked()
+    {
+        if (VolumeGameObject != null)
+            VolumeGameObject.GetComponent<VolumeDataControl>().ResetAllTransforms();      
+    }
     public void SetQrActiveState(bool value)
     {
         if(_hasDatasetLoaded)
-            _qrActiveLabel.SetActive(value);
-       
+            _qrActiveLabel.SetActive(value);     
     }
     
 }

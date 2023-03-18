@@ -33,12 +33,11 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] GameObject _controlHandle;
     [SerializeField] GameObject _segmentationSliderPrefab;
     [SerializeField] GameObject _segmentationParentContainer;
-    [SerializeField] GameObject _segmentationPanelButton;
+    [SerializeField] GameObject _segmentationParent;
 
     [field: SerializeField] public MeshRenderer VolumeMesh { get; set; }
 
     public VolumeDataset Dataset { get; set; }
-    List<float> _segmentsVisibility = new List<float>();
     List<SegmentationRowHelper> _segments = new List<SegmentationRowHelper>();
 
     bool _showSecondSlider = false;
@@ -50,9 +49,9 @@ public class VolumeDataControl : MonoBehaviour
     Vector3 _startLocalPlaneRotation;
     Vector3 _startLocalPlaneScale;
 
-    Vector3 _startLocalBoxPosition;
-    Vector3 _startLocalBoxRotation;
-    Vector3 _startLocalBoxScale;
+    Vector3 _startLocalSpherePosition;
+    Vector3 _startLocalSphereRotation;
+    Vector3 _startLocalSphereScale;
 
     Vector3 _startLocalHandlePosition;
     Vector3 _startLocalHandleRotation;
@@ -88,16 +87,17 @@ public class VolumeDataControl : MonoBehaviour
 
         Dataset = await CreateVolumeDatasetAsync(datasetFolderName);
 
-        if (Dataset != null)
-        {
-            await VolumeObjectFactory.FillObjectWithDatasetDataAsync(Dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject);
-        }
+        if (Dataset == null)
+            return;
+
+        await VolumeObjectFactory.FillObjectWithDatasetDataAsync(Dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject);
+        
 
         if (await TryLoadSegmentationToVolumeAsync(datasetFolderName, Dataset))
         {
             _dataLoadingIndicator.Message = "Loading segmentation...";
             await InitSegmentation();
-            _segmentationPanelButton.SetActive(true);
+            _segmentationParent.SetActive(true);
         }
         VolumeMesh.gameObject.SetActive(true);                          //It is disabled to this point, otherwise default mat is blocking loading indicator
 
@@ -133,10 +133,16 @@ public class VolumeDataControl : MonoBehaviour
 
         LoadDicomDataPath(dataFolderName, out string filePath, out bool isDicomImageSequence,out int errorFlag);
 
-        if(errorFlag==1)
+        if (errorFlag == 1)
+        {
             ErrorNotifier.Instance.AddErrorMessageToUser($"No data detected in dataset named: {datasetName} in folder Data");
-        else if (errorFlag==2)
+            return null;
+        }
+        else if (errorFlag == 2)
+        {
             ErrorNotifier.Instance.AddErrorMessageToUser($"Unknown data detected in dataset named: {datasetName} in folder Data");
+            return null;
+        }
 
 
         SimpleITKImageSequenceImporter sequenceImporter = new SimpleITKImageSequenceImporter();
@@ -168,7 +174,7 @@ public class VolumeDataControl : MonoBehaviour
             }
             catch
             {
-                ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted data in dataset named: {datasetName} in folder Segmentation");
+                ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted data in dataset named: {datasetName} in folder Data");
             }
         }
         return dataset;
@@ -176,7 +182,7 @@ public class VolumeDataControl : MonoBehaviour
 
     public async Task<bool> TryLoadSegmentationToVolumeAsync(string datasetFolderName, VolumeDataset volumeDataset)
     {
-        string segmentationFolderName = datasetFolderName + "/Segmentation/";
+        string segmentationFolderName = datasetFolderName + "/Labels/";
         if (!Directory.Exists(segmentationFolderName))
         {
             return false;
@@ -185,12 +191,12 @@ public class VolumeDataControl : MonoBehaviour
 
         if (errorFlag == 1)
         {
-            ErrorNotifier.Instance.AddErrorMessageToUser($"No data detected in dataset named: {datasetFolderName.Split('/').Last()} in folder Segmentation");
+            ErrorNotifier.Instance.AddErrorMessageToUser($"No data detected in dataset named: {datasetFolderName.Split('/').Last()} in folder Labels");
             return false;
         }
         else if (errorFlag == 2)
         {
-            ErrorNotifier.Instance.AddErrorMessageToUser($"Unknown data detected in dataset named: {datasetFolderName.Split('/').Last()} in folder Segmentation");
+            ErrorNotifier.Instance.AddErrorMessageToUser($"Unknown data detected in dataset named: {datasetFolderName.Split('/').Last()} in folder Labels");
             return false;
         }
 
@@ -211,7 +217,7 @@ public class VolumeDataControl : MonoBehaviour
             }
             catch
             {
-                ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted image series in dataset named: {datasetFolderName.Split('/').Last()} in folder Segmentation");
+                ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted image series in dataset named: {datasetFolderName.Split('/').Last()} in folder Labels");
             }
         }
         else
@@ -223,7 +229,7 @@ public class VolumeDataControl : MonoBehaviour
             }
             catch
             {
-                ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted data in dataset named: {datasetFolderName.Split('/').Last()} in folder Segmentation");
+                ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted data in dataset named: {datasetFolderName.Split('/').Last()} in folder Labels");
             }
         }
         return true;
@@ -299,7 +305,12 @@ public class VolumeDataControl : MonoBehaviour
         {
             _volumeData.SetRenderMode(renderMode);
             UpdateIsoRanges();
-        }    
+
+            if(renderMode==RenderMode.DirectVolumeRendering)
+                _segmentationParent.SetActive(true);
+            else
+                _segmentationParent.SetActive(false);
+        }
     }
     public void SwitchSegmentationPanel()
     {
@@ -400,23 +411,26 @@ public class VolumeDataControl : MonoBehaviour
     {
         VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync());           //Very long
 
+        Color[] uniqueColors = Utils.CreateColors(Dataset.LabelValues.Keys.Count);
         for (int i = 1; i < Dataset.LabelValues.Keys.Count; i++)
         {
-            _segmentsVisibility.Add(0.0f);
+            Color col = uniqueColors[i - 1];
             GameObject tmp = Instantiate(_segmentationSliderPrefab, _segmentationParentContainer.transform);
-            tmp.transform.localPosition = new Vector3(0,0.3f -(0.06f * i), 0.2f);
+            tmp.transform.localPosition = new Vector3(0,0.3f -(0.06f * i), 0.15f);
             tmp.transform.localRotation = Quaternion.Euler(new Vector3(0,-90,0));
             SegmentationRowHelper helper = tmp.GetComponent<SegmentationRowHelper>();
-            helper.SliderID= i-1;
-            helper.SliderUpdated += SliderUpdated;
+            helper.SegmentID= i-1;
+            helper.ColorUpdated += UpdateShaderLabelArray;
+            helper.InitColor(col);
+
             _segments.Add(helper);
         }
-
         UpdateShaderLabelArray();
+
     }
     public void TurnAllSegmentAlphas(bool value)
     {
-        _segments.ForEach(x => x.SetSliderValue(value ? 1 : 0));
+        _segments.ForEach(x => x.AlphaUpdate(value?1:0));
     }
     private void TurnMaterialLabelingKeyword(bool value)
     {
@@ -428,16 +442,7 @@ public class VolumeDataControl : MonoBehaviour
 
     public void UpdateShaderLabelArray()
     {
-        VolumeMesh.material.SetFloatArray("_SegmentsVisibility", _segmentsVisibility);
-    }
-    public void SliderUpdated(int sliderID, float value)
-    {
-        _segmentsVisibility[sliderID] = value;
-        UpdateShaderLabelArray();
-    }
-    public void OpenColorPicker(int sliderID)
-    {
-        //TODO
+        VolumeMesh.material.SetColorArray("_SegmentsColors", _segments.Select(x => x.SegmentColor).ToArray());
     }
 
     public void UpdateSlicePlane(bool value)
@@ -465,9 +470,9 @@ public class VolumeDataControl : MonoBehaviour
         _cutoutPlane.transform.localRotation = Quaternion.Euler(_startLocalPlaneRotation);
         _cutoutPlane.transform.localScale = _startLocalPlaneScale;
 
-        _cutoutSphere.transform.localPosition = _startLocalBoxPosition;
-        _cutoutSphere.transform.localRotation = Quaternion.Euler(_startLocalBoxRotation);
-        _cutoutSphere.transform.localScale = _startLocalBoxScale;
+        _cutoutSphere.transform.localPosition = _startLocalSpherePosition;
+        _cutoutSphere.transform.localRotation = Quaternion.Euler(_startLocalSphereRotation);
+        _cutoutSphere.transform.localScale = _startLocalSphereScale;
     }
     public void ResetHandleTransform()
     {
@@ -497,9 +502,9 @@ public class VolumeDataControl : MonoBehaviour
         _startLocalPlaneRotation = new Vector3(_cutoutPlane.transform.localRotation.eulerAngles.x, _cutoutPlane.transform.localRotation.eulerAngles.y, _cutoutPlane.transform.localRotation.eulerAngles.z);
         _startLocalPlaneScale = new Vector3(_cutoutPlane.transform.localScale.x, _cutoutPlane.transform.localScale.y, _cutoutPlane.transform.localScale.z);
 
-        _startLocalBoxPosition = new Vector3(_cutoutSphere.transform.localPosition.x, _cutoutSphere.transform.localPosition.y, _cutoutSphere.transform.localPosition.z);
-        _startLocalBoxRotation = new Vector3(_cutoutSphere.transform.localRotation.eulerAngles.x, _cutoutSphere.transform.localRotation.eulerAngles.y, _cutoutSphere.transform.localRotation.eulerAngles.z);
-        _startLocalBoxScale = new Vector3(_cutoutSphere.transform.localScale.x, _cutoutSphere.transform.localScale.y, _cutoutSphere.transform.localScale.z);
+        _startLocalSpherePosition = new Vector3(_cutoutSphere.transform.localPosition.x, _cutoutSphere.transform.localPosition.y, _cutoutSphere.transform.localPosition.z);
+        _startLocalSphereRotation = new Vector3(_cutoutSphere.transform.localRotation.eulerAngles.x, _cutoutSphere.transform.localRotation.eulerAngles.y, _cutoutSphere.transform.localRotation.eulerAngles.z);
+        _startLocalSphereScale = new Vector3(_cutoutSphere.transform.localScale.x, _cutoutSphere.transform.localScale.y, _cutoutSphere.transform.localScale.z);
 
         _startLocalHandlePosition = new Vector3(_controlHandle.transform.localPosition.x, _controlHandle.transform.localPosition.y, _controlHandle.transform.localPosition.z);
         _startLocalHandleRotation = new Vector3(_controlHandle.transform.localRotation.eulerAngles.x, _controlHandle.transform.localRotation.eulerAngles.y, _controlHandle.transform.localRotation.eulerAngles.z);
@@ -509,5 +514,4 @@ public class VolumeDataControl : MonoBehaviour
     {
         transform.position = position;
     }
-
 }

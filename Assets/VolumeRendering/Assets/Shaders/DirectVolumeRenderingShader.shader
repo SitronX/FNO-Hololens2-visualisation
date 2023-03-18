@@ -82,7 +82,7 @@
             float _MaxVal2;
             float3 _TextureSize;
             int _stepNumber;
-            float _SegmentsVisibility[500];                                       //Dynamic arrays are not possible, so here it is capped to 500 segments, it should not be really possible to overcome this number (i hope?)
+            float4 _SegmentsColors[500];                                       //Dynamic arrays are not possible, so here it is capped to 500 segments, it should not be really possible to overcome this number (i hope?)
 
 #if CROSS_SECTION_ON
 #define CROSS_SECTION_TYPE_PLANE 1 
@@ -346,12 +346,23 @@
                     float3 gradient = getGradient(currPos);
 #endif
 
-                    // Apply transfer function
-#if TF2D_ON
-                    float mag = length(gradient) / 1.75f;
-                    float4 src = getTF2DColour(density, mag);
+#ifdef LABELING_SUPPORT_ON
+
+                    int label = getLabel(currPos);
+
+                    if (label == 0)
+                        continue;
+
+                    float4 src = _SegmentsColors[label - 1];
 #else
-                    float4 src = getTF1DColour(density);
+                    // Apply transfer function
+    #if TF2D_ON
+                        float mag = length(gradient) / 1.75f;
+                        float4 src = getTF2DColour(density, mag);
+    #else
+                        float4 src = getTF1DColour(density);
+    #endif
+
 #endif
 
                     // Apply lighting
@@ -368,21 +379,6 @@
                     // Optimisation: A branchless version of: if (src.a > 0.15f) tDepth = t;
                     tDepth = max(tDepth, t * step(0.15, src.a));
 #else
-
-    #ifdef LABELING_SUPPORT_ON
-    
-                    int label = getLabel(currPos);
-
-                    if (label == 0)
-                        continue;
-
-                    float alpha = _SegmentsVisibility[label-1];
-                    if (alpha == 0)
-                        continue;
-
-                    
-                    src.a = alpha;                   
-    #endif
                     src.rgb *= src.a;
                     col = (1.0f - col.a) * src + col;
 
@@ -415,8 +411,6 @@
             // Maximum Intensity Projection mode
             frag_out frag_mip(frag_in i)
             {
-                //#define MAX_NUM_STEPS 512
-
                 RayInfo ray = getRayBack2Front(i.vertexLocal);
                 RaymarchInfo raymarchInfo = initRaymarch(ray, _stepNumber);
 
@@ -429,12 +423,6 @@
                     
 #ifdef CROSS_SECTION_ON
                     if (IsCutout(currPos))
-                        continue;
-#endif
-
-#ifdef LABELING_SUPPORT_ON
-                    const float label = getLabel(currPos);
-                    if (_SegmentsVisibility[label] == 0)
                         continue;
 #endif
 
@@ -475,13 +463,6 @@
                     
 #ifdef CROSS_SECTION_ON
                     if (IsCutout(currPos))
-                        continue;
-#endif
-
-
-#ifdef LABELING_SUPPORT_ON
-                    const int label = getLabel(currPos);
-                    if (_SegmentsVisibility[label] == 0)
                         continue;
 #endif
 

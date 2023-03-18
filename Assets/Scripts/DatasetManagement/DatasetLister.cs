@@ -82,19 +82,15 @@ public class DatasetLister : MonoBehaviour
                 }
                 else if (button.ButtonState == ScrollableButton.LoadButtonState.Active)
                 {
-                    button.SetButtonState(ScrollableButton.LoadButtonState.Disabled);
-                    button.VolumeGameObject.SetActive(false);
-                }
-                else if (button.ButtonState == ScrollableButton.LoadButtonState.Disabled)
-                {
-                    button.SetButtonState(ScrollableButton.LoadButtonState.Active);
-                    button.VolumeGameObject.SetActive(true);
+                    button.ResetClicked();
                 }
             }
             else
             {
                 if (AllButtons[i].ButtonState == ScrollableButton.LoadButtonState.ReadyToLoad)
+                {
                     AllButtons[i].SetButtonState(ScrollableButton.LoadButtonState.Selectable);
+                }
             }
         }
     }
