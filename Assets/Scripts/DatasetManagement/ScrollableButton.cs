@@ -16,7 +16,8 @@ public class ScrollableButton : MonoBehaviour
     [SerializeField] GameObject _qrActiveLabel;
     [SerializeField] GameObject _qrButton;
     [SerializeField] ButtonConfigHelper _configHelper;
-    [SerializeField] TMP_Text _datasetName;
+
+    [field: SerializeField] public TMP_Text DatasetName { get; set; }
     Camera _mainCamera;
     bool _hasDatasetLoaded = false;
 
@@ -26,17 +27,20 @@ public class ScrollableButton : MonoBehaviour
     }
     public LoadButtonState ButtonState { private set; get; }
 
-    public GameObject VolumeGameObject { get; set; }
+    public VolumeDataControl VolumeControlObject { get; set; }
+
+    public Texture ThumbnailTexture { get; set; }
     public string DatasetPath { get; set; } 
     public int ButtonIndex { get; set; }
     public DatasetLister ParentDatasetLister { get; set; }
     public Action<int> QrCodeDatasetActivated { get; set; }
     public Action<int> LoadButtonPressed { get; set; }
 
+    public static Action<ScrollableButton> DatasetGrabbed { get; set; }
+
     private void Start()
     {
         _mainCamera = FindObjectOfType<Camera>();
-
     }
 
     public void SetNameSprite(string spriteFolder,string name)
@@ -50,8 +54,9 @@ public class ScrollableButton : MonoBehaviour
             }
 
             string[] imgFiles = Directory.GetFiles(spriteFolder);
-            _loadButtonBackMesh.material.mainTexture = IMG2Sprite.LoadTexture(imgFiles[0]);
-            _datasetName.text = name;
+            ThumbnailTexture= IMG2Sprite.LoadTexture(imgFiles[0]);
+            _loadButtonBackMesh.material.mainTexture = ThumbnailTexture;
+            DatasetName.text = name;
         }
         catch
         {
@@ -60,20 +65,29 @@ public class ScrollableButton : MonoBehaviour
     }
     public void LoadDataset()
     {      
-        if (VolumeGameObject == null)
+        if (VolumeControlObject == null)
         {
             Vector3 rot = _mainCamera.transform.rotation.eulerAngles;
             rot.y += 90;
             rot.x= 0;
             rot.z = 0;
 
-            VolumeGameObject = Instantiate(_placeableVolumePrefab, _mainCamera.transform.position+(_mainCamera.transform.forward), Quaternion.Euler(rot));
-            VolumeDataControl obj= VolumeGameObject.GetComponent<VolumeDataControl>();
-            obj.LoadDataset(DatasetPath);
+            GameObject tmp = Instantiate(_placeableVolumePrefab, _mainCamera.transform.position+(_mainCamera.transform.forward), Quaternion.Euler(rot));
+            VolumeControlObject= tmp.GetComponent<VolumeDataControl>();
+            ObjectManipulator manip= tmp.GetComponent<ObjectManipulator>();
+            manip.OnManipulationStarted.AddListener(OnManipulationDatasetStarted);
+            VolumeControlObject.LoadDataset(DatasetPath);
 
             _hasDatasetLoaded= true;
-            _qrButton.SetActive(true);
+
+            if(PlatformSpecific.Instance.CurrentPlatform==PlatformSpecific.TargetPlatform.Hololens2)
+                _qrButton.SetActive(true);
         }
+    }
+
+    public void OnManipulationDatasetStarted(ManipulationEventData data)
+    {
+        DatasetGrabbed?.Invoke(this);
     }
     public void ButtonPressed()
     {
@@ -109,9 +123,8 @@ public class ScrollableButton : MonoBehaviour
             QRDataSpawner qrPlaced = FindObjectOfType<QRDataSpawner>();
             if (qrPlaced != null)
             {
-                VolumeGameObject.SetActive(true);
                 SetButtonState(LoadButtonState.Active);
-                qrPlaced.ChangeVolumeData(VolumeGameObject);
+                qrPlaced.ChangeVolumeData(VolumeControlObject);
             }
         }
     }
@@ -121,8 +134,8 @@ public class ScrollableButton : MonoBehaviour
     }
     public void ResetClicked()
     {
-        if (VolumeGameObject != null)
-            VolumeGameObject.GetComponent<VolumeDataControl>().ResetAllTransforms();      
+        if (VolumeControlObject != null)
+            VolumeControlObject.ResetAllTransforms();      
     }
     public void SetQrActiveState(bool value)
     {

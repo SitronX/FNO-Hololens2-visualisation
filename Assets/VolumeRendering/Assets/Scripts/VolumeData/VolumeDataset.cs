@@ -48,6 +48,7 @@ namespace UnityVolumeRendering
 
         //TODO
         private Texture3D labelTexture = null;
+        public int labelDimX, labelDimY, labelDimZ;
 
         private float minLabelValue = float.MaxValue;
         private float maxLabelValue = float.MinValue;
@@ -59,9 +60,9 @@ namespace UnityVolumeRendering
                 dataTexture = CreateTextureInternal();
             return dataTexture;
         }
-        public async Task<Texture3D> GetDataTextureAsync()
+        public async Task<Texture3D> GetDataTextureAsync(bool generateNew)
         {
-            if (dataTexture == null)
+            if (dataTexture == null||generateNew)
             {
                 await CreateTextureInternalAsync();
             }
@@ -74,17 +75,17 @@ namespace UnityVolumeRendering
                 gradientTexture = CreateGradientTextureInternal();
             return gradientTexture;
         }
-        public async Task<Texture3D> GetGradientTextureAsync()
+        public async Task<Texture3D> GetGradientTextureAsync(bool generateNew)
         {
-            if (gradientTexture == null)
+            if (gradientTexture == null||generateNew)
             {
                 await CreateGradientTextureInternalAsync();
             }
             return gradientTexture;
         }
-        public async Task<Texture3D> GetLabelTextureAsync()
+        public async Task<Texture3D> GetLabelTextureAsync(bool generateNew)
         {
-            if (labelTexture == null)
+            if (labelTexture == null||generateNew)
             {
                 await CreateLabelTextureInternalAsync();
             }
@@ -161,6 +162,7 @@ namespace UnityVolumeRendering
             dimY = halfDimY;
             dimZ = halfDimZ;
         }
+
         public async Task DownScaleDataAsync()
         {
             await Task.Run(() => {
@@ -347,7 +349,7 @@ namespace UnityVolumeRendering
                             pixelBytes[iData] = Mathf.FloatToHalf(LabelValues[labelData[iData]]);                             //Assigning correct label map values
                     });
 
-                    Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
+                    Texture3D texture = new Texture3D(labelDimX, labelDimY, labelDimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
                     texture.wrapMode = TextureWrapMode.Clamp;
                     texture.SetPixelData(pixelBytes, 0);
                     texture.filterMode= FilterMode.Point;           //Main culprit of impossible shader issue. Without point interpolation, it refused to round out to whole int number and was giving strangest results
@@ -367,7 +369,7 @@ namespace UnityVolumeRendering
                             pixelBytes[iData] = LabelValues[labelData[iData]];                             //Assigning correct label map values
                     });
 
-                    Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
+                    Texture3D texture = new Texture3D(labelDimX, labelDimY, labelDimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
                     texture.wrapMode = TextureWrapMode.Clamp;
                     texture.SetPixelData(pixelBytes, 0);
                     //texture.filterMode = FilterMode.Point;
@@ -379,15 +381,15 @@ namespace UnityVolumeRendering
             }
             catch (OutOfMemoryException)
             {
-                Texture3D texture = new Texture3D(dimX, dimY, dimZ, TextureFormat.RFloat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
+                Texture3D texture = new Texture3D(labelDimX, labelDimY, labelDimZ, TextureFormat.RFloat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
                 texture.wrapMode = TextureWrapMode.Clamp;
 
 
                 Debug.LogWarning("Out of memory when creating texture. Using fallback method.");
-                for (int x = 0; x < dimX; x++)
-                    for (int y = 0; y < dimY; y++)
-                        for (int z = 0; z < dimZ; z++)
-                            texture.SetPixel(x, y, z, new Color(LabelValues[labelData[x + y * dimX + z * (dimX * dimY)]], 0.0f, 0.0f, 0.0f));
+                for (int x = 0; x < labelDimX; x++)
+                    for (int y = 0; y < labelDimY; y++)
+                        for (int z = 0; z < labelDimZ; z++)
+                            texture.SetPixel(x, y, z, new Color(LabelValues[labelData[x + y * labelDimX + z * (labelDimX * labelDimY)]], 0.0f, 0.0f, 0.0f));
 
                 texture.Apply();
                 labelTexture = texture;
@@ -452,7 +454,7 @@ namespace UnityVolumeRendering
             texture.Apply();
             return texture;
         }
-        public async Task CreateGradientTextureInternalAsync()
+        private async Task CreateGradientTextureInternalAsync()
         {
             Debug.Log("Async gradient generation. Hold on.");
 

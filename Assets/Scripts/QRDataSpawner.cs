@@ -14,21 +14,20 @@ public class QRDataSpawner : MonoBehaviour
     {
         if (DatasetLister.Instance.ActiveQR != null)
         {
-            if (DatasetLister.Instance.ActiveQR.VolumeGameObject == null)
+            if (DatasetLister.Instance.ActiveQR.VolumeControlObject == null)
             {
                 DatasetLister.Instance.ActiveQR.LoadDataset();
                 DatasetLister.Instance.ActiveQR.TryUpdateQRVolume();
             }
             else
             {
-                DatasetLister.Instance.ActiveQR.VolumeGameObject.SetActive(true);
                 DatasetLister.Instance.ActiveQR.SetButtonState(ScrollableButton.LoadButtonState.Active);
-                ChangeVolumeData(DatasetLister.Instance.ActiveQR.VolumeGameObject);
+                ChangeVolumeData(DatasetLister.Instance.ActiveQR.VolumeControlObject);
             }
         }
         QrCodeSpawned?.Invoke();
     }
-    public void ChangeVolumeData(GameObject volume)
+    public void ChangeVolumeData(VolumeDataControl volume)
     {
         if (_activeVolume != null)
         {
@@ -36,16 +35,15 @@ public class QRDataSpawner : MonoBehaviour
             _activeVolume.transform.parent = null;
         }
 
-        _activeVolume = volume;
+        _activeVolume = volume.gameObject;
         _activeVolume.transform.parent = transform;
         _activeVolume.transform.localPosition= Vector3.zero;
         _activeVolume.transform.localRotation= Quaternion.identity;
         _activeVolume.transform.localScale = _defaultVolumScale;
 
-        VolumeDataControl contr=_activeVolume.GetComponent<VolumeDataControl>();
-        contr.ResetCrossSectionToolsTransform();
-        contr.ResetHandleTransform();
-        contr.ResetSlicesTransform();
+        volume.ResetCrossSectionToolsTransform();
+        volume.ResetHandleTransform();
+        volume.ResetSlicesTransform();
         
     }
 }

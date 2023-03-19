@@ -89,6 +89,11 @@ namespace UnityVolumeRendering
                 volumeDataset.dimX = (int)size[0];
                 volumeDataset.dimY = (int)size[1];
                 volumeDataset.dimZ = (int)size[2];
+
+                volumeDataset.labelDimX = (int)size[0];
+                volumeDataset.labelDimY = (int)size[1];
+                volumeDataset.labelDimZ = (int)size[2];
+
                 volumeDataset.datasetName = datasetName;
                 volumeDataset.filePath = filePath;
                 volumeDataset.scaleX = (float)(spacing[0] * size[0]);

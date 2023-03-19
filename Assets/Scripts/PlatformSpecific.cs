@@ -1,3 +1,4 @@
+using QRTracking;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
@@ -11,7 +12,7 @@ public class PlatformSpecific : MonoBehaviour
         Hololens2, PCVR
     }
 
-    [SerializeField] TargetPlatform _targetPlatform;
+    [field:SerializeField] public TargetPlatform CurrentPlatform { get; set; }
     [SerializeField] GameObject _remotingObject;
     [SerializeField] GameObject _volumeObjectPrefab;
     [SerializeField] GameObject _qrCodeManager;
@@ -21,19 +22,30 @@ public class PlatformSpecific : MonoBehaviour
     [SerializeField] GameObject _vrNecessary;
     [SerializeField] GameObject _mainCamera;
 
+    public static PlatformSpecific Instance { get; private set; }
+
     private void Awake()
     {
-        if(_targetPlatform==TargetPlatform.Hololens2)
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this);
+        }
+        else
+        {
+            Instance = this;
+        }
+
+        if (CurrentPlatform == TargetPlatform.Hololens2)
         {
             _hololensHandMenu.SetActive(true);
             _remotingObject.SetActive(true);
-            _qrCodeManager.SetActive(true);
+            _qrCodeManager.SetActive(true);           
         }
-        else if(_targetPlatform== TargetPlatform.PCVR)
+        else if(CurrentPlatform == TargetPlatform.PCVR)
         {
             _vrNecessary.SetActive(true);
             _vrControllerMenu.SetActive(true);
-
+            _vrControllerMenu.GetComponent<HandMenu>().EnableQRButton(false);
             RenderSettings.skybox = _skyboxMaterial;
         }
     }

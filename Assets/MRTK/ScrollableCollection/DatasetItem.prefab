@@ -335,7 +335,7 @@ MonoBehaviour:
   _qrActiveLabel: {fileID: 1517753608070106443}
   _qrButton: {fileID: 3108892419489574270}
   _configHelper: {fileID: 5999066085187325367}
-  _datasetName: {fileID: 3162100415497379563}
+  <DatasetName>k__BackingField: {fileID: 3162100415497379563}
 --- !u!1 &7598284693367499442
 GameObject:
   m_ObjectHideFlags: 0
@@ -813,6 +813,10 @@ PrefabInstance:
     - target: {fileID: 6879558711773549107, guid: b7d6951fd4f090041a9094a616516af7, type: 3}
       propertyPath: m_LocalPosition.y
       value: -0.0151
+      objectReference: {fileID: 0}
+    - target: {fileID: 7245862665084444319, guid: b7d6951fd4f090041a9094a616516af7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7418442722557200102, guid: b7d6951fd4f090041a9094a616516af7, type: 3}
       propertyPath: m_Enabled

@@ -1134,7 +1134,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2e92f4ccace23649ac45c87c6138689, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _targetPlatform: 1
+  <CurrentPlatform>k__BackingField: 1
   _remotingObject: {fileID: 1169797922}
   _volumeObjectPrefab: {fileID: 4186097702043771639, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
   _qrCodeManager: {fileID: 876340972}

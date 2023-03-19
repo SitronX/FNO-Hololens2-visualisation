@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
 using UnityEngine.InputSystem;
 using UnityVolumeRendering;
 using RenderMode = UnityVolumeRendering.RenderMode;
@@ -38,6 +39,7 @@ public class VolumeDataControl : MonoBehaviour
     [field: SerializeField] public MeshRenderer VolumeMesh { get; set; }
 
     public VolumeDataset Dataset { get; set; }
+    public bool HasBeenLoaded { get; set; }
     List<SegmentationRowHelper> _segments = new List<SegmentationRowHelper>();
 
     bool _showSecondSlider = false;
@@ -67,6 +69,7 @@ public class VolumeDataControl : MonoBehaviour
     VolumeRenderedObject _volumeRenderedObject;
 
     bool _segmentationPanelVisible = false;
+
 
     private void Start()
     {
@@ -116,10 +119,11 @@ public class VolumeDataControl : MonoBehaviour
 
         _dataLoadingIndicator.Message = "Creating gradient";
 
-        await Dataset.CreateGradientTextureInternalAsync();
+        await Dataset.GetGradientTextureAsync(true);
 
         await _dataLoadingIndicator.CloseAsync();
 
+        HasBeenLoaded = true;
         DatasetSpawned?.Invoke(this);
     }
     public async Task<VolumeDataset> CreateVolumeDatasetAsync(string datasetFolderName)
@@ -409,7 +413,7 @@ public class VolumeDataControl : MonoBehaviour
     }
     public async Task InitSegmentation()
     {
-        VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync());           //Very long
+        VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync(true));           //Very long
 
         Color[] uniqueColors = Utils.CreateColors(Dataset.LabelValues.Keys.Count);
         for (int i = 1; i < Dataset.LabelValues.Keys.Count; i++)
@@ -443,6 +447,22 @@ public class VolumeDataControl : MonoBehaviour
     public void UpdateShaderLabelArray()
     {
         VolumeMesh.material.SetColorArray("_SegmentsColors", _segments.Select(x => x.SegmentColor).ToArray());
+    }
+    public async Task DownScaleDataset()
+    {
+        await _dataLoadingIndicator.OpenAsync();
+        _dataLoadingIndicator.Message = "Downscaling dataset...";
+
+        await Dataset.DownScaleDataAsync();
+
+        _dataLoadingIndicator.Message = "Generating data...";
+
+        VolumeMesh.sharedMaterial.SetTexture("_DataTex", await Dataset.GetDataTextureAsync(true));           //Very long
+
+        _dataLoadingIndicator.Message = "Creating gradient";
+        VolumeMesh.sharedMaterial.SetTexture("_GradientTex", await Dataset.GetGradientTextureAsync(true));           //Very long
+
+        await _dataLoadingIndicator.CloseAsync();
     }
 
     public void UpdateSlicePlane(bool value)
