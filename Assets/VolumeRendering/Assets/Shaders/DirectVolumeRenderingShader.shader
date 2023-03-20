@@ -354,6 +354,7 @@
                         continue;
 
                     float4 src = _SegmentsColors[label - 1];
+                    src.a*= density * 0.7;              //0.7 works best to smooth ugly edges
 #else
                     // Apply transfer function
     #if TF2D_ON

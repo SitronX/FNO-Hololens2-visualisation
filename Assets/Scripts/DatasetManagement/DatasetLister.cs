@@ -26,7 +26,7 @@ public class DatasetLister : MonoBehaviour
             Instance= this;
 
 
-        List<string> _datasetDirectories = Directory.EnumerateDirectories(Application.streamingAssetsPath + "/DicomData/").ToList();
+        List<string> _datasetDirectories = Directory.EnumerateDirectories(Application.streamingAssetsPath + "/Datasets/").ToList();
 
         for(int i=0;i<_datasetDirectories.Count;i++)
         {
