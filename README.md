@@ -58,8 +58,8 @@ Menu can be similarly grabbed and anchored in the space with second controller
 To add custom dataset to build with option to spawn it at runtime, follow these steps:
 
 1. Create new Folder in the following directory (name of the folder will be displayed in the app):
-    - In build, the path is: HospitalVisualisations_Data/StreamingAssets/Datasets
-    - In editor, the path is: Assets/StreamingAssets/Datasets
+    - In build, the path is: `HospitalVisualisations_Data/StreamingAssets/Datasets`
+    - In editor, the path is: `Assets/StreamingAssets/Datasets`
 2. Create two additional folders in previously created folder that are named: <b> Data </b> and <b> Thumbnail </b>
 3. Paste medical data into the <b>Data</b> folder. Supported files are: <b>NRRD,NIFTI,DICOM,JPG sequence</b>. Files need to have corresponding suffix matching the file they represent (eg: Dicom data will have .dcm suffix). If you have a lot of files without suffix, you can create suffixes in my simple bulk renaming tool, which is available [here](https://github.com/SitronX/FileRenamer)
 4. Paste some thumbnail into the <b>Snapshot</b> folder (.jpg or .png) so dataset is recognizable in spawn menu
@@ -127,7 +127,7 @@ By downsampling very large datasets, the quality loss is usually negligible with
 ## Important when loading project
 
 ### SimpleITK
-Assets/VolumeRendering/Assets/3rdparty/SimpleITK folder must contain SimpleITK binaries, otherwise project will not load correctly. Paste binaries from here: https://sourceforge.net/projects/simpleitk/files/SimpleITK/1.2.4/CSharp/. It is then possible to update these libraries thru Unity Menu->VolumeRendering->Settings->Disable/Enable SimpleITK, it asks to download it again, which should download the newest version
+`Assets/VolumeRendering/Assets/3rdparty/SimpleITK` folder must contain SimpleITK binaries, otherwise project will not load correctly. Paste binaries from [here](https://sourceforge.net/projects/simpleitk/files/SimpleITK/1.2.4/CSharp/). It is then possible to update these libraries thru <b>Unity Menu->VolumeRendering->Settings->Disable/Enable SimpleITK</b>, it asks to download it again, which should download the newest version
 
 ### Quantum Console
 Project has working developer console with usefull commands. The asset is called [Quantum Console](https://assetstore.unity.com/packages/tools/utilities/quantum-console-211046) and is not present in this repository due to licensing reasons. 
@@ -151,7 +151,7 @@ Then in scene make sure target platform is set to <b>Hololens 2</b>
 
 #### After the build
 
-Due to issue with dlls in build, which is issue with [QR tracker](https://github.com/microsoft/MixedReality-QRCode-Sample) sample, all these dlls below must be placed after the build to the root folder with exe (do not copy all dlls from folder, only these shown below, otherwise there is issue with remoting connection). These dlls are in <b>HospitalVisualisations_Data/Plugins/x86_64</b> in build. 
+Due to issue with dlls in build, which is issue with [QR tracker](https://github.com/microsoft/MixedReality-QRCode-Sample) sample, all these dlls below must be placed after the build to the root folder with exe (do not copy all dlls from folder, only these shown below, otherwise there is issue with remoting connection). These dlls are in `HospitalVisualisations_Data/Plugins/x86_64` in build. 
 
 <img src="https://user-images.githubusercontent.com/68167377/217945899-341667ac-3ea2-499f-b08c-5f90a15029e9.png" width=256>
 
