@@ -35,10 +35,10 @@ public class SliderIntervalUpdater : MonoBehaviour
             if (((firstSliderNewValue < 1) && (firstSliderNewValue > 0)) && ((secondSliderNewValue < 1) && (secondSliderNewValue > 0)))
             {
                 _firstSlider.SliderValue = firstSliderNewValue;
-                _firstSlider.UpdateVisualsOrientation();
+                //_firstSlider.UpdateVisualsOrientation();
 
                 _secondSlider.SliderValue = secondSliderNewValue;
-                _secondSlider.UpdateVisualsOrientation();
+                //_secondSlider.UpdateVisualsOrientation();
             }
         }      
     }
