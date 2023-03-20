@@ -11,6 +11,8 @@
 
 This branch is for raw medical volume data visualisation using AR/VR headsets connected to the PC. [UnityVolumeRendering](https://github.com/mlavik1/UnityVolumeRendering) library by mlavik is used for realtime RayMarching on medical data. Solution is tested to work on Hololens 2 (AR) and Oculus Quest 2 (VR).
 
+Downloadable builds are present in [Release](https://github.com/SitronX/FnO-Hololens2-visualisation/releases) section.
+
 <table>
   <tr>  
 <th>
@@ -26,38 +28,6 @@ This branch is for raw medical volume data visualisation using AR/VR headsets co
   </tr>
   </table>
   
-## Important when loading project
-
-<b>Simple ITK</b> - Assets/VolumeRendering/Assets/3rdparty/SimpleITK folder must contain SimpleITK binaries, otherwise project will not load correctly. Paste binaries from here: https://sourceforge.net/projects/simpleitk/files/SimpleITK/1.2.4/CSharp/. It is then possible to update these libraries thru Unity Menu->VolumeRendering->Settings->Disable/Enable SimpleITK, it asks to download it again, which should download the newest version
-
-
-# Developer notes
-## Hololens 2 
-### Build
-Make sure settings in XR Plug-in Management are same as shown here
-
-<img src="https://user-images.githubusercontent.com/68167377/220190194-086fab19-f7b3-4196-9fbc-80d420de2879.jpg" width=720>
-
-Then in scene make sure target platform is set to <b>Hololens 2</b>
-
-<img src="https://user-images.githubusercontent.com/68167377/220190434-54a27ce9-136e-4b85-aac1-0e057654db9c.jpg" width=720>
-
-### After the build
-
-Due to issue with dlls in build, which is issue with [QR tracker](https://github.com/microsoft/MixedReality-QRCode-Sample) sample, all these dlls below must be placed after the build to the root folder with exe (do not copy all dlls from folder, only these shown below, otherwise there is issue with remoting connection). These dlls are in <b>HospitalVisualisations_Data/Plugins/x86_64</b> in build. 
-
-<img src="https://user-images.githubusercontent.com/68167377/217945899-341667ac-3ea2-499f-b08c-5f90a15029e9.png" width=256>
-
-## PC-VR
-## Build
-Make sure settings in XR Plug-in Management are same as shown here
-
-<img src="https://user-images.githubusercontent.com/68167377/220191043-fc1e0d22-d22c-446e-aca6-722334eb53b9.jpg" width=720>
-
-Then in scene make sure target platform is set to <b>PCVR</b>
-
-<img src="https://user-images.githubusercontent.com/68167377/220191084-e8e752e5-b67e-4b9e-838b-73793a59647a.jpg" width=720>
-
 # User manual
 ## Running the app
 ### Hololens 2
@@ -107,7 +77,7 @@ When the dataset is spawned, it can be reseted by clicking same previous button.
 
 <img src="https://user-images.githubusercontent.com/68167377/226214137-bf5b4928-0567-40d2-80b5-824463ec1050.gif" width=512>
 
-Dataset can be set as <b> QR active</b>. QR active datasets are placed into exact position where QR code was detected. It is possible to switch between loaded datasets as shown below
+Specifically on Hololens 2 datasets can be set as <b> QR active</b>. QR active datasets are placed into exact position where QR code was detected. It is possible to switch between loaded datasets as shown below
 
 <img src="https://user-images.githubusercontent.com/68167377/221687075-d32c3aee-1407-49df-8f2f-504c9ddce989.gif" width=512>
 
@@ -152,4 +122,45 @@ By downsampling very large datasets, the quality loss is usually negligible with
 2. Press the downscale button (dataset must finish previous loading)
 
 ![Downscale](https://user-images.githubusercontent.com/68167377/226219048-e3ccf381-aa02-4b3d-ade1-7fc156817720.gif)
+
+# Developer notes
+## Important when loading project
+
+### SimpleITK
+Assets/VolumeRendering/Assets/3rdparty/SimpleITK folder must contain SimpleITK binaries, otherwise project will not load correctly. Paste binaries from here: https://sourceforge.net/projects/simpleitk/files/SimpleITK/1.2.4/CSharp/. It is then possible to update these libraries thru Unity Menu->VolumeRendering->Settings->Disable/Enable SimpleITK, it asks to download it again, which should download the newest version
+
+### Quantum Console
+Project has working developer console with usefull commands. The asset is called [Quantum Console](https://assetstore.unity.com/packages/tools/utilities/quantum-console-211046) and is not present in this repository due to licensing reasons. 
+
+If you are not going to use the console, you can disable this console by deleting console prefab in scene and deleting [Console.cs](Assets/Scripts/Console.cs) script
+
+<img src="https://user-images.githubusercontent.com/68167377/226320485-2bc453d7-9ab3-488d-bcb6-073211c7310a.png" width=256>
+
+If you want to use a Console and have a licence, simply download the package from [Unity package manager](https://docs.unity3d.com/Manual/upm-ui.html) and all errors should dissapear. Console can then be opened by pressing <b>F1</b> key when the app is running.
+
+
+## App build
+### Hololens 2 
+Make sure settings in XR Plug-in Management are same as shown here
+
+<img src="https://user-images.githubusercontent.com/68167377/220190194-086fab19-f7b3-4196-9fbc-80d420de2879.jpg" width=720>
+
+Then in scene make sure target platform is set to <b>Hololens 2</b>
+
+<img src="https://user-images.githubusercontent.com/68167377/220190434-54a27ce9-136e-4b85-aac1-0e057654db9c.jpg" width=720>
+
+#### After the build
+
+Due to issue with dlls in build, which is issue with [QR tracker](https://github.com/microsoft/MixedReality-QRCode-Sample) sample, all these dlls below must be placed after the build to the root folder with exe (do not copy all dlls from folder, only these shown below, otherwise there is issue with remoting connection). These dlls are in <b>HospitalVisualisations_Data/Plugins/x86_64</b> in build. 
+
+<img src="https://user-images.githubusercontent.com/68167377/217945899-341667ac-3ea2-499f-b08c-5f90a15029e9.png" width=256>
+
+### PC-VR
+Make sure settings in XR Plug-in Management are same as shown here
+
+<img src="https://user-images.githubusercontent.com/68167377/220191043-fc1e0d22-d22c-446e-aca6-722334eb53b9.jpg" width=720>
+
+Then in scene make sure target platform is set to <b>PCVR</b>
+
+<img src="https://user-images.githubusercontent.com/68167377/220191084-e8e752e5-b67e-4b9e-838b-73793a59647a.jpg" width=720>
 
