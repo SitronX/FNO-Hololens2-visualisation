@@ -25,12 +25,12 @@ To open the control menu inside the app, hold the X button on <b>left</b> contro
 
 The menu can be grabbed and anchored in the space using the second controller.
 
-<img src="https://user-images.githubusercontent.com/68167377/221322940-1d4d1100-47ef-4470-8cc0-8599dcd3c310.jpeg" width=720>
+<img src="https://user-images.githubusercontent.com/68167377/226731942-d9b4f7f3-bd60-4a2a-86eb-a4182198416e.gif" width=512>
 
 ## Working with new Datasets
 To add a custom dataset, follow these steps:
 
-1. On desktop there is folder named <b>Datasets</b>. In this <b>Dataset</b> folder, create new folder with appropriate name that will hold your new dataset.
+1. On desktop there is folder named <b>Datasets</b>. In this folder, create new folder with appropriate name that will hold your new dataset.
 
 <img src="https://user-images.githubusercontent.com/68167377/226700616-7e8bf396-c91c-4197-90b7-67177fcb5248.png" width=512>
 
