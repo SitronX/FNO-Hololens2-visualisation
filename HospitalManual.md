@@ -93,4 +93,35 @@ By downsampling very large datasets, the quality loss is usually negligible with
 
 ![Downscale](https://user-images.githubusercontent.com/68167377/226219048-e3ccf381-aa02-4b3d-ade1-7fc156817720.gif)
 
+## Changing background
+
+It is possible to change the background according to the user's preference.
+
+<table>
+  <tr>  
+<th>Default backgroung</th>
+<th>Dark background</th>
+<th>Light background</th>
+<tr>  
+<th>
+  <img src="https://user-images.githubusercontent.com/68167377/226741250-eae58191-67f5-4b5f-aa80-b72b26d995d7.jpg" width=512>
+</th>
+<th>
+
+  <img src="https://user-images.githubusercontent.com/68167377/226741372-54374c71-0e28-4f0a-93c4-0005c1949d66.jpg" width=512>
+</th>
+<th>
+
+  <img src="https://user-images.githubusercontent.com/68167377/226741461-834e394c-e9e5-480b-9c08-57614d7a6d94.jpg" width=512>
+</th>
+  </tr>
+  <tr>
+    <th>Press <b> F2 </b> to activate </th>
+    <th>Press <b> F3 </b> to activate </th>
+    <th>Press <b> F4 </b> to activate </th>
+  </tr>
+  </table>
+  
+  
+Note: <b>F1</b> button opens developer console for additional commands that you can use.
 
