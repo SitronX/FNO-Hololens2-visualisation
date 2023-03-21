@@ -37,7 +37,7 @@ public class VRMenu : MonoBehaviour
         GameObject controllerObject = FindObjectsOfType<WindowsMixedRealityControllerVisualizer>().First(x => x.Handedness == Microsoft.MixedReality.Toolkit.Utilities.Handedness.Left).gameObject;
 
         _vrControllerMenu.transform.parent = controllerObject.transform;
-        _vrControllerMenu.transform.localPosition = new Vector3(-0.15f, 0, -0.05f);
+        _vrControllerMenu.transform.localPosition = new Vector3(-0.16f, 0, -0.05f);
         _vrControllerMenu.transform.localRotation = Quaternion.Euler(new Vector3(90, -30, 150));
         _vrControllerMenu.transform.localScale = Vector3.one;
 
