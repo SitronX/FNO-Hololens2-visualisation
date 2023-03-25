@@ -117,6 +117,29 @@ namespace UnityVolumeRendering
 
                 Image image = reader.Execute();
 
+                try
+                {
+                    Image labelImage = SimpleITK.Cast(image, PixelIDValueEnum.sitkUInt16);
+
+                    Image binary = SimpleITK.BinaryThreshold(labelImage, 1, int.MaxValue, 1, 0);
+                    LabelStatisticsImageFilter stats = null;
+                    stats = new LabelStatisticsImageFilter();
+                    stats.Execute(binary, labelImage);
+
+                    ulong numSegments = stats.GetNumberOfLabels();
+
+                    List<string> segmentNames = new List<string>();
+                    for (ulong i = 0; i < numSegments; i++)
+                    {
+                        string segmentName = reader.GetMetaData($"Segment{i}_Name");
+                        segmentNames.Add(segmentName);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ex.ToString();
+                }
+
                 // Cast to 32-bit float
                 image = SimpleITK.Cast(image, PixelIDValueEnum.sitkFloat32);
 
