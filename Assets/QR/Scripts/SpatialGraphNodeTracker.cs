@@ -12,7 +12,7 @@ using SpatialGraphNode = Microsoft.MixedReality.SampleQRCodes.WindowsXR.SpatialG
 
 namespace Microsoft.MixedReality.SampleQRCodes
 {
-    public class SpatialGraphNodeTracker : MonoBehaviour, IQRUpdateDisable
+    public class SpatialGraphNodeTracker : MonoBehaviour, IQRUpdate
     {
         private SpatialGraphNode node;
         bool _enableQrUpdate = true;

@@ -7,7 +7,7 @@ using UnityEngine;
 namespace QRTracking
 {
     [RequireComponent(typeof(SpatialGraphNodeTracker))]
-    public class QRCode : MonoBehaviour, IQRUpdateDisable
+    public class QRCode : MonoBehaviour, IQRUpdate
     {
         public Microsoft.MixedReality.QR.QRCode qrCode;
         private GameObject qrCodeCube;

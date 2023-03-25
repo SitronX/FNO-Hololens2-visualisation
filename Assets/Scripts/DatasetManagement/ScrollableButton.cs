@@ -102,7 +102,7 @@ public class ScrollableButton : MonoBehaviour
             if (state == LoadButtonState.Selectable)
             {
                 _configHelper.MainLabelText = "Select";
-                _configHelper.SetQuadIconByName("IconHandJoint");
+                _configHelper.SetQuadIconByName("IconHandMesh");
             }
             else if (state == LoadButtonState.ReadyToLoad)
             {

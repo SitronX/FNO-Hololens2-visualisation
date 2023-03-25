@@ -86,7 +86,7 @@ public class Console : MonoBehaviour, IQcSuggestor
     [Command("QRUpdateState")]
     public void EnableQRUpdate(bool value)
     {
-        FindObjectsOfType<MonoBehaviour>().OfType<IQRUpdateDisable>().ToList().ForEach(x => x.EnableQRUpdate(value));
+        FindObjectsOfType<MonoBehaviour>().OfType<IQRUpdate>().ToList().ForEach(x => x.EnableQRUpdate(value));
     }
     [Command]
     public void Quality(int numberOfSteps)

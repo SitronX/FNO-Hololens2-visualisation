@@ -28,7 +28,7 @@ namespace QRTracking
         }
     }
 
-    public class QRCodesManager : Singleton<QRCodesManager>, IQRUpdateDisable
+    public class QRCodesManager : Singleton<QRCodesManager>, IQRUpdate
     {
         [Tooltip("Determines if the QR codes scanner should be automatically started.")]
         public bool AutoStartQRTracking;

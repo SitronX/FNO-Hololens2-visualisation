@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace QRTracking
 {
-    public class QRCodesVisualizer : MonoBehaviour, IQRUpdateDisable
+    public class QRCodesVisualizer : MonoBehaviour, IQRUpdate
     {
         public GameObject qrCodePrefab;
 

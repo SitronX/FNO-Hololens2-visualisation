@@ -16,6 +16,10 @@ public class HandMenu : MonoBehaviour
     [SerializeField] InteractableToggleCollection _crossSectionModes;
     [SerializeField] PinchSlider _raymarchSlider;
     [SerializeField] GameObject _qrUpdateButton;
+    [SerializeField] TMP_Text _dayUpdate;
+    [SerializeField] TMP_Text _version;
+    [SerializeField] string _lastUpdateText;
+
 
     List<VolumeDataControl> _volumeObjects = new List<VolumeDataControl>();
 
@@ -27,6 +31,9 @@ public class HandMenu : MonoBehaviour
 
     private void Start()
     {
+        _version.text =$"Version: {Application.version}";
+        _dayUpdate.text =$"Last Update {_lastUpdateText}";
+
         FindObjectsOfType<VolumeDataControl>().ToList().ForEach(x=>_volumeObjects.Add(x));
 
         LightingUpdated();
@@ -125,7 +132,7 @@ public class HandMenu : MonoBehaviour
     }
     public void UpdateQrStatus()
     {
-        FindObjectsOfType<MonoBehaviour>().OfType<IQRUpdateDisable>().ToList().ForEach(x => x.EnableQRUpdate(_qrUpdatesEnabled));
+        FindObjectsOfType<MonoBehaviour>().OfType<IQRUpdate>().ToList().ForEach(x => x.EnableQRUpdate(_qrUpdatesEnabled));
     }
     public void EnableQRButton(bool value)
     {
