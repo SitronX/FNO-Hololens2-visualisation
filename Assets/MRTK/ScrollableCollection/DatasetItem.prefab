@@ -335,6 +335,7 @@ MonoBehaviour:
   _qrActiveLabel: {fileID: 1517753608070106443}
   _qrButton: {fileID: 3108892419489574270}
   _configHelper: {fileID: 5999066085187325367}
+  _defaultTexture: {fileID: 2800000, guid: 61b3d56425e11d349b6f1d8e8ddfe531, type: 3}
   <DatasetName>k__BackingField: {fileID: 3162100415497379563}
 --- !u!1 &7598284693367499442
 GameObject:

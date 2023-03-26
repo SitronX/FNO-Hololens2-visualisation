@@ -1896,8 +1896,8 @@ MonoBehaviour:
   flattenAxis: 0
   uniformScaleOnFlattenedAxis: 1
   boxPadding: {x: 0, y: 0, z: 0}
-  boxDisplayConfiguration: {fileID: 0}
-  linksConfiguration: {fileID: 0}
+  boxDisplayConfiguration: {fileID: 114307133794489298, guid: 937ce507dd7ee334ba569554e24adbdd, type: 3}
+  linksConfiguration: {fileID: 114946863364051912, guid: 937ce507dd7ee334ba569554e24adbdd, type: 3}
   scaleHandlesConfiguration: {fileID: 0}
   rotationHandlesConfiguration: {fileID: 0}
   translationHandlesConfiguration: {fileID: 0}

@@ -301,7 +301,7 @@ public class VolumeDataControl : MonoBehaviour
                 _volumeData.SetVisibilityWindow(minVal1, maxVal1, minVal2, maxVal2);
             }
         }
-        catch { }                   
+        catch { }
     }
     public void UpdateRenderingMode(RenderMode renderMode)
     {

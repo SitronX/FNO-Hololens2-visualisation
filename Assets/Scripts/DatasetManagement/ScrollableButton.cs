@@ -16,6 +16,7 @@ public class ScrollableButton : MonoBehaviour
     [SerializeField] GameObject _qrActiveLabel;
     [SerializeField] GameObject _qrButton;
     [SerializeField] ButtonConfigHelper _configHelper;
+    [SerializeField] Texture _defaultTexture;
 
     [field: SerializeField] public TMP_Text DatasetName { get; set; }
     Camera _mainCamera;
@@ -45,23 +46,20 @@ public class ScrollableButton : MonoBehaviour
 
     public void SetNameSprite(string spriteFolder,string name)
     {
-        try
+     
+        if (Directory.Exists(spriteFolder))
         {
-            if (!Directory.Exists(spriteFolder))
-            {
-                ErrorNotifier.Instance.AddErrorMessageToUser($"Thumbnail folder missing for dataset named: {name}!");
-                return;
-            }
-
             string[] imgFiles = Directory.GetFiles(spriteFolder);
-            ThumbnailTexture= IMG2Sprite.LoadTexture(imgFiles[0]);
-            _loadButtonBackMesh.material.mainTexture = ThumbnailTexture;
-            DatasetName.text = name;
+            if(imgFiles.Length > 0)
+            {
+                ThumbnailTexture = IMG2Sprite.LoadTexture(imgFiles[0]);
+                _loadButtonBackMesh.material.mainTexture = ThumbnailTexture;
+                DatasetName.text = name;
+                return;
+            }         
         }
-        catch
-        {
-            ErrorNotifier.Instance.AddErrorMessageToUser($"Thumbnail is missing for dataset named: {name} (.jpg or .png expected)");
-        }
+        _loadButtonBackMesh.material.mainTexture = _defaultTexture;
+        DatasetName.text = name;
     }
     public void LoadDataset()
     {      
