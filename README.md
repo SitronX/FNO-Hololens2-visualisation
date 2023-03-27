@@ -26,7 +26,7 @@ Downloadable builds are available in the [Release](https://github.com/SitronX/Fn
   
 # User manual
 
-Hospital specific tutorial is available [here](https://github.com/SitronX/FnO-Hololens2-visualisation/edit/VolumetricData/HospitalManual.md).
+Hospital specific manual is available [here](https://github.com/SitronX/FnO-Hololens2-visualisation/edit/VolumetricData/HospitalManual.md).
 
 ## Running the app
 ### Hololens 2
