@@ -3505,7 +3505,7 @@ MonoBehaviour:
   _qrUpdateButton: {fileID: 2002946669587410003}
   _dayUpdate: {fileID: 5907397570968421920}
   _version: {fileID: 8232689959751068666}
-  _lastUpdateText: 21.3.2023
+  _lastUpdateText: 27.3.2023
 --- !u!114 &6253492392926515807
 MonoBehaviour:
   m_ObjectHideFlags: 0

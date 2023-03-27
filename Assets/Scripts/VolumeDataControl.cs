@@ -325,7 +325,10 @@ public class VolumeDataControl : MonoBehaviour
             UpdateIsoRanges();
 
             if(renderMode==RenderMode.DirectVolumeRendering)
-                _segmentationParent.SetActive(true);
+            {
+                if(_segments.Count>0)
+                    _segmentationParent.SetActive(true);
+            }
             else
                 _segmentationParent.SetActive(false);
 
