@@ -25,6 +25,9 @@ Downloadable builds are available in the [Release](https://github.com/SitronX/Fn
   </table>
   
 # User manual
+
+Hospital specific tutorial is available [here](https://github.com/SitronX/FnO-Hololens2-visualisation/edit/VolumetricData/HospitalManual.md).
+
 ## Running the app
 ### Hololens 2
 Make sure you have [Remoting app](https://apps.microsoft.com/store/detail/holographic-remoting-player/9NBLGGH4SV40?hl=cs-cz&gl=cz&rtc=1) opened on Hololens 2. Set the Hololens IP in the build and click connect. The headset can be connected either via USB-C or WiFi.
@@ -56,9 +59,9 @@ To add a custom dataset to the build with an option to spawn it at runtime, foll
 1. Create new Folder in the following directory (name of the folder will be displayed in the app):
     - In the build, the path is: `HospitalVisualisations_Data/StreamingAssets/Datasets`
     - In the editor, the path is: `Assets/StreamingAssets/Datasets`
-2. Create two additional folders in the previously created folder, named <b> Data </b> and <b> Thumbnail</b>.
+2. Create additional folder in the previously created folder, named <b> Data </b>.
 3. Paste the medical data into the <b>Data</b> folder. Supported file types are: <b>NRRD,NIFTI,DICOM and JPG sequence</b>. The files need to have corresponding suffix matching the file they represent (eg: DICOM data will have a .dcm suffix). If you have a lot of files without suffix, you can create suffixes in my simple bulk renaming tool, which is available [here](https://github.com/SitronX/FileRenamer).
-4. Paste a thumbnail into the <b>Thumbnail</b> folder (.jpg or .png) so that the dataset is recognizable in the spawn menu.
+4. (Optional-Recommended) Create a second folder named <b>Thumbnail</b> and paste some image into that folder (.jpg or .png) so that dataset is easily recognizable in the spawn menu.
 5. (Optional) Create a third folder named <b>Labels</b> for segmentation support. Paste the segmentation [label map](https://slicer.readthedocs.io/en/latest/user_guide/modules/segmentations.html#export-segmentation-to-labelmap-volume) in this folder. The supported file types are the same as mentioned in step 3.
 
 ### Spawning dataset in app
@@ -72,9 +75,29 @@ When the dataset is spawned, it can be reset by clicking the same previous butto
 
 <img src="https://user-images.githubusercontent.com/68167377/226214137-bf5b4928-0567-40d2-80b5-824463ec1050.gif" width=512>
 
+Dataset can be enabled/disabled after the spawn.
+
+<img src="https://user-images.githubusercontent.com/68167377/227978363-84184c7c-3a20-4c1f-a056-44d193ac88d3.gif" width=512>
+
 Specifically on Hololens 2, datasets can be set as <b> QR active</b>. QR active datasets are placed into exact position where the QR code was detected. It is possible to switch between loaded datasets as shown below.
 
 <img src="https://user-images.githubusercontent.com/68167377/221687075-d32c3aee-1407-49df-8f2f-504c9ddce989.gif" width=512>
+
+## Changing Transfer-function
+
+Some datasets might have problem with default Transfer-function. Transfer-function provides color to every particle based on its density. When dataset appears to be washed-out with a lot of same colors, it is best to manually correct the color positions. Adjusting is showed here.
+
+<img src="https://user-images.githubusercontent.com/68167377/227997834-584ffa4a-628d-400c-aa17-ba74738f4426.gif" width=512>
+
+The color positions are directly connected to the density slider, so when you select specific density interval, you can also set up what colors will be inside the interval.
+
+<img src="https://user-images.githubusercontent.com/68167377/227991860-8fbe4b09-6c06-46df-b0ab-fe45a5e02475.jpg" width=512>
+
+You can also reset color positions by clicking this button
+
+<img src="https://user-images.githubusercontent.com/68167377/227994876-baa88eff-3be4-40ba-90e6-77e8767a9260.jpg" width=512>
+
+Note: In my tests, using black-red colors worked really well in highlighting changes.
 
 ## Segmentation module
 
@@ -106,6 +129,12 @@ You can enable the slice view from the hand menu. When enabled, you can move the
 Cutout methods are selectable in <b>Additional settings </b>.
 
 ![Cutouts](https://user-images.githubusercontent.com/68167377/226217175-80e0391c-f703-4be6-9d3f-07ee8a61e382.gif)
+
+## Second density slider
+
+You can use additional second density slider to have two visibility intervals. With this, use can visualise two different parts of the body with different density, while your view is unobstructed by irrelevant parts.
+
+![DoubleSlider](https://user-images.githubusercontent.com/68167377/227983210-3160e0e8-7887-47ec-827d-58e8cd2ffdfe.gif)
 
 ## Downsampling datasets
 
