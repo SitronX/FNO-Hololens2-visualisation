@@ -85,7 +85,7 @@ Specifically on Hololens 2, datasets can be set as <b> QR active</b>. QR active 
 
 ## Changing Transfer-function
 
-Some datasets might have problem with default Transfer-function. Transfer-function provides color to every particle based on its density. When dataset appears to be washed-out with a lot of same colors, it is best to manually correct the color positions. Adjusting is showed here.
+Some datasets might have problem with the default Transfer-function. Transfer-function provides color to every particle based on its density. When dataset appears to be washed-out with a lot of same color, it is best to manually correct the color positions. Adjusting is showed here.
 
 <img src="https://user-images.githubusercontent.com/68167377/227997834-584ffa4a-628d-400c-aa17-ba74738f4426.gif" width=512>
 
@@ -93,7 +93,7 @@ The color positions are directly connected to the density slider, so when you se
 
 <img src="https://user-images.githubusercontent.com/68167377/227991860-8fbe4b09-6c06-46df-b0ab-fe45a5e02475.jpg" width=512>
 
-You can also reset color positions by clicking this button
+You can also reset color positions by clicking this button, this will reset the colors to default state.
 
 <img src="https://user-images.githubusercontent.com/68167377/227994876-baa88eff-3be4-40ba-90e6-77e8767a9260.jpg" width=512>
 
