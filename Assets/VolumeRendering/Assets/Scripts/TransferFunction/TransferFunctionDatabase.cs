@@ -69,7 +69,7 @@ namespace UnityVolumeRendering
         }
         public static TransferFunction LoadTransferFunctionFromResources(string fileName)
         {
-            
+
             string jsonstring = Resources.Load<TextAsset>(fileName).text;
             TF1DSerialisationData data = JsonUtility.FromJson<TF1DSerialisationData>(jsonstring);
             Debug.Log(jsonstring);

@@ -35,12 +35,15 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] GameObject _segmentationSliderPrefab;
     [SerializeField] GameObject _segmentationParentContainer;
     [SerializeField] GameObject _segmentationParent;
+    [SerializeField] TFColorUpdater _tfColorUpdater;
 
     [field: SerializeField] public MeshRenderer VolumeMesh { get; set; }
 
     public VolumeDataset Dataset { get; set; }
     public bool HasBeenLoaded { get; set; }
     List<SegmentationRowHelper> _segments = new List<SegmentationRowHelper>();
+
+    TransferFunction _transferFunction;
 
     bool _showSecondSlider = false;
     Vector3 _startLocalPosition;
@@ -62,8 +65,8 @@ public class VolumeDataControl : MonoBehaviour
     public static Action<VolumeDataControl> DatasetSpawned { get; set; }
     public static Action<VolumeDataControl> DatasetDespawned { get; set; }
 
-    public static List<string> TF2D { get; set; } = new List<string>();
-    public static List<string> TF1D { get; set; } = new List<string>();
+    //public static List<string> TF2D { get; set; } = new List<string>();
+    //public static List<string> TF1D { get; set; } = new List<string>();
 
                
     VolumeRenderedObject _volumeRenderedObject;
@@ -75,7 +78,7 @@ public class VolumeDataControl : MonoBehaviour
     {
         _volumeRenderedObject = _volumetricDataMainParentObject.GetComponent<VolumeRenderedObject>();
         SetInitialTransforms();
-
+        _tfColorUpdater.TfColorUpdated += SetTransferFunction;
     }
     public async void LoadDataset(string datasetFolderName)        //Async addition so all the loading doesnt freeze the app
     {
@@ -83,7 +86,7 @@ public class VolumeDataControl : MonoBehaviour
         _dataLoadingIndicator.Message = "Loading data...";
 
 
-        LoadTFDataPath(Application.streamingAssetsPath + "/TransferFunctions/");
+        //LoadTFDataPath(Application.streamingAssetsPath + "/TransferFunctions/");
 
         _sliderIntervalUpdater1.OnIntervaSliderValueChanged += UpdateIsoRanges;
         _sliderIntervalUpdater2.OnIntervaSliderValueChanged += UpdateIsoRanges;
@@ -102,15 +105,21 @@ public class VolumeDataControl : MonoBehaviour
             await InitSegmentation();
             _segmentationParent.SetActive(true);
         }
+
+        _transferFunction = TransferFunctionDatabase.LoadTransferFunctionFromResources("default");      //TF in resources must be in .txt format, the .tf that is default for transfer function cannot be loaded from resources
+        SetTransferFunction(_transferFunction);
+
+        _tfColorUpdater.InitUpdater(_transferFunction);
         VolumeMesh.gameObject.SetActive(true);                          //It is disabled to this point, otherwise default mat is blocking loading indicator
 
-        if (TF1D.Count > 0)
-            SetTransferFunction(TF1D[0]);
-        else if (TF2D.Count > 0)
-            SetTransferFunction(TF2D[0]);
-        else
-            ErrorNotifier.Instance.AddErrorMessageToUser("No transfer function found. Create and paste atleast one transfer functions in /TransferFunctionsFolder");
+        //if (TF1D.Count > 0)
+        //    SetTransferFunction(TF1D[0]);
+        //else if (TF2D.Count > 0)
+        //    SetTransferFunction(TF2D[0]);
+        //else
+        //    ErrorNotifier.Instance.AddErrorMessageToUser("No transfer function found. Create and paste atleast one transfer functions in /TransferFunctionsFolder");
 
+        
 
         _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneXNormalAxisObject);
         _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneYNormalAxisObject);
@@ -264,28 +273,33 @@ public class VolumeDataControl : MonoBehaviour
         }
     }
 
-    public void SetTransferFunction(string tfName)
+    //public void SetTransferFunction(string tfName)
+    //{
+    //    if (TF1D.Contains(tfName))
+    //    {
+    //        TransferFunction = TransferFunctionDatabase.LoadTransferFunction(tfName);
+    //
+    //        _volumeRenderedObject.SetTransferFunction(TransferFunction);
+    //        _volumeRenderedObject.SetTransferFunctionMode(TFRenderMode.TF1D);
+    //    }
+    //    else if (TF2D.Contains(tfName))
+    //    {
+    //        TransferFunction2D transferFunction = TransferFunctionDatabase.LoadTransferFunction2D(tfName);
+    //
+    //        _volumeRenderedObject.SetTransferFunction2D(transferFunction);
+    //        _volumeRenderedObject.SetTransferFunctionMode(TFRenderMode.TF2D);
+    //    }
+    //    else
+    //    {
+    //        ErrorNotifier.Instance.AddErrorMessageToUser("Wrong TF name, try to use the suggestor");
+    //    }
+    //}
+    public void SetTransferFunction(TransferFunction tf)
     {
-        if (TF1D.Contains(tfName))
-        {
-            TransferFunction transferFunction = TransferFunctionDatabase.LoadTransferFunction(tfName);
-
-            _volumeRenderedObject.SetTransferFunction(transferFunction);
-            _volumeRenderedObject.SetTransferFunctionMode(TFRenderMode.TF1D);
-        }
-        else if (TF2D.Contains(tfName))
-        {
-            TransferFunction2D transferFunction = TransferFunctionDatabase.LoadTransferFunction2D(tfName);
-
-            _volumeRenderedObject.SetTransferFunction2D(transferFunction);
-            _volumeRenderedObject.SetTransferFunctionMode(TFRenderMode.TF2D);
-        }
-        else
-        {
-            ErrorNotifier.Instance.AddErrorMessageToUser("Wrong TF name, try to use the suggestor");
-        }
+        _volumeRenderedObject.SetTransferFunction(tf);      
     }
-   
+
+
     public void UpdateIsoRanges()
     {
         try                                                                                 //ON app start sliders are defaultly updated, but volume object is not present yet
@@ -314,12 +328,19 @@ public class VolumeDataControl : MonoBehaviour
                 _segmentationParent.SetActive(true);
             else
                 _segmentationParent.SetActive(false);
+
+            if (renderMode == RenderMode.MaximumIntensityProjectipon)
+                _tfColorUpdater.ShowTfUpdater(false);
+            else
+                _tfColorUpdater.ShowTfUpdater(true);
         }
     }
     public void SwitchSegmentationPanel()
     {
         _segmentationPanelVisible=!_segmentationPanelVisible;
+
         _segmentationParentContainer.SetActive(_segmentationPanelVisible);
+        _tfColorUpdater.ShowTfUpdater(!_segmentationPanelVisible);
         TurnMaterialLabelingKeyword(_segmentationPanelVisible);
     }
     public void UpdateCubicInterpolation(bool value)
@@ -393,24 +414,24 @@ public class VolumeDataControl : MonoBehaviour
             errorFlag = 0;
         }
     }
-    public void LoadTFDataPath(string transferFunctionFolderPath)
-    {
-        TF1D = new List<string>();
-        TF2D = new List<string>();
-
-        List<string> dicomFilesCandidates = Directory.GetFiles(transferFunctionFolderPath).ToList();
-
-        dicomFilesCandidates.RemoveAll(x => x.EndsWith(".meta"));
-
-
-        foreach (string i in dicomFilesCandidates)
-        {
-            if (i.EndsWith("tf"))
-                TF1D.Add(i);
-            else if (i.EndsWith("tf2d"))
-                TF2D.Add(i);
-        }
-    }
+    //public void LoadTFDataPath(string transferFunctionFolderPath)
+    //{
+    //    TF1D = new List<string>();
+    //    TF2D = new List<string>();
+    //
+    //    List<string> dicomFilesCandidates = Directory.GetFiles(transferFunctionFolderPath).ToList();
+    //
+    //    dicomFilesCandidates.RemoveAll(x => x.EndsWith(".meta"));
+    //
+    //
+    //    foreach (string i in dicomFilesCandidates)
+    //    {
+    //        if (i.EndsWith("tf"))
+    //            TF1D.Add(i);
+    //        else if (i.EndsWith("tf2d"))
+    //            TF2D.Add(i);
+    //    }
+    //}
     public async Task InitSegmentation()
     {
         VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync(true));           //Very long

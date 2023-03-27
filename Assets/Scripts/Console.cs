@@ -12,7 +12,7 @@ using System.Linq;
 using UnityEngine;
 
 [CommandPrefix(".")]
-public class Console : MonoBehaviour, IQcSuggestor
+public class Console : MonoBehaviour
 {
     [SerializeField] QRCodesManager _qrCodeManager;
     [SerializeField] QuantumConsole _quantumConsole;
@@ -98,11 +98,11 @@ public class Console : MonoBehaviour, IQcSuggestor
     {
         FindObjectOfType<AppRemotingSample>().OnDisconnectButtonPressed();
     }
-    [Command]
-    public void SetTransferFunction(string tf)
-    {
-        FindObjectsOfType<VolumeDataControl>().ToList().ForEach(x=>x.SetTransferFunction(tf));
-    }
+    //[Command]
+    //public void SetTransferFunction(string tf)
+    //{
+    //    FindObjectsOfType<VolumeDataControl>().ToList().ForEach(x=>x.SetTransferFunction(tf));
+    //}
     [Command]
     public void ResetObjectsTransform()
     {
@@ -114,14 +114,14 @@ public class Console : MonoBehaviour, IQcSuggestor
         FindObjectsOfType<VolumeDataControl>().ToList()[volumeIndex].SetVolumePosition(position);
     }
 
-    public IEnumerable<IQcSuggestion> GetSuggestions(SuggestionContext context, SuggestorOptions options)
-    {
-        if (context.TargetType == typeof(string))
-        {
-            foreach (string i in VolumeDataControl.TF1D)
-                yield return new RawSuggestion(i);
-            foreach (string i in VolumeDataControl.TF2D)
-                yield return new RawSuggestion(i);
-        }
-    }
+    //public IEnumerable<IQcSuggestion> GetSuggestions(SuggestionContext context, SuggestorOptions options)
+    //{
+    //    if (context.TargetType == typeof(string))
+    //    {
+    //        foreach (string i in VolumeDataControl.TF1D)
+    //            yield return new RawSuggestion(i);
+    //        foreach (string i in VolumeDataControl.TF2D)
+    //            yield return new RawSuggestion(i);
+    //    }
+    //}
 }

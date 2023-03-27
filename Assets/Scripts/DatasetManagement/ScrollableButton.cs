@@ -17,6 +17,7 @@ public class ScrollableButton : MonoBehaviour
     [SerializeField] GameObject _qrButton;
     [SerializeField] ButtonConfigHelper _configHelper;
     [SerializeField] Texture _defaultTexture;
+    [SerializeField] GameObject _enablerObject;
 
     [field: SerializeField] public TMP_Text DatasetName { get; set; }
     Camera _mainCamera;
@@ -77,6 +78,7 @@ public class ScrollableButton : MonoBehaviour
             VolumeControlObject.LoadDataset(DatasetPath);
 
             _hasDatasetLoaded= true;
+            _enablerObject.SetActive(true);
 
             if(PlatformSpecific.Instance.CurrentPlatform==PlatformSpecific.TargetPlatform.Hololens2)
                 _qrButton.SetActive(true);
@@ -139,6 +141,10 @@ public class ScrollableButton : MonoBehaviour
     {
         if(_hasDatasetLoaded)
             _qrActiveLabel.SetActive(value);     
+    }
+    public void SetDatasetActive(bool value)
+    {
+        VolumeControlObject.gameObject.SetActive(value);
     }
     
 }
