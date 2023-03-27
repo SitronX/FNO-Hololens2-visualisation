@@ -59,7 +59,8 @@ public class ScrollableButton : MonoBehaviour
                 return;
             }         
         }
-        _loadButtonBackMesh.material.mainTexture = _defaultTexture;
+        ThumbnailTexture = _defaultTexture;
+        _loadButtonBackMesh.material.mainTexture = ThumbnailTexture;
         DatasetName.text = name;
     }
     public void LoadDataset()
