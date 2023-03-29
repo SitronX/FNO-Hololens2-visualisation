@@ -46,7 +46,7 @@ public class Console : MonoBehaviour, IQcSuggestor
     {
         try
         {
-            DatasetLister.Instance.AllButtons[index].LoadDataset();
+            HandMenu.Instance.AllDatasetButtons[index].LoadDataset();
         }
         catch
         {
@@ -56,7 +56,7 @@ public class Console : MonoBehaviour, IQcSuggestor
     [Command]
     public void SetQr(int index)
     {
-        DatasetLister.Instance.OnAnyQrActivated(index);
+        HandMenu.Instance.OnAnyQrActivated(index);
     }
     [Command]
     public void Quit()

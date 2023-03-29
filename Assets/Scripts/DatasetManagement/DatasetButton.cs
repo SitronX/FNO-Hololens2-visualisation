@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityVolumeRendering;
 
-public class ScrollableButton : MonoBehaviour
+public class DatasetButton : MonoBehaviour
 {
     [SerializeField] MeshRenderer _loadButtonBackMesh;
     [SerializeField] GameObject _placeableVolumePrefab;
@@ -32,11 +32,10 @@ public class ScrollableButton : MonoBehaviour
     public Texture ThumbnailTexture { get; set; }
     public string DatasetPath { get; set; } 
     public int ButtonIndex { get; set; }
-    public DatasetLister ParentDatasetLister { get; set; }
     public Action<int> QrCodeDatasetActivated { get; set; }
     public Action<int> LoadButtonPressed { get; set; }
 
-    public static Action<ScrollableButton> DatasetGrabbed { get; set; }
+    public static Action<DatasetButton> DatasetGrabbed { get; set; }
 
     private void Start()
     {
@@ -118,7 +117,7 @@ public class ScrollableButton : MonoBehaviour
     }
     public void TryUpdateQRVolume()
     {
-        if(DatasetLister.Instance.ActiveQR==this)
+        if(HandMenu.Instance.ActiveQRDataset==this)
         {
             QRDataSpawner qrPlaced = FindObjectOfType<QRDataSpawner>();
             if (qrPlaced != null)

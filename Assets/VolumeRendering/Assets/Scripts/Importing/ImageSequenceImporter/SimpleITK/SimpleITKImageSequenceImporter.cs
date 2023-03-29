@@ -280,8 +280,8 @@ namespace UnityVolumeRendering
                     List<string> segmentNames = new List<string>();
                     for (ulong i = 0; i < numSegments; i++)
                     {
-                        string segmentName = reader.GetMetaData($"Segment{i}_Name");
-                        segmentNames.Add(segmentName);
+                        //string segmentName = reader.GetMetaData($"Segment{i}_Name");
+                        //segmentNames.Add(segmentName);
                     }
                 }
                 catch (Exception ex)

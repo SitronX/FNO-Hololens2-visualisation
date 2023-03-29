@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SegmentationRowHelper : MonoBehaviour
+public class Segment : MonoBehaviour
 {
     [SerializeField] PinchSlider _slider;
     [SerializeField] Transform _colorPickerAnchorTransform;
