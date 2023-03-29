@@ -91,7 +91,10 @@ public class VolumeDataControl : MonoBehaviour
         _sliderIntervalUpdater1.OnIntervaSliderValueChanged += UpdateIsoRanges;
         _sliderIntervalUpdater2.OnIntervaSliderValueChanged += UpdateIsoRanges;
 
-        Dataset = await CreateVolumeDatasetAsync(datasetFolderName);
+        var result= await CreateVolumeDatasetAsync(datasetFolderName);
+
+        Dataset = result.Item1;
+        bool isDatasetReversed=result.Item2;
 
         if (Dataset == null)
             return;
@@ -99,7 +102,7 @@ public class VolumeDataControl : MonoBehaviour
         await VolumeObjectFactory.FillObjectWithDatasetDataAsync(Dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject);
         
 
-        if (await TryLoadSegmentationToVolumeAsync(datasetFolderName, Dataset))
+        if (await TryLoadSegmentationToVolumeAsync(datasetFolderName, Dataset, isDatasetReversed))
         {
             _dataLoadingIndicator.Message = "Loading segmentation...";
             await InitSegmentation();
@@ -135,7 +138,7 @@ public class VolumeDataControl : MonoBehaviour
         HasBeenLoaded = true;
         DatasetSpawned?.Invoke(this);
     }
-    public async Task<VolumeDataset> CreateVolumeDatasetAsync(string datasetFolderName)
+    public async Task<(VolumeDataset,bool)> CreateVolumeDatasetAsync(string datasetFolderName)
     {
         string datasetName = datasetFolderName.Split('/').Last();
         string dataFolderName = datasetFolderName + "/Data/";
@@ -149,18 +152,19 @@ public class VolumeDataControl : MonoBehaviour
         if (errorFlag == 1)
         {
             ErrorNotifier.Instance.AddErrorMessageToUser($"No data detected in dataset named: {datasetName} in folder Data");
-            return null;
+            return (null,false);
         }
         else if (errorFlag == 2)
         {
             ErrorNotifier.Instance.AddErrorMessageToUser($"Unknown data detected in dataset named: {datasetName} in folder Data");
-            return null;
+            return (null,false);
         }
 
 
         SimpleITKImageSequenceImporter sequenceImporter = new SimpleITKImageSequenceImporter();
         SimpleITKImageFileImporter fileImporter = new SimpleITKImageFileImporter();
         VolumeDataset dataset = null;
+        bool isDatasetReversed = true;
 
         if (isDicomImageSequence)
         {
@@ -172,7 +176,9 @@ public class VolumeDataControl : MonoBehaviour
 
             try
             {
-                dataset = await sequenceImporter.ImportSeriesAsync(sequence.First(), datasetName);
+                var result = await sequenceImporter.ImportSeriesAsync(sequence.First(), datasetName);
+                dataset = result.Item1;
+                isDatasetReversed = result.Item2;
             }
             catch
             {
@@ -183,17 +189,19 @@ public class VolumeDataControl : MonoBehaviour
         {
             try
             {
-                dataset = await fileImporter.ImportAsync(filePath,datasetName);
+                var result = await fileImporter.ImportAsync(filePath,datasetName);
+                dataset=result.Item1;
+                isDatasetReversed = result.Item2;
             }
             catch
             {
                 ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted data in dataset named: {datasetName} in folder Data");
             }
         }
-        return dataset;
+        return (dataset,isDatasetReversed);
     }
 
-    public async Task<bool> TryLoadSegmentationToVolumeAsync(string datasetFolderName, VolumeDataset volumeDataset)
+    public async Task<bool> TryLoadSegmentationToVolumeAsync(string datasetFolderName, VolumeDataset volumeDataset, bool isDatasetReversed)
     {
         string segmentationFolderName = datasetFolderName + "/Labels/";
         if (!Directory.Exists(segmentationFolderName))
@@ -226,7 +234,7 @@ public class VolumeDataControl : MonoBehaviour
 
             try
             {
-                await sequenceImporter.ImportSeriesSegmentationAsync(sequence.First(), volumeDataset);
+                await sequenceImporter.ImportSeriesSegmentationAsync(sequence.First(), volumeDataset,isDatasetReversed);
             }
             catch
             {
@@ -238,7 +246,7 @@ public class VolumeDataControl : MonoBehaviour
             try
             {
                 if(volumeDataset!=null)
-                    await fileImporter.ImportSegmentationAsync(filePath, volumeDataset);
+                    await fileImporter.ImportSegmentationAsync(filePath, volumeDataset, isDatasetReversed);
             }
             catch
             {

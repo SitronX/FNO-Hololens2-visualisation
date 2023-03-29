@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using System.Globalization;
+using System.Linq;
 
 namespace UnityVolumeRendering
 {
@@ -54,20 +56,36 @@ namespace UnityVolumeRendering
 
             return volumeDataset;
         }
-        public async Task<VolumeDataset> ImportAsync(string filePath,string datasetName)
+        public async Task<(VolumeDataset, bool)> ImportAsync(string filePath, string datasetName)
         {
             float[] pixelData = null;
             VectorUInt32 size = null;
             VectorDouble spacing = null;
             // Create dataset
             VolumeDataset volumeDataset = new VolumeDataset();
+            bool isDatasetReversed = true;
 
-            await Task.Run(() => {  
+
+            await Task.Run(() =>
+            {
                 ImageFileReader reader = new ImageFileReader();
 
                 reader.SetFileName(filePath);
 
                 Image image = reader.Execute();
+
+                int slicesNumber = (int)(image.GetDepth() - 1);
+
+                Image firstSlice = Utils.ExtractSlice(image, 0);
+                Image lastSlice = Utils.ExtractSlice(image, slicesNumber);
+
+                List<string> tmp = reader.GetMetaDataKeys().ToList();
+
+
+                if (Utils.IsHeadFeetDataset(firstSlice, lastSlice))
+                {
+                    isDatasetReversed = false;
+                }
 
                 // Cast to 32-bit float
                 image = SimpleITK.Cast(image, PixelIDValueEnum.sitkFloat32);
@@ -103,14 +121,15 @@ namespace UnityVolumeRendering
                 volumeDataset.FixDimensions();
             });
 
-            return volumeDataset;
+            return (volumeDataset, isDatasetReversed);
         }
-        public async Task ImportSegmentationAsync(string filePath,VolumeDataset volumeDataset)
+        public async Task ImportSegmentationAsync(string filePath, VolumeDataset volumeDataset, bool isDatasetReversed)
         {
             float[] pixelData = null;
             VectorUInt32 size = null;
 
-            await Task.Run(() => {
+            await Task.Run(() =>
+            {
                 ImageFileReader reader = new ImageFileReader();
 
                 reader.SetFileName(filePath);
@@ -134,8 +153,9 @@ namespace UnityVolumeRendering
                 IntPtr imgBuffer = image.GetBufferAsFloat();
                 Marshal.Copy(imgBuffer, pixelData, 0, numPixels);
 
-                volumeDataset.labelData = pixelData;            
+                volumeDataset.labelData = isDatasetReversed ? pixelData.Reverse().ToArray() : pixelData;
             });
+
         }
     }
 }

@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using System.Linq;
+using System.Globalization;
 
 namespace UnityVolumeRendering
 {
@@ -170,12 +172,13 @@ namespace UnityVolumeRendering
 
             return volumeDataset;
         }
-        public async Task<VolumeDataset> ImportSeriesAsync(IImageSequenceSeries series,string datasetName)
+        public async Task<(VolumeDataset,bool)> ImportSeriesAsync(IImageSequenceSeries series,string datasetName)
         {
             Image image = null;
             float[] pixelData = null;
             VectorUInt32 size = null;
             VectorString dicomNames = null;
+            bool isDatasetReversed = true;
 
             // Create dataset
             VolumeDataset volumeDataset = new VolumeDataset();
@@ -184,12 +187,25 @@ namespace UnityVolumeRendering
             if (sequenceSeries.files.Count == 0)
             {
                 Debug.LogError("Empty series. No files to load.");
-                return null;
+                return (null,false);
             }
 
             await Task.Run(() => {
                
                 ImageSeriesReader reader = new ImageSeriesReader();
+
+                string first = sequenceSeries.files.First().filePath;
+                string last = sequenceSeries.files.Last().filePath;
+
+                Image firstImage = SimpleITK.ReadImage(first);
+                Image lastImage = SimpleITK.ReadImage(last);
+
+                isDatasetReversed = !Utils.IsHeadFeetDataset(firstImage, lastImage);
+
+                if (isDatasetReversed)
+                {
+                    sequenceSeries.files.Reverse();
+                }
 
                 dicomNames = new VectorString();
           
@@ -237,9 +253,9 @@ namespace UnityVolumeRendering
                 volumeDataset.FixDimensions();
             });
             
-            return volumeDataset;
+            return (volumeDataset,isDatasetReversed);
         }
-        public async Task ImportSeriesSegmentationAsync(IImageSequenceSeries series,VolumeDataset volumeDataset)
+        public async Task ImportSeriesSegmentationAsync(IImageSequenceSeries series,VolumeDataset volumeDataset,bool isDatasetReversed)
         {
             Image image = null;
             float[] pixelData = null;
@@ -257,6 +273,9 @@ namespace UnityVolumeRendering
             await Task.Run(() => {
 
                 ImageSeriesReader reader = new ImageSeriesReader();
+
+                if(isDatasetReversed)
+                    sequenceSeries.files.Reverse();
 
                 dicomNames = new VectorString();
 
@@ -292,6 +311,8 @@ namespace UnityVolumeRendering
             });
 
         }
+      
+
     }
 }
 #endif
