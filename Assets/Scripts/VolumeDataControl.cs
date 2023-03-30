@@ -36,6 +36,8 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] GameObject _segmentationParentContainer;
     [SerializeField] GameObject _segmentationParent;
     [SerializeField] TFColorUpdater _tfColorUpdater;
+    [SerializeField] MeshRenderer _volumeDatasetIcon;
+    [SerializeField] TMP_Text _volumeDatasetDescription;
 
     [field: SerializeField] public MeshRenderer VolumeMesh { get; set; }
 
@@ -62,6 +64,9 @@ public class VolumeDataControl : MonoBehaviour
     Vector3 _startLocalHandleRotation;
     Vector3 _startLocalHandleScale;
 
+    Vector3 _mirrorFlippedRotation = new Vector3(150.22f, -84.4f, 77.744f);
+    Vector3 _normalRotation = new Vector3(209.78f, -264.4f, 102.256f);
+
     public static Action<VolumeDataControl> DatasetSpawned { get; set; }
     public static Action<VolumeDataControl> DatasetDespawned { get; set; }
 
@@ -72,6 +77,7 @@ public class VolumeDataControl : MonoBehaviour
     VolumeRenderedObject _volumeRenderedObject;
 
     bool _segmentationPanelVisible = false;
+    bool _isDatasetReversed;
 
 
     private void Start()
@@ -80,11 +86,13 @@ public class VolumeDataControl : MonoBehaviour
         SetInitialTransforms();
         _tfColorUpdater.TfColorUpdated += SetTransferFunction;
     }
-    public async void LoadDataset(string datasetFolderName)        //Async addition so all the loading doesnt freeze the app
+    public async void LoadDataset(string datasetFolderName,Texture volumeIcon,string description)        //Async addition so all the loading doesnt freeze the app
     {
         await _dataLoadingIndicator.OpenAsync();
         _dataLoadingIndicator.Message = "Loading data...";
 
+        _volumeDatasetIcon.material.mainTexture = volumeIcon;
+        _volumeDatasetDescription.text = description;
 
         //LoadTFDataPath(Application.streamingAssetsPath + "/TransferFunctions/");
 
@@ -94,15 +102,20 @@ public class VolumeDataControl : MonoBehaviour
         var result= await CreateVolumeDatasetAsync(datasetFolderName);
 
         Dataset = result.Item1;
-        bool isDatasetReversed=result.Item2;
+        _isDatasetReversed = result.Item2;
 
         if (Dataset == null)
             return;
 
+        if(_isDatasetReversed)
+            _volumeData.gameObject.transform.transform.localRotation= Quaternion.Euler(_mirrorFlippedRotation);
+        else
+            _volumeData.gameObject.transform.localRotation= Quaternion.Euler(_normalRotation);
+
         await VolumeObjectFactory.FillObjectWithDatasetDataAsync(Dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject);
         
 
-        if (await TryLoadSegmentationToVolumeAsync(datasetFolderName, Dataset, isDatasetReversed))
+        if (await TryLoadSegmentationToVolumeAsync(datasetFolderName, Dataset, _isDatasetReversed))
         {
             _dataLoadingIndicator.Message = "Loading segmentation...";
             await InitSegmentation();
@@ -487,11 +500,15 @@ public class VolumeDataControl : MonoBehaviour
 
         await Dataset.DownScaleDataAsync();
 
-        _dataLoadingIndicator.Message = "Generating data...";
+        await RegenerateTexturesData();
+    }
+    private async Task RegenerateTexturesData()
+    {
+        _dataLoadingIndicator.Message = "Refreshing data...";
 
         VolumeMesh.sharedMaterial.SetTexture("_DataTex", await Dataset.GetDataTextureAsync(true));           //Very long
 
-        _dataLoadingIndicator.Message = "Creating gradient";
+        _dataLoadingIndicator.Message = "Refreshing gradient...";
         VolumeMesh.sharedMaterial.SetTexture("_GradientTex", await Dataset.GetGradientTextureAsync(true));           //Very long
 
         await _dataLoadingIndicator.CloseAsync();
@@ -515,6 +532,28 @@ public class VolumeDataControl : MonoBehaviour
         transform.localPosition = _startLocalPosition;
         transform.localRotation = Quaternion.Euler(_startLocalRotation);
         transform.localScale = _startLocalScale;
+    }
+    public async Task MirrorFlipTextures()
+    {
+        _isDatasetReversed = !_isDatasetReversed;
+
+        await _dataLoadingIndicator.OpenAsync();
+        _dataLoadingIndicator.Message = "Flipping Data...";
+
+        await Task.Run(()=> Dataset.FlipTextureArrays());
+
+        if (_segments.Count > 0)
+        {
+            _dataLoadingIndicator.Message = "Refreshing Segmentation...";
+
+            VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync(true));           //Very long
+        }
+        if (_isDatasetReversed)
+            _volumeData.gameObject.transform.localRotation = Quaternion.Euler(_mirrorFlippedRotation);
+        else
+            _volumeData.gameObject.transform.localRotation = Quaternion.Euler(_normalRotation);
+
+        await RegenerateTexturesData();
     }
     public void ResetCrossSectionToolsTransform()
     {

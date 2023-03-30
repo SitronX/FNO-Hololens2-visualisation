@@ -76,7 +76,7 @@ public class ScrollableButton : MonoBehaviour
             VolumeControlObject= tmp.GetComponent<VolumeDataControl>();
             ObjectManipulator manip= tmp.GetComponent<ObjectManipulator>();
             manip.OnManipulationStarted.AddListener(OnManipulationDatasetStarted);
-            VolumeControlObject.LoadDataset(DatasetPath);
+            VolumeControlObject.LoadDataset(DatasetPath,ThumbnailTexture,DatasetName.text);
 
             _hasDatasetLoaded= true;
             _enablerObject.SetActive(true);

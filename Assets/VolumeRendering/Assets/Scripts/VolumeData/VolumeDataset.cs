@@ -162,7 +162,13 @@ namespace UnityVolumeRendering
             dimY = halfDimY;
             dimZ = halfDimZ;
         }
+        public void FlipTextureArrays()
+        {
+            data=data.Reverse().ToArray();
 
+            if(labelData!=null)
+                labelData= labelData.Reverse().ToArray();
+        }
         public async Task DownScaleDataAsync()
         {
             await Task.Run(() => {
