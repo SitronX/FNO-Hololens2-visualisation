@@ -64,8 +64,8 @@ public class VolumeDataControl : MonoBehaviour
     Vector3 _startLocalHandleRotation;
     Vector3 _startLocalHandleScale;
 
-    Vector3 _mirrorFlippedRotation = new Vector3(150.22f, -84.4f, 77.744f);
-    Vector3 _normalRotation = new Vector3(209.78f, -264.4f, 102.256f);
+    Vector3 _mirrorFlippedRotation = new Vector3(29.78f,95.6f,77.744f);
+    Vector3 _normalRotation = new Vector3(-150.22f,95.6f,282.256f);
 
     public static Action<VolumeDataControl> DatasetSpawned { get; set; }
     public static Action<VolumeDataControl> DatasetDespawned { get; set; }

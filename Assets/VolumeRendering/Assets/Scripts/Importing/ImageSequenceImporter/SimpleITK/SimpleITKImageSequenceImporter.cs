@@ -202,11 +202,6 @@ namespace UnityVolumeRendering
 
                 isDatasetReversed = !Utils.IsHeadFeetDataset(firstImage, lastImage);
 
-                if (isDatasetReversed)
-                {
-                    sequenceSeries.files.Reverse();
-                }
-
                 dicomNames = new VectorString();
           
                 foreach (var dicomFile in sequenceSeries.files)
@@ -235,7 +230,7 @@ namespace UnityVolumeRendering
                 VectorDouble spacing = image.GetSpacing();
 
 
-                volumeDataset.data = pixelData;
+                volumeDataset.data = isDatasetReversed? pixelData.Reverse().ToArray():pixelData;
                 volumeDataset.dimX = (int)size[0];
                 volumeDataset.dimY = (int)size[1];
                 volumeDataset.dimZ = (int)size[2];
@@ -274,9 +269,6 @@ namespace UnityVolumeRendering
 
                 ImageSeriesReader reader = new ImageSeriesReader();
 
-                if(isDatasetReversed)
-                    sequenceSeries.files.Reverse();
-
                 dicomNames = new VectorString();
 
                 foreach (var dicomFile in sequenceSeries.files)
@@ -307,7 +299,7 @@ namespace UnityVolumeRendering
 
                 VectorDouble spacing = image.GetSpacing();
 
-                volumeDataset.labelData = pixelData;              
+                volumeDataset.labelData = isDatasetReversed? pixelData.Reverse().ToArray():pixelData;              
             });
 
         }

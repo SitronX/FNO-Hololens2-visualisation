@@ -103,7 +103,7 @@ namespace UnityVolumeRendering
 
                 spacing = image.GetSpacing();
 
-                volumeDataset.data = pixelData;
+                volumeDataset.data = isDatasetReversed? pixelData.Reverse().ToArray():pixelData;
                 volumeDataset.dimX = (int)size[0];
                 volumeDataset.dimY = (int)size[1];
                 volumeDataset.dimZ = (int)size[2];
