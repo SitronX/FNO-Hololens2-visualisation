@@ -81,7 +81,7 @@ namespace UnityVolumeRendering
             if (renderMode != mode)
             {
                 renderMode = mode;
-                SetVisibilityWindow(0.0f, 1.0f,0,0); // reset visibility window
+                //SetVisibilityWindow(0.0f, 1.0f,0,0); // reset visibility window
             }
             UpdateMaterialProperties();
         }
@@ -263,11 +263,11 @@ namespace UnityVolumeRendering
                     }
             }
 
-            meshRenderer.sharedMaterial.SetFloat("_MinVal1", visibilityWindow.x);
-            meshRenderer.sharedMaterial.SetFloat("_MaxVal1", visibilityWindow.y);
-            meshRenderer.sharedMaterial.SetFloat("_MinVal2", visibilityWindow.z);
-            meshRenderer.sharedMaterial.SetFloat("_MaxVal2", visibilityWindow.w);
-            meshRenderer.sharedMaterial.SetVector("_TextureSize", new Vector3(dataset.dimX, dataset.dimY, dataset.dimZ));
+            meshRenderer.material.SetFloat("_MinVal1", visibilityWindow.x);
+            meshRenderer.material.SetFloat("_MaxVal1", visibilityWindow.y);
+            meshRenderer.material.SetFloat("_MinVal2", visibilityWindow.z);
+            meshRenderer.material.SetFloat("_MaxVal2", visibilityWindow.w);
+            meshRenderer.material.SetVector("_TextureSize", new Vector3(dataset.dimX, dataset.dimY, dataset.dimZ));
 
             if (rayTerminationEnabled)
                 meshRenderer.sharedMaterial.EnableKeyword("RAY_TERMINATE_ON");

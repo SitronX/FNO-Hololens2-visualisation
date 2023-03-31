@@ -12,17 +12,17 @@ public class QRDataSpawner : MonoBehaviour
 
     private void Start()
     {
-        if (DatasetLister.Instance.ActiveQR != null)
+        if (HandMenu.Instance.ActiveQRDataset != null)
         {
-            if (DatasetLister.Instance.ActiveQR.VolumeControlObject == null)
+            if (HandMenu.Instance.ActiveQRDataset.VolumeControlObject == null)
             {
-                DatasetLister.Instance.ActiveQR.LoadDataset();
-                DatasetLister.Instance.ActiveQR.TryUpdateQRVolume();
+                HandMenu.Instance.ActiveQRDataset.LoadDataset();
+                HandMenu.Instance.ActiveQRDataset.TryUpdateQRVolume();
             }
             else
             {
-                DatasetLister.Instance.ActiveQR.SetButtonState(ScrollableButton.LoadButtonState.Active);
-                ChangeVolumeData(DatasetLister.Instance.ActiveQR.VolumeControlObject);
+                HandMenu.Instance.ActiveQRDataset.SetButtonState(DatasetButton.LoadButtonState.Active);
+                ChangeVolumeData(HandMenu.Instance.ActiveQRDataset.VolumeControlObject);
             }
         }
         QrCodeSpawned?.Invoke();

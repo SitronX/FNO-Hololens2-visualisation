@@ -43,7 +43,7 @@ public class VolumeDataControl : MonoBehaviour
 
     public VolumeDataset Dataset { get; set; }
     public bool HasBeenLoaded { get; set; }
-    List<SegmentationRowHelper> _segments = new List<SegmentationRowHelper>();
+    List<Segment> _segments = new List<Segment>();
 
     TransferFunction _transferFunction;
 
@@ -465,12 +465,15 @@ public class VolumeDataControl : MonoBehaviour
         {
             Color col = uniqueColors[i - 1];
             GameObject tmp = Instantiate(_segmentationSliderPrefab, _segmentationParentContainer.transform);
-            tmp.transform.localPosition = new Vector3(0,0.3f -(0.06f * i), 0.15f);
+            tmp.transform.localPosition = new Vector3(0,0.3f -(0.06f * i), 0.33f);
             tmp.transform.localRotation = Quaternion.Euler(new Vector3(0,-90,0));
-            SegmentationRowHelper helper = tmp.GetComponent<SegmentationRowHelper>();
+            Segment helper = tmp.GetComponent<Segment>();
             helper.SegmentID= i-1;
             helper.ColorUpdated += UpdateShaderLabelArray;
             helper.InitColor(col);
+
+            if(Dataset.LabelNames.Count>=i)
+                helper.ChangeSegmentName(Dataset.LabelNames[i-1]);
 
             _segments.Add(helper);
         }

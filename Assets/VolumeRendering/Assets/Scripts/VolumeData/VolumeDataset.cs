@@ -49,9 +49,7 @@ namespace UnityVolumeRendering
         //TODO
         private Texture3D labelTexture = null;
         public int labelDimX, labelDimY, labelDimZ;
-
-        private float minLabelValue = float.MaxValue;
-        private float maxLabelValue = float.MinValue;
+        public List<string> LabelNames { get; set; } = new List<string>();
 
 
         public Texture3D GetDataTexture()
