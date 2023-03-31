@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3560906040471714678}
   - component: {fileID: 6445466322026411034}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: SegmentName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -34,8 +34,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.1544, y: -0.0009}
-  m_SizeDelta: {x: 0.05, y: 0.05}
+  m_AnchoredPosition: {x: -0.2627, y: -0.0009}
+  m_SizeDelta: {x: 0.2476, y: 0.05}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &3560906040471714678
 MeshRenderer:
@@ -98,7 +98,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: A
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -132,7 +132,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 4
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -303,6 +303,7 @@ MonoBehaviour:
   _slider: {fileID: 6795290200567386922}
   _colorPickerAnchorTransform: {fileID: 7712226616873982106}
   _spriteRenderer: {fileID: 6105531747251680949}
+  _segmentName: {fileID: 6445466322026411034}
 --- !u!1 &8873194510341460245
 GameObject:
   m_ObjectHideFlags: 0

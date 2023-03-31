@@ -2,6 +2,7 @@ using Microsoft.MixedReality.Toolkit.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class Segment : MonoBehaviour
@@ -9,6 +10,7 @@ public class Segment : MonoBehaviour
     [SerializeField] PinchSlider _slider;
     [SerializeField] Transform _colorPickerAnchorTransform;
     [SerializeField] SpriteRenderer _spriteRenderer;
+    [SerializeField] TMP_Text _segmentName;
 
 
     public int SegmentID { get; set; }
@@ -45,6 +47,10 @@ public class Segment : MonoBehaviour
         _segmentColor.b = color.b;
 
         _spriteRenderer.color = color;
+    }
+    public void ChangeSegmentName(string name)
+    {
+        _segmentName.text = name;
     }
 
     public void OpenColorPicker()

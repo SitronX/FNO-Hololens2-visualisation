@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace UnityVolumeRendering
 {
@@ -116,30 +117,25 @@ namespace UnityVolumeRendering
                 reader.SetFileName(filePath);
 
                 Image image = reader.Execute();
+            
+                int segmentNumber = 0;
+                List<string> metaDataKeys = reader.GetMetaDataKeys().ToList();
 
-                try
+                while (true)
                 {
-                    Image labelImage = SimpleITK.Cast(image, PixelIDValueEnum.sitkUInt16);
-
-                    Image binary = SimpleITK.BinaryThreshold(labelImage, 1, int.MaxValue, 1, 0);
-                    LabelStatisticsImageFilter stats = null;
-                    stats = new LabelStatisticsImageFilter();
-                    stats.Execute(binary, labelImage);
-
-                    ulong numSegments = stats.GetNumberOfLabels();
-
-                    List<string> segmentNames = new List<string>();
-                    for (ulong i = 0; i < numSegments; i++)
+                    string key = $"Segment{segmentNumber}_Name";
+                    if (metaDataKeys.Contains(key))
                     {
-                        string segmentName = reader.GetMetaData($"Segment{i}_Name");
-                        segmentNames.Add(segmentName);
+                        volumeDataset.LabelNames.Add(reader.GetMetaData(key));
+                        segmentNumber++;
                     }
+                    else
+                    {
+                        break;
+                    }
+                       
                 }
-                catch (Exception ex)
-                {
-                    ex.ToString();
-                }
-
+               
                 // Cast to 32-bit float
                 image = SimpleITK.Cast(image, PixelIDValueEnum.sitkFloat32);
 
