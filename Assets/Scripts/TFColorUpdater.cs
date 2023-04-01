@@ -7,13 +7,14 @@ using UnityVolumeRendering;
 
 public class TFColorUpdater : MonoBehaviour
 {
-    TransferFunction _transferFunction;
+    public TransferFunction TransferFunction { get; set; }
     [SerializeField] List<SliderData> _sliders;
     [SerializeField] GameObject _mainObject;
 
     List<float> _initialSliderValues=new List<float>();
 
     public Action<TransferFunction> TfColorUpdated { get; set; }
+    public Action TfColorReset { get; set;}
 
     [Serializable]
     public struct SliderData
@@ -24,7 +25,7 @@ public class TFColorUpdater : MonoBehaviour
 
     public void InitUpdater(TransferFunction function)
     {
-        _transferFunction = function;
+        TransferFunction = function;
         ShowTfUpdater(true);
     }
     public void ShowTfUpdater(bool value)
@@ -39,20 +40,24 @@ public class TFColorUpdater : MonoBehaviour
             _initialSliderValues.Add(i._initialValue);
         }
     }
+    public void UpdateSliderColorPosition(int sliderIndex,float position)
+    {
+        _sliders[sliderIndex]._slider.SliderValue = position;
+    }
     public void SliderUpdate()
     {
-        if (_transferFunction != null)
+        if (TransferFunction != null)
         {
-            for (int i = 0; i < _transferFunction.colourControlPoints.Count; i++)
+            for (int i = 0; i < TransferFunction.colourControlPoints.Count; i++)
             {
-                TFColourControlPoint point = _transferFunction.colourControlPoints[i];
+                TFColourControlPoint point = TransferFunction.colourControlPoints[i];
                 point.dataValue = _sliders[i]._slider.SliderValue;
 
-                _transferFunction.colourControlPoints[i] = point;
+                TransferFunction.colourControlPoints[i] = point;
             }
 
-            _transferFunction.GenerateTexture();
-            TfColorUpdated?.Invoke(_transferFunction);
+            TransferFunction.GenerateTexture();
+            TfColorUpdated?.Invoke(TransferFunction);
         }
     }
     public void ResetTF()
@@ -61,6 +66,7 @@ public class TFColorUpdater : MonoBehaviour
         {
             _sliders[i]._slider.SliderValue = _initialSliderValues[i];
         }
+        TfColorReset?.Invoke();
     }
 
 }

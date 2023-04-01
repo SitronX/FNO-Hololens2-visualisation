@@ -11,6 +11,7 @@ public class Segment : MonoBehaviour
     [SerializeField] Transform _colorPickerAnchorTransform;
     [SerializeField] SpriteRenderer _spriteRenderer;
     [SerializeField] TMP_Text _segmentName;
+    [SerializeField] GameObject _mainObject;
 
 
     public int SegmentID { get; set; }
@@ -46,6 +47,7 @@ public class Segment : MonoBehaviour
         _segmentColor.g = color.g;
         _segmentColor.b = color.b;
 
+        color.a = 1;
         _spriteRenderer.color = color;
     }
     public void ChangeSegmentName(string name)

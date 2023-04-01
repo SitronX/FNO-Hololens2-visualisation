@@ -185,7 +185,7 @@ public class HandMenu : MonoBehaviour
                 else if (button.ButtonState == DatasetButton.LoadButtonState.ReadyToLoad)
                 {
                     button.SetButtonState(DatasetButton.LoadButtonState.Active);
-                    button.LoadDataset();
+                    button.LoadDatasetAsync();
                 }
                 else if (button.ButtonState == DatasetButton.LoadButtonState.Active)
                 {

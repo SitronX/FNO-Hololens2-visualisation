@@ -1,6 +1,8 @@
 using itk.simple;
 using Microsoft.MixedReality.Toolkit.Experimental.UI;
+using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.UI;
+using QFSW.QC.Actions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,12 +18,11 @@ using UnityEngine.InputSystem;
 using UnityVolumeRendering;
 using RenderMode = UnityVolumeRendering.RenderMode;
 
-public class VolumeDataControl : MonoBehaviour
+public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 {
     [SerializeField] VolumeRenderedObject _volumeData;
     [SerializeField] InteractableToggleCollection _renderModes;
     [SerializeField] GameObject _volumetricDataMainParentObject;
-    [SerializeField] GameObject _secondSliderCheckbox;
     [SerializeField] TMP_Text _raymarchStepsLabel;
     [SerializeField] ProgressIndicatorOrbsRotator _dataLoadingIndicator;
     [SerializeField] CrossSectionSphere _cutoutSphere;
@@ -40,16 +41,16 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] GameObject _densitySlidersContainer;
     [SerializeField] GameObject _sliderControlButtons;
     [SerializeField] GameObject _removeSliderButton;
+    [SerializeField] DatasetSaveSystem _saveSystem;
 
     [field: SerializeField] public MeshRenderer VolumeMesh { get; set; }
 
     public VolumeDataset Dataset { get; set; }
     public bool HasBeenLoaded { get; set; }
-    List<Segment> _segments = new List<Segment>();
+    public List<Segment> Segments { get; set; } = new List<Segment>();
 
-    TransferFunction _transferFunction;
+    public TransferFunction TransferFunction { get; set; }
 
-    bool _showSecondSlider = false;
     Vector3 _startLocalPosition;
     Vector3 _startLocalRotation;
     Vector3 _startLocalScale;
@@ -72,10 +73,13 @@ public class VolumeDataControl : MonoBehaviour
     public static Action<VolumeDataControl> DatasetSpawned { get; set; }
     public static Action<VolumeDataControl> DatasetDespawned { get; set; }
 
+    public Action AllAlphaButtonsPressed { get; set; }
+    public Action DensityIntervalsChanged { get; set; }
+
     //public static List<string> TF2D { get; set; } = new List<string>();
     //public static List<string> TF1D { get; set; } = new List<string>();
 
-    List<SliderIntervalUpdater> _densityIntervalSliders = new List<SliderIntervalUpdater>();
+    public List<SliderIntervalUpdater> DensityIntervalSliders { get; private set; } = new List<SliderIntervalUpdater>();
     VolumeRenderedObject _volumeRenderedObject;
 
     bool _segmentationPanelVisible = false;
@@ -86,17 +90,18 @@ public class VolumeDataControl : MonoBehaviour
         _volumeRenderedObject = _volumetricDataMainParentObject.GetComponent<VolumeRenderedObject>();
         SetInitialTransforms();
         _tfColorUpdater.TfColorUpdated += SetTransferFunction;
+        _tfColorUpdater.TfColorReset += OnTFReset;
     }
-    public async void LoadDataset(string datasetFolderName,Texture volumeIcon,string description)        //Async addition so all the loading doesnt freeze the app
+    public async Task LoadDatasetAsync(string datasetFolderName,Texture volumeIcon,string description)        //Async addition so all the loading doesnt freeze the app
     {
+        _saveSystem.TryLoadSaveTransformData();
+
         await _dataLoadingIndicator.OpenAsync();
         _dataLoadingIndicator.Message = "Loading data...";
 
         _volumeRenderedObject.InitVisiblityWindow();
         _volumeDatasetIcon.material.mainTexture = volumeIcon;
         _volumeDatasetDescription.text = description;
-
-        //LoadTFDataPath(Application.streamingAssetsPath + "/TransferFunctions/");
 
         var result= await CreateVolumeDatasetAsync(datasetFolderName);
 
@@ -117,27 +122,26 @@ public class VolumeDataControl : MonoBehaviour
         if (await TryLoadSegmentationToVolumeAsync(datasetFolderName, Dataset, _isDatasetReversed))
         {
             _dataLoadingIndicator.Message = "Loading segmentation...";
-            await InitSegmentation();
+            await InitSegmentationAsync();
             _segmentationParent.SetActive(true);
         }
 
-        _transferFunction = TransferFunctionDatabase.LoadTransferFunctionFromResources("default");      //TF in resources must be in .txt format, the .tf that is default for transfer function cannot be loaded from resources
-        SetTransferFunction(_transferFunction);
+        TransferFunction = TransferFunctionDatabase.LoadTransferFunctionFromResources("default");      //TF in resources must be in .txt format, the .tf that is default for transfer function cannot be loaded from resources
+        SetTransferFunction(TransferFunction);
 
-        _tfColorUpdater.InitUpdater(_transferFunction);
-        AddValueDensitySlider(0,1);                                     //Add default density slider
+
+        _tfColorUpdater.InitUpdater(TransferFunction);
+
+        _saveSystem.TryLoadTFData(_tfColorUpdater);
+        _saveSystem.TryLoadSaveSegmentData(this);
+        
+        if (!_saveSystem.TryLoadSaveDensitySliders(this))
+            AddValueDensitySlider(0, 1);                                     //Add default density slider if there are no save data
+
         _densitySlidersContainer.SetActive(true);
 
+
         VolumeMesh.gameObject.SetActive(true);                          //It is disabled to this point, otherwise default mat is blocking loading indicator
-
-        //if (TF1D.Count > 0)
-        //    SetTransferFunction(TF1D[0]);
-        //else if (TF2D.Count > 0)
-        //    SetTransferFunction(TF2D[0]);
-        //else
-        //    ErrorNotifier.Instance.AddErrorMessageToUser("No transfer function found. Create and paste atleast one transfer functions in /TransferFunctionsFolder");
-
-        
 
         _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneXNormalAxisObject);
         _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneYNormalAxisObject);
@@ -152,6 +156,7 @@ public class VolumeDataControl : MonoBehaviour
 
         HasBeenLoaded = true;
         DatasetSpawned?.Invoke(this);
+        await _saveSystem.SaveDataAsync(this);
     }
     public async Task<(VolumeDataset,bool)> CreateVolumeDatasetAsync(string datasetFolderName)
     {
@@ -325,39 +330,41 @@ public class VolumeDataControl : MonoBehaviour
     {
         AddValueDensitySlider(0, 0.2f);
     }
-    private void AddValueDensitySlider(float minVal,float maxVal)
+    public void AddValueDensitySlider(float minVal,float maxVal)
     {
         GameObject newSlider = Instantiate(_densitySliderPrefab, _densitySlidersContainer.transform);
 
-        newSlider.transform.localPosition = new Vector3(0.09f - (_densityIntervalSliders.Count * 0.09f), 0.011f, 0.3f);
+        newSlider.transform.localPosition = new Vector3(0.09f - (DensityIntervalSliders.Count * 0.09f), 0.011f, 0.3f);
         newSlider.transform.localRotation = Quaternion.Euler(new Vector3(90, -90, 0));
         SliderIntervalUpdater sliderUpdater = newSlider.GetComponent<SliderIntervalUpdater>();
         sliderUpdater.OnIntervaSliderValueChanged += UpdateIsoRanges;
         sliderUpdater.SetInitvalue(minVal, maxVal);
-        _sliderControlButtons.transform.localPosition = new Vector3(-0.03f - (_densityIntervalSliders.Count * 0.09f), 0, _densityIntervalSliders.Count > 0 ? 0.3f : 0.22f);
+        _sliderControlButtons.transform.localPosition = new Vector3(-0.03f - (DensityIntervalSliders.Count * 0.09f), 0, DensityIntervalSliders.Count > 0 ? 0.3f : 0.22f);
 
-        _densityIntervalSliders.Add(sliderUpdater);
+        DensityIntervalSliders.Add(sliderUpdater);
 
-        if (_densityIntervalSliders.Count > 1)
+        if (DensityIntervalSliders.Count > 1)
             _removeSliderButton.SetActive(true);
 
         UpdateIsoRanges();
+        _saveSystem.SaveDataAsync(this);
     }
     public void RemoveDensitySlider()
     {
-        SliderIntervalUpdater sliderUpdater = _densityIntervalSliders.Last();
+        SliderIntervalUpdater sliderUpdater = DensityIntervalSliders.Last();
         sliderUpdater.OnIntervaSliderValueChanged -= UpdateIsoRanges;
 
-        _sliderControlButtons.transform.localPosition = new Vector3(-0.03f - ((_densityIntervalSliders.Count - 2) * 0.09f), 0, _densityIntervalSliders.Count - 2>=1? 0.3f:0.22f);
+        _sliderControlButtons.transform.localPosition = new Vector3(-0.03f - ((DensityIntervalSliders.Count - 2) * 0.09f), 0, DensityIntervalSliders.Count - 2>=1? 0.3f:0.22f);
 
-        _densityIntervalSliders.Remove(sliderUpdater);
+        DensityIntervalSliders.Remove(sliderUpdater);
         Destroy(sliderUpdater.gameObject);
 
-        if (_densityIntervalSliders.Count <= 1)
+        if (DensityIntervalSliders.Count <= 1)
             _removeSliderButton.SetActive(false);
 
         UpdateIsoRanges();
-
+        DensityIntervalsChanged?.Invoke();
+        _saveSystem.SaveDataAsync(this);
     }
 
     public void UpdateIsoRanges()
@@ -368,7 +375,7 @@ public class VolumeDataControl : MonoBehaviour
             List<float> maxVals = new List<float>();
 
 
-            foreach(SliderIntervalUpdater i in _densityIntervalSliders)
+            foreach(SliderIntervalUpdater i in DensityIntervalSliders)
             {
                 i.GetSliderValues(out float minVal, out float maxVal);
                 minVals.Add(minVal);
@@ -376,7 +383,7 @@ public class VolumeDataControl : MonoBehaviour
             }
 
            
-            _volumeData.SetVisibilityWindow(minVals.ToArray(),maxVals.ToArray(),_densityIntervalSliders.Count);
+            _volumeData.SetVisibilityWindow(minVals.ToArray(),maxVals.ToArray(), DensityIntervalSliders.Count);
             
         }
         catch { }
@@ -390,7 +397,7 @@ public class VolumeDataControl : MonoBehaviour
 
             if(renderMode==RenderMode.DirectVolumeRendering)
             {
-                if(_segments.Count>0)
+                if(Segments.Count>0)
                     _segmentationParent.SetActive(true);
             }
             else
@@ -407,6 +414,7 @@ public class VolumeDataControl : MonoBehaviour
         _segmentationPanelVisible=!_segmentationPanelVisible;
 
         _segmentationParentContainer.SetActive(_segmentationPanelVisible);
+
         _tfColorUpdater.ShowTfUpdater(!_segmentationPanelVisible);
         TurnMaterialLabelingKeyword(_segmentationPanelVisible);
     }
@@ -476,7 +484,7 @@ public class VolumeDataControl : MonoBehaviour
     //            TF2D.Add(i);
     //    }
     //}
-    public async Task InitSegmentation()
+    public async Task InitSegmentationAsync()
     {
         VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync(true));           //Very long
 
@@ -495,14 +503,16 @@ public class VolumeDataControl : MonoBehaviour
             if(Dataset.LabelNames.Count>=i)
                 segment.ChangeSegmentName(Dataset.LabelNames[i-1]);
 
-            _segments.Add(segment);
+            Segments.Add(segment);
         }
         UpdateShaderLabelArray();
 
     }
     public void TurnAllSegmentAlphas(bool value)
     {
-        _segments.ForEach(x => x.AlphaUpdate(value?1:0));
+        Segments.ForEach(x => x.AlphaUpdate(value?1:0));
+        AllAlphaButtonsPressed?.Invoke();
+        _saveSystem.SaveDataAsync(this);
     }
     private void TurnMaterialLabelingKeyword(bool value)
     {
@@ -514,18 +524,18 @@ public class VolumeDataControl : MonoBehaviour
 
     public void UpdateShaderLabelArray()
     {
-        VolumeMesh.material.SetColorArray("_SegmentsColors", _segments.Select(x => x.SegmentColor).ToArray());
+        VolumeMesh.material.SetColorArray("_SegmentsColors", Segments.Select(x => x.SegmentColor).ToArray());
     }
-    public async Task DownScaleDataset()
+    public async Task DownScaleDatasetAsync()
     {
         await _dataLoadingIndicator.OpenAsync();
         _dataLoadingIndicator.Message = "Downscaling dataset...";
 
         await Dataset.DownScaleDataAsync();
 
-        await RegenerateTexturesData();
+        await RegenerateTexturesDataAsync();
     }
-    private async Task RegenerateTexturesData()
+    private async Task RegenerateTexturesDataAsync()
     {
         _dataLoadingIndicator.Message = "Refreshing data...";
 
@@ -556,7 +566,7 @@ public class VolumeDataControl : MonoBehaviour
         transform.localRotation = Quaternion.Euler(_startLocalRotation);
         transform.localScale = _startLocalScale;
     }
-    public async Task MirrorFlipTextures()
+    public async Task MirrorFlipTexturesAsync()
     {
         _isDatasetReversed = !_isDatasetReversed;
 
@@ -565,7 +575,7 @@ public class VolumeDataControl : MonoBehaviour
 
         await Task.Run(()=> Dataset.FlipTextureArrays());
 
-        if (_segments.Count > 0)
+        if (Segments.Count > 0)
         {
             _dataLoadingIndicator.Message = "Refreshing Segmentation...";
 
@@ -576,7 +586,7 @@ public class VolumeDataControl : MonoBehaviour
         else
             _volumeData.gameObject.transform.localRotation = Quaternion.Euler(_normalRotation);
 
-        await RegenerateTexturesData();
+        await RegenerateTexturesDataAsync();
     }
     public void ResetCrossSectionToolsTransform()
     {
@@ -627,5 +637,19 @@ public class VolumeDataControl : MonoBehaviour
     public void SetVolumePosition(Vector3 position)
     {
         transform.position = position;
+    }
+
+    private void OnTFReset()
+    {
+        _saveSystem.SaveDataAsync(this);
+    }
+    public void OnInputUp(InputEventData eventData)
+    {
+        _saveSystem.SaveDataAsync(this);
+    }
+
+    public void OnInputDown(InputEventData eventData)
+    {
+        //
     }
 }

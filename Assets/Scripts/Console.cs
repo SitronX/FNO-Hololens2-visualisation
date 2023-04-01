@@ -46,7 +46,7 @@ public class Console : MonoBehaviour
     {
         try
         {
-            HandMenu.Instance.AllDatasetButtons[index].LoadDataset();
+            HandMenu.Instance.AllDatasetButtons[index].LoadDatasetAsync();
         }
         catch
         {

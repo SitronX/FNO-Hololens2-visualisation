@@ -2254,6 +2254,7 @@ MonoBehaviour:
   _densitySlidersContainer: {fileID: 7894820150552617466}
   _sliderControlButtons: {fileID: 7947502244229235147}
   _removeSliderButton: {fileID: 1124400376378465136}
+  _saveSystem: {fileID: 8892674850111051658}
   <VolumeMesh>k__BackingField: {fileID: 199551307}
 --- !u!114 &8892674850111051658
 MonoBehaviour:
@@ -2267,7 +2268,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c495a4a9baafa8f4ab23e387d019d6ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _volumeControl: {fileID: 0}
+  _volumeControl: {fileID: 7307838315410646070}
+  _tfUpdater: {fileID: 4975402470216188725}
+  _mainDatasetT: {fileID: 4186097702043771632}
+  _grabHandleT: {fileID: 7741656797561098357}
+  _crossPlaneT: {fileID: 3797398607016330644}
+  _crossSphereT: {fileID: 7903026360023029923}
 --- !u!1 &4529850262819850402
 GameObject:
   m_ObjectHideFlags: 0

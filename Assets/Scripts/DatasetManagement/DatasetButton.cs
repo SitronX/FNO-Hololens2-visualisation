@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,6 +20,7 @@ public class DatasetButton : MonoBehaviour
     [SerializeField] Texture _defaultTexture;
     [SerializeField] GameObject _enablerObject;
 
+
     [field: SerializeField] public TMP_Text DatasetName { get; set; }
     Camera _mainCamera;
     bool _hasDatasetLoaded = false;
@@ -32,7 +34,7 @@ public class DatasetButton : MonoBehaviour
     public VolumeDataControl VolumeControlObject { get; set; }
 
     public Texture ThumbnailTexture { get; set; }
-    public string DatasetPath { get; set; } 
+    public string DatasetPath { get; set; }
     public int ButtonIndex { get; set; }
     public Action<int> QrCodeDatasetActivated { get; set; }
     public Action<int> LoadButtonPressed { get; set; }
@@ -62,7 +64,7 @@ public class DatasetButton : MonoBehaviour
         _loadButtonBackMesh.material.mainTexture = ThumbnailTexture;
         DatasetName.text = name;
     }
-    public void LoadDataset()
+    public async Task LoadDatasetAsync()
     {      
         if (VolumeControlObject == null)
         {
@@ -72,10 +74,17 @@ public class DatasetButton : MonoBehaviour
             rot.z = 0;
 
             GameObject tmp = Instantiate(_placeableVolumePrefab, _mainCamera.transform.position+(_mainCamera.transform.forward), Quaternion.Euler(rot));
-            VolumeControlObject= tmp.GetComponent<VolumeDataControl>();
+
+            DatasetSaveSystem saveSystem = tmp.GetComponent<DatasetSaveSystem>();
+            await saveSystem.TryLoadSaveFileAsync(DatasetPath);
+
+            VolumeControlObject = tmp.GetComponent<VolumeDataControl>();
             ObjectManipulator manip= tmp.GetComponent<ObjectManipulator>();
             manip.OnManipulationStarted.AddListener(OnManipulationDatasetStarted);
-            VolumeControlObject.LoadDataset(DatasetPath,ThumbnailTexture,DatasetName.text);
+
+            await VolumeControlObject.LoadDatasetAsync(DatasetPath,ThumbnailTexture,DatasetName.text);
+
+            
 
             _hasDatasetLoaded= true;
             _enablerObject.SetActive(true);

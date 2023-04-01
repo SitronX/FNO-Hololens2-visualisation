@@ -69,7 +69,7 @@ public class DatasetSettings : MonoBehaviour
         ChangeButtonLoadingState(_downsamplingButton,_downsamplingButtonCollider, ButtonState.Processing, "IconShow", "Downscaling");
         ChangeButtonLoadingState(_mirrorFlipButton, _mirrorButtonCollider, ButtonState.Processing, "IconShow", "Downscaling");
 
-        await _latestDatasetData.VolumeControlObject.DownScaleDataset();
+        await _latestDatasetData.VolumeControlObject.DownScaleDatasetAsync();
 
         ChangeButtonLoadingState(_downsamplingButton,_downsamplingButtonCollider, ButtonState.Ready, "IconProfiler", "Downscale Dataset");
         ChangeButtonLoadingState(_mirrorFlipButton, _mirrorButtonCollider, ButtonState.Ready, "IconSettings", "Mirror Flip correction");
@@ -81,7 +81,7 @@ public class DatasetSettings : MonoBehaviour
         ChangeButtonLoadingState(_mirrorFlipButton,_mirrorButtonCollider, ButtonState.Processing, "IconShow", "Flipping");
         ChangeButtonLoadingState(_downsamplingButton, _downsamplingButtonCollider, ButtonState.Processing, "IconShow", "Flipping");
 
-        await _latestDatasetData.VolumeControlObject.MirrorFlipTextures();
+        await _latestDatasetData.VolumeControlObject.MirrorFlipTexturesAsync();
 
         ChangeButtonLoadingState(_mirrorFlipButton,_mirrorButtonCollider, ButtonState.Ready, "IconSettings", "Mirror Flip correction");
         ChangeButtonLoadingState(_downsamplingButton, _downsamplingButtonCollider, ButtonState.Ready, "IconProfiler", "Downscale Dataset");
