@@ -42,6 +42,11 @@ public class SliderIntervalUpdater : MonoBehaviour
             }
         }      
     }
+    public void SetInitvalue(float min,float max)
+    {
+        _firstSlider.SliderValue = min;
+        _secondSlider.SliderValue = max;
+    }
     public void OnMiddleSliderGrabbed(bool value)
     {
         _isGrabbed = value;

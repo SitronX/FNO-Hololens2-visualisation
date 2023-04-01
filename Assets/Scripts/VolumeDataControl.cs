@@ -21,8 +21,6 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] VolumeRenderedObject _volumeData;
     [SerializeField] InteractableToggleCollection _renderModes;
     [SerializeField] GameObject _volumetricDataMainParentObject;
-    [SerializeField] SliderIntervalUpdater _sliderIntervalUpdater1;
-    [SerializeField] SliderIntervalUpdater _sliderIntervalUpdater2;
     [SerializeField] GameObject _secondSliderCheckbox;
     [SerializeField] TMP_Text _raymarchStepsLabel;
     [SerializeField] ProgressIndicatorOrbsRotator _dataLoadingIndicator;
@@ -38,6 +36,10 @@ public class VolumeDataControl : MonoBehaviour
     [SerializeField] TFColorUpdater _tfColorUpdater;
     [SerializeField] MeshRenderer _volumeDatasetIcon;
     [SerializeField] TMP_Text _volumeDatasetDescription;
+    [SerializeField] GameObject _densitySliderPrefab;
+    [SerializeField] GameObject _densitySlidersContainer;
+    [SerializeField] GameObject _sliderControlButtons;
+    [SerializeField] GameObject _removeSliderButton;
 
     [field: SerializeField] public MeshRenderer VolumeMesh { get; set; }
 
@@ -73,12 +75,11 @@ public class VolumeDataControl : MonoBehaviour
     //public static List<string> TF2D { get; set; } = new List<string>();
     //public static List<string> TF1D { get; set; } = new List<string>();
 
-               
+    List<SliderIntervalUpdater> _densityIntervalSliders = new List<SliderIntervalUpdater>();
     VolumeRenderedObject _volumeRenderedObject;
 
     bool _segmentationPanelVisible = false;
     bool _isDatasetReversed;
-
 
     private void Start()
     {
@@ -91,13 +92,11 @@ public class VolumeDataControl : MonoBehaviour
         await _dataLoadingIndicator.OpenAsync();
         _dataLoadingIndicator.Message = "Loading data...";
 
+        _volumeRenderedObject.InitVisiblityWindow();
         _volumeDatasetIcon.material.mainTexture = volumeIcon;
         _volumeDatasetDescription.text = description;
 
         //LoadTFDataPath(Application.streamingAssetsPath + "/TransferFunctions/");
-
-        _sliderIntervalUpdater1.OnIntervaSliderValueChanged += UpdateIsoRanges;
-        _sliderIntervalUpdater2.OnIntervaSliderValueChanged += UpdateIsoRanges;
 
         var result= await CreateVolumeDatasetAsync(datasetFolderName);
 
@@ -126,6 +125,9 @@ public class VolumeDataControl : MonoBehaviour
         SetTransferFunction(_transferFunction);
 
         _tfColorUpdater.InitUpdater(_transferFunction);
+        AddValueDensitySlider(0,1);                                     //Add default density slider
+        _densitySlidersContainer.SetActive(true);
+
         VolumeMesh.gameObject.SetActive(true);                          //It is disabled to this point, otherwise default mat is blocking loading indicator
 
         //if (TF1D.Count > 0)
@@ -319,22 +321,63 @@ public class VolumeDataControl : MonoBehaviour
     {
         _volumeRenderedObject.SetTransferFunction(tf);      
     }
+    public void AddDensitySlider()
+    {
+        AddValueDensitySlider(0, 0.2f);
+    }
+    private void AddValueDensitySlider(float minVal,float maxVal)
+    {
+        GameObject newSlider = Instantiate(_densitySliderPrefab, _densitySlidersContainer.transform);
 
+        newSlider.transform.localPosition = new Vector3(0.09f - (_densityIntervalSliders.Count * 0.09f), 0.011f, 0.3f);
+        newSlider.transform.localRotation = Quaternion.Euler(new Vector3(90, -90, 0));
+        SliderIntervalUpdater sliderUpdater = newSlider.GetComponent<SliderIntervalUpdater>();
+        sliderUpdater.OnIntervaSliderValueChanged += UpdateIsoRanges;
+        sliderUpdater.SetInitvalue(minVal, maxVal);
+        _sliderControlButtons.transform.localPosition = new Vector3(-0.03f - (_densityIntervalSliders.Count * 0.09f), 0, _densityIntervalSliders.Count > 0 ? 0.3f : 0.22f);
+
+        _densityIntervalSliders.Add(sliderUpdater);
+
+        if (_densityIntervalSliders.Count > 1)
+            _removeSliderButton.SetActive(true);
+
+        UpdateIsoRanges();
+    }
+    public void RemoveDensitySlider()
+    {
+        SliderIntervalUpdater sliderUpdater = _densityIntervalSliders.Last();
+        sliderUpdater.OnIntervaSliderValueChanged -= UpdateIsoRanges;
+
+        _sliderControlButtons.transform.localPosition = new Vector3(-0.03f - ((_densityIntervalSliders.Count - 2) * 0.09f), 0, _densityIntervalSliders.Count - 2>=1? 0.3f:0.22f);
+
+        _densityIntervalSliders.Remove(sliderUpdater);
+        Destroy(sliderUpdater.gameObject);
+
+        if (_densityIntervalSliders.Count <= 1)
+            _removeSliderButton.SetActive(false);
+
+        UpdateIsoRanges();
+
+    }
 
     public void UpdateIsoRanges()
     {
         try                                                                                 //ON app start sliders are defaultly updated, but volume object is not present yet
         {
-            _sliderIntervalUpdater1.GetSliderValues(out float minVal1, out float maxVal1);
-            if (!_showSecondSlider)
+            List<float> minVals = new List<float>();
+            List<float> maxVals = new List<float>();
+
+
+            foreach(SliderIntervalUpdater i in _densityIntervalSliders)
             {
-                _volumeData.SetVisibilityWindow(minVal1, maxVal1, 0, 0);
+                i.GetSliderValues(out float minVal, out float maxVal);
+                minVals.Add(minVal);
+                maxVals.Add(maxVal);
             }
-            else
-            {
-                _sliderIntervalUpdater2.GetSliderValues(out float minVal2, out float maxVal2);
-                _volumeData.SetVisibilityWindow(minVal1, maxVal1, minVal2, maxVal2);
-            }
+
+           
+            _volumeData.SetVisibilityWindow(minVals.ToArray(),maxVals.ToArray(),_densityIntervalSliders.Count);
+            
         }
         catch { }
     }
@@ -371,30 +414,7 @@ public class VolumeDataControl : MonoBehaviour
     {
         _volumeData.SetCubicInterpolationEnabled(value);
     }
-    public void ShowSecondSliderChange()
-    {
-        _showSecondSlider= !_showSecondSlider;
-
-        if (_showSecondSlider)
-        {
-            _sliderIntervalUpdater2.gameObject.SetActive(true);
-            Vector3 tmp = _secondSliderCheckbox.transform.localPosition;
-            tmp.x = -0.17f;
-
-            _secondSliderCheckbox.transform.localPosition = tmp;
-        }
-        else
-        {
-            _sliderIntervalUpdater2.gameObject.SetActive(false);
-
-            Vector3 tmp = _secondSliderCheckbox.transform.localPosition;
-            tmp.x = -0.06f;
-
-            _secondSliderCheckbox.transform.localPosition = tmp;
-        }
-
-        UpdateIsoRanges();
-    }
+  
     public void SetRaymarchStepCount(int value)
     {
         VolumeMesh.sharedMaterial.SetInt("_stepNumber", value);
@@ -467,15 +487,15 @@ public class VolumeDataControl : MonoBehaviour
             GameObject tmp = Instantiate(_segmentationSliderPrefab, _segmentationParentContainer.transform);
             tmp.transform.localPosition = new Vector3(0,0.3f -(0.06f * i), 0.33f);
             tmp.transform.localRotation = Quaternion.Euler(new Vector3(0,-90,0));
-            Segment helper = tmp.GetComponent<Segment>();
-            helper.SegmentID= i-1;
-            helper.ColorUpdated += UpdateShaderLabelArray;
-            helper.InitColor(col);
+            Segment segment = tmp.GetComponent<Segment>();
+            segment.SegmentID= i-1;
+            segment.ColorUpdated += UpdateShaderLabelArray;
+            segment.InitColor(col);
 
             if(Dataset.LabelNames.Count>=i)
-                helper.ChangeSegmentName(Dataset.LabelNames[i-1]);
+                segment.ChangeSegmentName(Dataset.LabelNames[i-1]);
 
-            _segments.Add(helper);
+            _segments.Add(segment);
         }
         UpdateShaderLabelArray();
 

@@ -93,36 +93,36 @@ public class HandMenu : MonoBehaviour
     public void UpdateRenderingMode()
     {
         if (_renderModes.CurrentIndex == 0)
-            AllDatasetButtons.ForEach(_x => _x.VolumeControlObject?.UpdateRenderingMode(UnityVolumeRendering.RenderMode.DirectVolumeRendering));
+            AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.UpdateRenderingMode(UnityVolumeRendering.RenderMode.DirectVolumeRendering); });
         else if (_renderModes.CurrentIndex == 1)
-            AllDatasetButtons.ForEach(_x => _x.VolumeControlObject?.UpdateRenderingMode(UnityVolumeRendering.RenderMode.MaximumIntensityProjectipon));
+            AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.UpdateRenderingMode(UnityVolumeRendering.RenderMode.MaximumIntensityProjectipon); });
         else if (_renderModes.CurrentIndex == 2)
-            AllDatasetButtons.ForEach(_x => _x.VolumeControlObject?.UpdateRenderingMode(UnityVolumeRendering.RenderMode.IsosurfaceRendering));
+            AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.UpdateRenderingMode(UnityVolumeRendering.RenderMode.IsosurfaceRendering); });
     }
 
     public void LightingUpdated()
     {
         _useLighting = !_useLighting;
 
-        AllDatasetButtons.ForEach(_x => _x.VolumeControlObject?.UpdateLighting(_useLighting));
+        AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.UpdateLighting(_useLighting); });
     }
     public void SlicePlaneUpdated()
     {
         _showCutPlane=!_showCutPlane;
-        AllDatasetButtons.ForEach(_x => _x.VolumeControlObject?.UpdateSlicePlane(_showCutPlane));
+        AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.UpdateSlicePlane(_showCutPlane); });
     }
     public void CubicInterpolationUpdated()
     {
         _useCubicInterpolation=!_useCubicInterpolation;
 
-        AllDatasetButtons.ForEach(x =>  x.VolumeControlObject?.UpdateCubicInterpolation(_useCubicInterpolation));
+        AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.UpdateCubicInterpolation(_useCubicInterpolation); });
     }
     public void UpdateRaymarchSteps()
     {
         int steps = (int)(_raymarchSlider.SliderValue * 1000);
         _raymarchStepLabel.text = $"{steps} Steps";
 
-        AllDatasetButtons.ForEach(x => x.VolumeControlObject?.SetRaymarchStepCount(steps));
+        AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.SetRaymarchStepCount(steps); });
     }
 
     public void UpdateAdditionalSettings()
@@ -134,11 +134,11 @@ public class HandMenu : MonoBehaviour
     public void ChangeCrossSectionType()
     {
         if (_crossSectionModes.CurrentIndex == 0)
-            AllDatasetButtons.ForEach(x => x.VolumeControlObject?.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.Plane));
+            AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.Plane); });
         else if (_crossSectionModes.CurrentIndex == 1)
-            AllDatasetButtons.ForEach(x => x.VolumeControlObject?.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.SphereInclusive));
+            AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.SphereInclusive); });
         else if (_crossSectionModes.CurrentIndex == 2)
-            AllDatasetButtons.ForEach(x => x.VolumeControlObject?.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.SphereExclusive));
+            AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.SphereExclusive); });
     }
     public void ChangeQRUpdates()
     {

@@ -84,6 +84,10 @@
             int _stepNumber;
             float4 _SegmentsColors[500];                                       //Dynamic arrays are not possible, so here it is capped to 500 segments, it should not be really possible to overcome this number (i hope?)
 
+            float _lowerVisibilityWindow[500];
+            float _upperVisibilityWindow[500];
+            int _visibilitySlidersCount = 1;
+
 #if CROSS_SECTION_ON
 #define CROSS_SECTION_TYPE_PLANE 1 
 #define CROSS_SECTION_TYPE_BOX_INCL 2 
@@ -335,11 +339,19 @@
                     // Get the dansity/sample value of the current position
                     const float density = getDensity(currPos);
 
+                    bool isInInterval = false;
                     // Apply visibility window
-                    if (density < _MinVal1 || density > _MaxVal1)
-                        if (density < _MinVal2 || density > _MaxVal2)
-                            continue;
-                    
+                    for (int i = 0; i < _visibilitySlidersCount; i++)
+                    {
+                        if ((density > _lowerVisibilityWindow[i]) && (density < _upperVisibilityWindow[i]))
+                        {
+							isInInterval =true;
+							break;
+						}
+                    }
+                    if (!isInInterval)
+                        continue;
+
 
                     // Calculate gradient (needed for lighting and 2D transfer functions)
 #if defined(TF2D_ON) || defined(LIGHTING_ON)
@@ -427,8 +439,23 @@
                         continue;
 #endif
 
+
                     const float density = getDensity(currPos);
-                    if (density > maxDensity &&(( density > _MinVal1 && density < _MaxVal1)|| (density > _MinVal2 && density < _MaxVal2)))
+
+                    bool isInInterval = false;
+                    // Apply visibility window
+                    for (int i = 0; i < _visibilitySlidersCount; i++)
+                    {
+                        if ((density > _lowerVisibilityWindow[i]) && (density < _upperVisibilityWindow[i]))
+                        {
+                            isInInterval = true;
+                            break;
+                        }
+                    }
+                    if (!isInInterval)
+                        continue;
+
+                    if (density > maxDensity)
                     {
                         maxDensity = density;
                         maxDensityPos = currPos;
@@ -468,14 +495,21 @@
 #endif
 
                     const float density = getDensity(currPos);
-                    if ((density > _MinVal1 && density < _MaxVal1)|| (density > _MinVal2 && density < _MaxVal2))
+
+                    bool isInInterval = false;
+                    // Apply visibility window
+                    for (int i = 0; i < _visibilitySlidersCount; i++)
                     {
-                        float3 normal = normalize(getGradient(currPos));
-                        col = getTF1DColour(density);
-                        col.rgb = calculateLighting(col.rgb, normal, getLightDirection(-ray.direction), -ray.direction, 0.15);
-                        col.a = 1.0f;
-                        break;
+                        if ((density > _lowerVisibilityWindow[i]) && (density < _upperVisibilityWindow[i]))
+                        {
+                            float3 normal = normalize(getGradient(currPos));
+                            col = getTF1DColour(density);
+                            col.rgb = calculateLighting(col.rgb, normal, getLightDirection(-ray.direction), -ray.direction, 0.15);
+                            col.a = 1.0f;
+                            break;
+                        }
                     }
+
                 }
 
                 // Write fragment output

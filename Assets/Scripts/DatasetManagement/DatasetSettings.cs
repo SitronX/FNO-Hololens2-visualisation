@@ -16,7 +16,7 @@ public class DatasetSettings : MonoBehaviour
     [SerializeField] Collider _mirrorButtonCollider;
 
 
-    ScrollableButton _latestDatasetData;
+    DatasetButton _latestDatasetData;
 
 
     public enum ButtonState
@@ -25,16 +25,16 @@ public class DatasetSettings : MonoBehaviour
     }
     private void Start()
     {
-        ScrollableButton.DatasetGrabbed += OnLatestDatasetGrabbed;
+        DatasetButton.DatasetGrabbed += OnLatestDatasetGrabbed;
         VolumeDataControl.DatasetSpawned += OnVolumeDatasetSpawned;
 
     }
     private void OnDisable()
     {
-        ScrollableButton.DatasetGrabbed -= OnLatestDatasetGrabbed;
+        DatasetButton.DatasetGrabbed -= OnLatestDatasetGrabbed;
         VolumeDataControl.DatasetSpawned -= OnVolumeDatasetSpawned;
     }
-    public void OnLatestDatasetGrabbed(ScrollableButton button)
+    public void OnLatestDatasetGrabbed(DatasetButton button)
     {
         if (button.VolumeControlObject.HasBeenLoaded)
             ChangeButtonLoadingState(_downsamplingButton,_downsamplingButtonCollider,ButtonState.Ready, "IconProfiler","Downscale Dataset");
@@ -61,7 +61,7 @@ public class DatasetSettings : MonoBehaviour
     }
     public void OnVolumeDatasetSpawned(VolumeDataControl control)
     {
-        ScrollableButton but = DatasetLister.Instance.AllButtons.Find(x => x.VolumeControlObject == control);
+        DatasetButton but = HandMenu.Instance.AllDatasetButtons.Find(x => x.VolumeControlObject == control);
         OnLatestDatasetGrabbed(but);
     }
     public async void DownscaleDataset()

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace UnityVolumeRendering
 {
@@ -26,8 +27,9 @@ namespace UnityVolumeRendering
         [SerializeField, HideInInspector]
         private LightSource lightSource;
 
-        [SerializeField, HideInInspector]
-        private Vector4 visibilityWindow = new Vector4(0.0f, 1.0f,0,0);
+        private float[] _lowerVisibilityWindow = new float[500];
+        private float[] _upperVisibilityWindow = new float[500];
+        private int _visibilitySlidersCount = 1;
 
         [SerializeField, HideInInspector]
         private bool rayTerminationEnabled = true;
@@ -140,23 +142,33 @@ namespace UnityVolumeRendering
             UpdateMaterialProperties();
         }
 
-        public void SetVisibilityWindow(float min1, float max1,float min2,float max2)
+        public void SetVisibilityWindow(float[] lowerVisibilityWindow, float[] upperVisibilityWindow,int visibilitySlidersCount)
         {
-            SetVisibilityWindow(new Vector4(min1, max1,min2,max2));
-        }
+            _lowerVisibilityWindow = lowerVisibilityWindow;
+            _upperVisibilityWindow=upperVisibilityWindow;
+            _visibilitySlidersCount=visibilitySlidersCount;
 
-        public void SetVisibilityWindow(Vector4 window)
+            UpdateMaterialProperties();
+        }
+        public void InitVisiblityWindow()
         {
-            if (window != visibilityWindow)
+            _lowerVisibilityWindow[0]=0;
+            _upperVisibilityWindow[0]=1;
+            for (int i=1;i<500;i++)
             {
-                visibilityWindow = window;
-                UpdateMaterialProperties();
+                _lowerVisibilityWindow[i]=0;
+                _upperVisibilityWindow[i]=0;
             }
+            
         }
 
+        public void SetVisibilityWindow(Vector4 val)
+        {
+            //
+        }
         public Vector4 GetVisibilityWindow()
         {
-            return visibilityWindow;
+            return Vector4.zero;
         }
 
         public bool GetRayTerminationEnabled()
@@ -263,10 +275,10 @@ namespace UnityVolumeRendering
                     }
             }
 
-            meshRenderer.material.SetFloat("_MinVal1", visibilityWindow.x);
-            meshRenderer.material.SetFloat("_MaxVal1", visibilityWindow.y);
-            meshRenderer.material.SetFloat("_MinVal2", visibilityWindow.z);
-            meshRenderer.material.SetFloat("_MaxVal2", visibilityWindow.w);
+            meshRenderer.material.SetFloatArray("_lowerVisibilityWindow", _lowerVisibilityWindow);
+            meshRenderer.material.SetFloatArray("_upperVisibilityWindow", _upperVisibilityWindow);
+            meshRenderer.material.SetFloat("_visibilitySlidersCount", _visibilitySlidersCount);
+
             meshRenderer.material.SetVector("_TextureSize", new Vector3(dataset.dimX, dataset.dimY, dataset.dimZ));
 
             if (rayTerminationEnabled)
