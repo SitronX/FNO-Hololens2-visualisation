@@ -55,7 +55,7 @@ namespace UnityVolumeRendering
 
             return volumeDataset;
         }
-        public async Task<(VolumeDataset, bool)> ImportAsync(string filePath, string datasetName)
+        public async Task<(VolumeDataset, bool)> ImportAsync(string filePath, string datasetName,ProgressHandler progressHandler)
         {
             float[] pixelData = null;
             VectorUInt32 size = null;
@@ -107,10 +107,6 @@ namespace UnityVolumeRendering
                 volumeDataset.dimY = (int)size[1];
                 volumeDataset.dimZ = (int)size[2];
 
-                volumeDataset.labelDimX = (int)size[0];
-                volumeDataset.labelDimY = (int)size[1];
-                volumeDataset.labelDimZ = (int)size[2];
-
                 volumeDataset.datasetName = datasetName;
                 volumeDataset.filePath = filePath;
                 volumeDataset.scaleX = (float)(spacing[0] * size[0]);
@@ -122,19 +118,30 @@ namespace UnityVolumeRendering
 
             return (volumeDataset, isDatasetReversed);
         }
-        public async Task ImportSegmentationAsync(string filePath, VolumeDataset volumeDataset, bool isDatasetReversed)
+        public async Task ImportSegmentationAsync(string filePath, VolumeDataset volumeDataset, bool isDatasetReversed, ProgressHandler progressHandler)
         {
             float[] pixelData = null;
             VectorUInt32 size = null;
+            Image image = null;
+            ImageFileReader reader = null;
 
             await Task.Run(() =>
             {
-                ImageFileReader reader = new ImageFileReader();
-
+                reader = new ImageFileReader();
                 reader.SetFileName(filePath);
-
-                Image image = reader.Execute();
+                image = reader.Execute();
+            });
             
+            uint numChannels = image.GetNumberOfComponentsPerPixel();
+
+            if(numChannels>1)
+            {
+                ErrorNotifier.Instance.AddErrorMessageToUser($"Segmentation file in dataset named: {volumeDataset.datasetName} contains multiple layers. All segments must be in the same layer!!!");
+                return;
+            }
+
+            await Task.Run(() =>
+            {
                 int segmentNumber = 0;
                 List<string> metaDataKeys = reader.GetMetaDataKeys().ToList();
 
@@ -152,15 +159,14 @@ namespace UnityVolumeRendering
                     }
                        
                 }
-               
+
                 // Cast to 32-bit float
                 image = SimpleITK.Cast(image, PixelIDValueEnum.sitkFloat32);
+             
 
                 size = image.GetSize();
 
-                if (size[0] != volumeDataset.dimX || size[1] != volumeDataset.dimY || size[2] != volumeDataset.dimZ)
-                    ErrorNotifier.Instance.AddErrorMessageToUser($"Segmentation file in dataset named: {volumeDataset.datasetName} in folder Data has other dimensions than base dataset.");
-
+               
                 int numPixels = 1;
                 for (int dim = 0; dim < image.GetDimension(); dim++)
                     numPixels *= (int)size[dim];
@@ -171,6 +177,9 @@ namespace UnityVolumeRendering
                 Marshal.Copy(imgBuffer, pixelData, 0, numPixels);
 
                 volumeDataset.labelData = isDatasetReversed ? pixelData.Reverse().ToArray() : pixelData;
+                volumeDataset.labelDimX = (int)size[0];
+                volumeDataset.labelDimY = (int)size[1];
+                volumeDataset.labelDimZ = (int)size[2];
             });
 
         }

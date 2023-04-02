@@ -24,7 +24,6 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     [SerializeField] InteractableToggleCollection _renderModes;
     [SerializeField] GameObject _volumetricDataMainParentObject;
     [SerializeField] TMP_Text _raymarchStepsLabel;
-    [SerializeField] ProgressIndicatorOrbsRotator _dataLoadingIndicator;
     [SerializeField] CrossSectionSphere _cutoutSphere;
     [SerializeField] GameObject _cutoutPlane;
     [SerializeField] GameObject _slicingPlaneXNormalAxisObject;
@@ -42,6 +41,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     [SerializeField] GameObject _sliderControlButtons;
     [SerializeField] GameObject _removeSliderButton;
     [SerializeField] DatasetSaveSystem _saveSystem;
+    [SerializeField] OrbProgressView _orbProgressView;
 
     [field: SerializeField] public MeshRenderer VolumeMesh { get; set; }
 
@@ -94,71 +94,71 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     }
     public async Task LoadDatasetAsync(string datasetFolderName,Texture volumeIcon,string description)        //Async addition so all the loading doesnt freeze the app
     {
-        _saveSystem.TryLoadSaveTransformData();
-
-        await _dataLoadingIndicator.OpenAsync();
-        _dataLoadingIndicator.Message = "Loading data...";
-
-        _volumeRenderedObject.InitVisiblityWindow();
-        _volumeDatasetIcon.material.mainTexture = volumeIcon;
-        _volumeDatasetDescription.text = description;
-
-        var result= await CreateVolumeDatasetAsync(datasetFolderName);
-
-        Dataset = result.Item1;
-        _isDatasetReversed = result.Item2;
-
-        if (Dataset == null)
-            return;
-
-        if(_isDatasetReversed)
-            _volumeData.gameObject.transform.transform.localRotation= Quaternion.Euler(_mirrorFlippedRotation);
-        else
-            _volumeData.gameObject.transform.localRotation= Quaternion.Euler(_normalRotation);
-
-        await VolumeObjectFactory.FillObjectWithDatasetDataAsync(Dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject);
-        
-
-        if (await TryLoadSegmentationToVolumeAsync(datasetFolderName, Dataset, _isDatasetReversed))
+        using (ProgressHandler progressHandler = new ProgressHandler(_orbProgressView))
         {
-            _dataLoadingIndicator.Message = "Loading segmentation...";
-            await InitSegmentationAsync();
-            _segmentationParent.SetActive(true);
+            _saveSystem.TryLoadSaveTransformData();
+
+            progressHandler.Start("Loading started...", "MainLoad");
+
+            _volumeRenderedObject.InitVisiblityWindow();
+            _volumeDatasetIcon.material.mainTexture = volumeIcon;
+            _volumeDatasetDescription.text = description;
+
+            var result = await CreateVolumeDatasetAsync(datasetFolderName,progressHandler);
+
+            Dataset = result.Item1;
+            _isDatasetReversed = result.Item2;
+
+            if (Dataset == null)
+                return;
+
+            if (_isDatasetReversed)
+                _volumeData.gameObject.transform.transform.localRotation = Quaternion.Euler(_mirrorFlippedRotation);
+            else
+                _volumeData.gameObject.transform.localRotation = Quaternion.Euler(_normalRotation);
+
+            await VolumeObjectFactory.FillObjectWithDatasetDataAsync(Dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject,progressHandler);
+
+
+            if (await TryLoadSegmentationToVolumeAsync(datasetFolderName, Dataset, _isDatasetReversed,progressHandler))
+            {
+                await InitSegmentationAsync(progressHandler);
+                _segmentationParent.SetActive(true);
+            }
+
+            TransferFunction = TransferFunctionDatabase.LoadTransferFunctionFromResources("default");      //TF in resources must be in .txt format, the .tf that is default for transfer function cannot be loaded from resources
+            SetTransferFunction(TransferFunction);
+
+
+            _tfColorUpdater.InitUpdater(TransferFunction);
+
+            _saveSystem.TryLoadTFData(_tfColorUpdater);
+            _saveSystem.TryLoadSaveSegmentData(this);
+
+            if (!_saveSystem.TryLoadSaveDensitySliders(this))
+                AddValueDensitySlider(0, 1);                                     //Add default density slider if there are no save data
+
+            _densitySlidersContainer.SetActive(true);
+
+
+            VolumeMesh.gameObject.SetActive(true);                          //It is disabled to this point, otherwise default mat is blocking loading indicator
+
+            _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneXNormalAxisObject);
+            _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneYNormalAxisObject);
+            _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneZNormalAxisObject);
+
+            progressHandler.ReportProgress(0, "Creating gradient...");
+
+            await Dataset.GetGradientTextureAsync(true,progressHandler);
+
+            progressHandler.Finish(ProgressStatus.Succeeded);
+
+            HasBeenLoaded = true;
+            DatasetSpawned?.Invoke(this);
+            await _saveSystem.SaveDataAsync(this);
         }
-
-        TransferFunction = TransferFunctionDatabase.LoadTransferFunctionFromResources("default");      //TF in resources must be in .txt format, the .tf that is default for transfer function cannot be loaded from resources
-        SetTransferFunction(TransferFunction);
-
-
-        _tfColorUpdater.InitUpdater(TransferFunction);
-
-        _saveSystem.TryLoadTFData(_tfColorUpdater);
-        _saveSystem.TryLoadSaveSegmentData(this);
-        
-        if (!_saveSystem.TryLoadSaveDensitySliders(this))
-            AddValueDensitySlider(0, 1);                                     //Add default density slider if there are no save data
-
-        _densitySlidersContainer.SetActive(true);
-
-
-        VolumeMesh.gameObject.SetActive(true);                          //It is disabled to this point, otherwise default mat is blocking loading indicator
-
-        _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneXNormalAxisObject);
-        _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneYNormalAxisObject);
-        _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneZNormalAxisObject);
-
-
-        _dataLoadingIndicator.Message = "Creating gradient";
-
-        await Dataset.GetGradientTextureAsync(true);
-
-        await _dataLoadingIndicator.CloseAsync();
-
-        HasBeenLoaded = true;
-        DatasetSpawned?.Invoke(this);
-        await _saveSystem.SaveDataAsync(this);
     }
-    public async Task<(VolumeDataset,bool)> CreateVolumeDatasetAsync(string datasetFolderName)
+    public async Task<(VolumeDataset,bool)> CreateVolumeDatasetAsync(string datasetFolderName,ProgressHandler progressHandler)
     {
         string datasetName = datasetFolderName.Split('/').Last();
         string dataFolderName = datasetFolderName + "/Data/";
@@ -192,11 +192,11 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             IEnumerable<string> fileCandidates = Directory.EnumerateFiles(filePath, "*.*", SearchOption.TopDirectoryOnly)
                 .Where(p => p.EndsWith(".dcm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicom", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpeg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".png", StringComparison.InvariantCultureIgnoreCase));
 
-            IEnumerable<IImageSequenceSeries> sequence = await sequenceImporter.LoadSeriesAsync(fileCandidates);
+            IEnumerable<IImageSequenceSeries> sequence = await sequenceImporter.LoadSeriesAsync(fileCandidates,progressHandler,false);
 
             try
             {
-                var result = await sequenceImporter.ImportSeriesAsync(sequence.First(), datasetName);
+                var result = await sequenceImporter.ImportSeriesAsync(sequence.First(), datasetName,progressHandler);
                 dataset = result.Item1;
                 isDatasetReversed = result.Item2;
             }
@@ -209,7 +209,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         {
             try
             {
-                var result = await fileImporter.ImportAsync(filePath,datasetName);
+                var result = await fileImporter.ImportAsync(filePath,datasetName,progressHandler);
                 dataset=result.Item1;
                 isDatasetReversed = result.Item2;
             }
@@ -221,13 +221,14 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         return (dataset,isDatasetReversed);
     }
 
-    public async Task<bool> TryLoadSegmentationToVolumeAsync(string datasetFolderName, VolumeDataset volumeDataset, bool isDatasetReversed)
+    public async Task<bool> TryLoadSegmentationToVolumeAsync(string datasetFolderName, VolumeDataset volumeDataset, bool isDatasetReversed,ProgressHandler progressHandler)
     {
         string segmentationFolderName = datasetFolderName + "/Labels/";
         if (!Directory.Exists(segmentationFolderName))
         {
             return false;
         }
+
         LoadDicomDataPath(segmentationFolderName, out string filePath, out bool isDicomImageSequence,out int errorFlag);
 
         if (errorFlag == 1)
@@ -250,11 +251,11 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             IEnumerable<string> fileCandidates = Directory.EnumerateFiles(filePath, "*.*", SearchOption.TopDirectoryOnly)
                 .Where(p => p.EndsWith(".dcm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicom", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpeg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".png", StringComparison.InvariantCultureIgnoreCase));
 
-            IEnumerable<IImageSequenceSeries> sequence = await sequenceImporter.LoadSeriesAsync(fileCandidates);
+            IEnumerable<IImageSequenceSeries> sequence = await sequenceImporter.LoadSeriesAsync(fileCandidates,progressHandler,true);
 
             try
             {
-                await sequenceImporter.ImportSeriesSegmentationAsync(sequence.First(), volumeDataset,isDatasetReversed);
+                await sequenceImporter.ImportSeriesSegmentationAsync(sequence.First(), volumeDataset,isDatasetReversed,progressHandler);
             }
             catch
             {
@@ -266,7 +267,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             try
             {
                 if(volumeDataset!=null)
-                    await fileImporter.ImportSegmentationAsync(filePath, volumeDataset, isDatasetReversed);
+                    await fileImporter.ImportSegmentationAsync(filePath, volumeDataset, isDatasetReversed,progressHandler);
             }
             catch
             {
@@ -484,9 +485,9 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     //            TF2D.Add(i);
     //    }
     //}
-    public async Task InitSegmentationAsync()
+    public async Task InitSegmentationAsync(ProgressHandler progressHandler)
     {
-        VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync(true));           //Very long
+        VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync(true, progressHandler));           //Very long
 
         Color[] uniqueColors = Utils.CreateColors(Dataset.LabelValues.Keys.Count);
         for (int i = 1; i < Dataset.LabelValues.Keys.Count; i++)
@@ -528,23 +529,26 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     }
     public async Task DownScaleDatasetAsync()
     {
-        await _dataLoadingIndicator.OpenAsync();
-        _dataLoadingIndicator.Message = "Downscaling dataset...";
+        using (ProgressHandler progressHandler = new ProgressHandler(_orbProgressView))
+        {
+            progressHandler.Start("Downscaling", "Downscaling dataset...");
+           
+            await Dataset.DownScaleDataAsync();
 
-        await Dataset.DownScaleDataAsync();
+            await RegenerateTexturesDataAsync(progressHandler);
 
-        await RegenerateTexturesDataAsync();
+            progressHandler.Finish();
+        }
     }
-    private async Task RegenerateTexturesDataAsync()
+    private async Task RegenerateTexturesDataAsync(ProgressHandler progressHandler)
     {
-        _dataLoadingIndicator.Message = "Refreshing data...";
+        progressHandler.ReportProgress(0, "Refreshing data...");
 
-        VolumeMesh.sharedMaterial.SetTexture("_DataTex", await Dataset.GetDataTextureAsync(true));           //Very long
+        VolumeMesh.sharedMaterial.SetTexture("_DataTex", await Dataset.GetDataTextureAsync(true, progressHandler));           //Very long
 
-        _dataLoadingIndicator.Message = "Refreshing gradient...";
-        VolumeMesh.sharedMaterial.SetTexture("_GradientTex", await Dataset.GetGradientTextureAsync(true));           //Very long
+        progressHandler.ReportProgress(0, "Refreshing gradient...");
 
-        await _dataLoadingIndicator.CloseAsync();
+        VolumeMesh.sharedMaterial.SetTexture("_GradientTex", await Dataset.GetGradientTextureAsync(true,progressHandler));           //Very long        
     }
 
     public void UpdateSlicePlane(bool value)
@@ -568,25 +572,27 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     }
     public async Task MirrorFlipTexturesAsync()
     {
-        _isDatasetReversed = !_isDatasetReversed;
-
-        await _dataLoadingIndicator.OpenAsync();
-        _dataLoadingIndicator.Message = "Flipping Data...";
-
-        await Task.Run(()=> Dataset.FlipTextureArrays());
-
-        if (Segments.Count > 0)
+        using (ProgressHandler progressHandler = new ProgressHandler(_orbProgressView))
         {
-            _dataLoadingIndicator.Message = "Refreshing Segmentation...";
+            _isDatasetReversed = !_isDatasetReversed;
 
-            VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync(true));           //Very long
+            progressHandler.Start("Flipping", "Flipping Data...");
+
+            await Task.Run(() => Dataset.FlipTextureArrays());
+
+            if (Segments.Count > 0)
+            {
+                progressHandler.ReportProgress(0, "Refreshing Segmentation...");
+
+                VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync(true,progressHandler));           //Very long
+            }
+            if (_isDatasetReversed)
+                _volumeData.gameObject.transform.localRotation = Quaternion.Euler(_mirrorFlippedRotation);
+            else
+                _volumeData.gameObject.transform.localRotation = Quaternion.Euler(_normalRotation);
+
+            await RegenerateTexturesDataAsync(progressHandler);
         }
-        if (_isDatasetReversed)
-            _volumeData.gameObject.transform.localRotation = Quaternion.Euler(_mirrorFlippedRotation);
-        else
-            _volumeData.gameObject.transform.localRotation = Quaternion.Euler(_normalRotation);
-
-        await RegenerateTexturesDataAsync();
     }
     public void ResetCrossSectionToolsTransform()
     {

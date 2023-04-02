@@ -51,7 +51,7 @@ namespace UnityVolumeRendering
 
             return volObj;
         }
-        public static async Task FillObjectWithDatasetDataAsync(VolumeDataset dataset,GameObject objectToFill,GameObject meshContainer)
+        public static async Task FillObjectWithDatasetDataAsync(VolumeDataset dataset,GameObject objectToFill,GameObject meshContainer,ProgressHandler progressHandler)
         {
             VolumeRenderedObject volObj = objectToFill.GetComponent<VolumeRenderedObject>();
 
@@ -71,7 +71,7 @@ namespace UnityVolumeRendering
 
         
 
-            meshRenderer.sharedMaterial.SetTexture("_DataTex", await dataset.GetDataTextureAsync(true));           //Very long
+            meshRenderer.sharedMaterial.SetTexture("_DataTex", await dataset.GetDataTextureAsync(true,progressHandler));           //Very long
 
             meshRenderer.sharedMaterial.SetTexture("_GradientTex", null);
             meshRenderer.sharedMaterial.SetTexture("_NoiseTex", noiseTexture);

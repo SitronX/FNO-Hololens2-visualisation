@@ -477,7 +477,7 @@
             {
                 //#define MAX_NUM_STEPS 512
 
-                RayInfo ray = getRayFront2Back(i.vertexLocal);
+                RayInfo ray = getRayFront2Back(i.vertexLocal);                     
                 RaymarchInfo raymarchInfo = initRaymarch(ray, _stepNumber);
 
                 // Create a small random offset in order to remove artifacts
@@ -496,12 +496,16 @@
 
                     const float density = getDensity(currPos);
 
+
+                     //Apply visibility window
+
                     bool isInInterval = false;
-                    // Apply visibility window
-                    for (int i = 0; i < _visibilitySlidersCount; i++)
+
+                    for (int numberOfSlider = 0; numberOfSlider < _visibilitySlidersCount; numberOfSlider++)
                     {
-                        if ((density > _lowerVisibilityWindow[i]) && (density < _upperVisibilityWindow[i]))
+                        if ((density > _lowerVisibilityWindow[numberOfSlider]) && (density < _upperVisibilityWindow[numberOfSlider]))
                         {
+                            isInInterval = true;
                             float3 normal = normalize(getGradient(currPos));
                             col = getTF1DColour(density);
                             col.rgb = calculateLighting(col.rgb, normal, getLightDirection(-ray.direction), -ray.direction, 0.15);
@@ -509,7 +513,9 @@
                             break;
                         }
                     }
-
+                    if (isInInterval)
+                        break;
+                  
                 }
 
                 // Write fragment output

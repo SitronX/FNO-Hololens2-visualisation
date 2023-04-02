@@ -75,17 +75,30 @@ namespace UnityVolumeRendering
 
             return seriesList;
         }
-        public async Task<IEnumerable<IImageSequenceSeries>> LoadSeriesAsync(IEnumerable<string> files)
+        public async Task<IEnumerable<IImageSequenceSeries>> LoadSeriesAsync(IEnumerable<string> files,ProgressHandler progressHandler,bool segmentation)
         {
             List<ImageSequenceSeries> seriesList = null;
             await Task.Run(() => {
                 HashSet<string> directories = new HashSet<string>();
+
+                int totalCount = files.Count();
+                int onePercent=totalCount/100;
+                int percentCounter=0;
+                int overall = 0;
 
                 foreach (string file in files)
                 {
                     string dir = Path.GetDirectoryName(file);
                     if (!directories.Contains(dir))
                         directories.Add(dir);
+
+                    if(percentCounter > onePercent)
+                    {
+                        progressHandler.ReportProgress(overall, totalCount, segmentation?"Loading segmentation slices...": "Loading main slices...");
+                        percentCounter = 0;
+                    }
+                    percentCounter++;
+                    overall++;
                 }
 
                 seriesList = new List<ImageSequenceSeries>();
@@ -172,7 +185,7 @@ namespace UnityVolumeRendering
 
             return volumeDataset;
         }
-        public async Task<(VolumeDataset,bool)> ImportSeriesAsync(IImageSequenceSeries series,string datasetName)
+        public async Task<(VolumeDataset,bool)> ImportSeriesAsync(IImageSequenceSeries series,string datasetName,ProgressHandler progressHandler)
         {
             Image image = null;
             float[] pixelData = null;
@@ -224,8 +237,19 @@ namespace UnityVolumeRendering
                 IntPtr imgBuffer = image.GetBufferAsFloat();
                 Marshal.Copy(imgBuffer, pixelData, 0, numPixels);
 
-                for (int i = 0; i < pixelData.Length; i++)
-                    pixelData[i] = Mathf.Clamp(pixelData[i], -1024, 3071);
+                //int onePercent=pixelData.Length / 100;
+                //int percentCounter = 0;
+                //for (int i = 0; i < pixelData.Length; i++)
+                //{
+                //    pixelData[i] = Mathf.Clamp(pixelData[i], -1024, 3071);      //Hounsfield values clamp
+                //
+                //    if(percentCounter>=onePercent)
+                //    {
+                //        progressHandler.ReportProgress(i, pixelData.Length, "Clamping data...");
+                //        percentCounter =0;
+                //    }
+                //    percentCounter++;
+                //}
 
                 VectorDouble spacing = image.GetSpacing();
 
@@ -234,10 +258,6 @@ namespace UnityVolumeRendering
                 volumeDataset.dimX = (int)size[0];
                 volumeDataset.dimY = (int)size[1];
                 volumeDataset.dimZ = (int)size[2];
-
-                volumeDataset.labelDimX = (int)size[0];
-                volumeDataset.labelDimY = (int)size[1];
-                volumeDataset.labelDimZ = (int)size[2];
 
                 volumeDataset.datasetName = datasetName;
                 volumeDataset.filePath = dicomNames[0];
@@ -250,7 +270,7 @@ namespace UnityVolumeRendering
             
             return (volumeDataset,isDatasetReversed);
         }
-        public async Task ImportSeriesSegmentationAsync(IImageSequenceSeries series,VolumeDataset volumeDataset,bool isDatasetReversed)
+        public async Task ImportSeriesSegmentationAsync(IImageSequenceSeries series,VolumeDataset volumeDataset,bool isDatasetReversed,ProgressHandler progressHandler)
         {
             Image image = null;
             float[] pixelData = null;
@@ -322,7 +342,11 @@ namespace UnityVolumeRendering
 
                 VectorDouble spacing = image.GetSpacing();
 
-                volumeDataset.labelData = isDatasetReversed? pixelData.Reverse().ToArray():pixelData;              
+                volumeDataset.labelData = isDatasetReversed? pixelData.Reverse().ToArray():pixelData;
+
+                volumeDataset.labelDimX = (int)size[0];
+                volumeDataset.labelDimY = (int)size[1];
+                volumeDataset.labelDimZ = (int)size[2];
             });
 
         }

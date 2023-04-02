@@ -58,11 +58,11 @@ namespace UnityVolumeRendering
                 dataTexture = CreateTextureInternal();
             return dataTexture;
         }
-        public async Task<Texture3D> GetDataTextureAsync(bool generateNew)
+        public async Task<Texture3D> GetDataTextureAsync(bool generateNew,ProgressHandler progressHandler)
         {
             if (dataTexture == null||generateNew)
             {
-                await CreateTextureInternalAsync();
+                await CreateTextureInternalAsync(progressHandler);
             }
             return dataTexture;
         }
@@ -73,23 +73,29 @@ namespace UnityVolumeRendering
                 gradientTexture = CreateGradientTextureInternal();
             return gradientTexture;
         }
-        public async Task<Texture3D> GetGradientTextureAsync(bool generateNew)
+        public async Task<Texture3D> GetGradientTextureAsync(bool generateNew,ProgressHandler progressHandler)
         {
             if (gradientTexture == null||generateNew)
             {
-                await CreateGradientTextureInternalAsync();
+                await CreateGradientTextureInternalAsync(progressHandler);
             }
             return gradientTexture;
         }
-        public async Task<Texture3D> GetLabelTextureAsync(bool generateNew)
+        public async Task<Texture3D> GetLabelTextureAsync(bool generateNew,ProgressHandler progressHandler)
         {
             if (labelTexture == null||generateNew)
             {
-                await CreateLabelTextureInternalAsync();
+                await CreateLabelTextureInternalAsync(progressHandler);
             }
             return labelTexture;
         }
 
+        public float GetMinDataValue(ProgressHandler progressHandler)
+        {
+            if (minDataValue == float.MaxValue)
+                CalculateValueBounds(progressHandler);
+            return minDataValue;
+        }
         public float GetMinDataValue()
         {
             if (minDataValue == float.MaxValue)
@@ -97,6 +103,12 @@ namespace UnityVolumeRendering
             return minDataValue;
         }
 
+        public float GetMaxDataValue(ProgressHandler progressHandler)
+        {
+            if (maxDataValue == float.MinValue)
+                CalculateValueBounds(progressHandler);
+            return maxDataValue;
+        }
         public float GetMaxDataValue()
         {
             if (maxDataValue == float.MinValue)
@@ -104,16 +116,26 @@ namespace UnityVolumeRendering
             return maxDataValue;
         }
 
-        public void FindAllSegments()
+        public void FindAllSegments(ProgressHandler progressHandler)
         {
             if (labelData != null)
             {
-                for (int i = 0; i < dimX * dimY * dimZ; i++)
+                int totalCount = labelData.Length;
+                int onePercent=totalCount/100;
+                int percentCounter = 0;
+                for (int i = 0; i < totalCount; i++)
                 {
                     float val = labelData[i];
                     
                     if (!LabelValues.ContainsKey(val))
                         LabelValues.Add(val, 0);
+
+                    if (percentCounter >= onePercent)
+                    {
+                        progressHandler.ReportProgress(i, totalCount, "Finding all segments...");
+                        percentCounter = 0;
+                    }
+                    percentCounter++;
                 }
             }
         }
@@ -194,6 +216,31 @@ namespace UnityVolumeRendering
             });
         }
 
+        private void CalculateValueBounds(ProgressHandler progressHandler)
+        {
+            minDataValue = float.MaxValue;
+            maxDataValue = float.MinValue;
+
+            if (data != null)
+            {
+                int totalCount=dimX * dimY * dimZ;
+                int onePercent=totalCount/100;
+                int percentCounter = 0;
+                for (int i = 0; i < totalCount; i++)
+                {
+                    float val = data[i];
+                    minDataValue = Mathf.Min(minDataValue, val);
+                    maxDataValue = Mathf.Max(maxDataValue, val);
+
+                    if (percentCounter >= onePercent)
+                    {
+                        progressHandler.ReportProgress(i, totalCount, "Calculating Boundaries...");
+                        percentCounter = 0;
+                    }
+                    percentCounter++;
+                }
+            }
+        }
         private void CalculateValueBounds()
         {
             minDataValue = float.MaxValue;
@@ -201,7 +248,9 @@ namespace UnityVolumeRendering
 
             if (data != null)
             {
-                for (int i = 0; i < dimX * dimY * dimZ; i++)
+                int totalCount = dimX * dimY * dimZ;
+              
+                for (int i = 0; i < totalCount; i++)
                 {
                     float val = data[i];
                     minDataValue = Mathf.Min(minDataValue, val);
@@ -209,7 +258,7 @@ namespace UnityVolumeRendering
                 }
             }
         }
-     
+
 
         private Texture3D CreateTextureInternal()
         {
@@ -250,7 +299,7 @@ namespace UnityVolumeRendering
             texture.Apply();
             return texture;
         }
-        private async Task CreateTextureInternalAsync()                                             //This method can be also called in custom logic to load it before continuing
+        private async Task CreateTextureInternalAsync(ProgressHandler progressHandler)                                             //This method can be also called in custom logic to load it before continuing
         {
             Debug.Log("Async texture generation. Hold on.");
 
@@ -263,8 +312,8 @@ namespace UnityVolumeRendering
 
             await Task.Run(() =>
             {
-                minValue = GetMinDataValue();
-                maxValue = GetMaxDataValue();
+                minValue = GetMinDataValue(progressHandler);
+                maxValue = GetMaxDataValue(progressHandler);
                 maxRange = maxValue - minValue;
             });
 
@@ -278,8 +327,19 @@ namespace UnityVolumeRendering
 
                     await Task.Run(() => {
                         pixelBytes = new NativeArray<ushort>(data.Length, Allocator.TempJob);
+
+                        int onePercentVal = data.Length / 100;
+                        int percentCounter = 0;
                         for (int iData = 0; iData < data.Length; iData++)
+                        {
                             pixelBytes[iData] = Mathf.FloatToHalf((float)(data[iData] - minValue) / maxRange);
+                            if(percentCounter>=onePercentVal)
+                            {
+                                progressHandler.ReportProgress(iData, data.Length, "Creating Data...");
+                                percentCounter = 0;
+                            }
+                            percentCounter++;
+                        }
                     });
 
                     Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
@@ -294,10 +354,22 @@ namespace UnityVolumeRendering
                 {
                     NativeArray<float> pixelBytes = default;
 
+                    int onePercentVal = data.Length / 100;
+                    int percentCounter = 0;
+
                     await Task.Run(() => {
                         pixelBytes = new NativeArray<float>(data.Length, Allocator.TempJob);
                         for (int iData = 0; iData < data.Length; iData++)
+                        {
                             pixelBytes[iData] = (float)(data[iData] - minValue) / maxRange;
+
+                            if (percentCounter >= onePercentVal)
+                            {
+                                progressHandler.ReportProgress(iData, data.Length, "Creating Data...");
+                                percentCounter = 0;
+                            }
+                            percentCounter++;
+                        }
                     });
 
                     Texture3D texture = new Texture3D(dimX, dimY, dimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
@@ -327,7 +399,7 @@ namespace UnityVolumeRendering
 
             Debug.Log("Texture generation done.");
         }
-        private async Task CreateLabelTextureInternalAsync()                                         //It would be ideal to represent label values as Int, but i didnt manage to get it working
+        private async Task CreateLabelTextureInternalAsync(ProgressHandler progressHandler)                                         //It would be ideal to represent label values as Int, but i didnt manage to get it working
         {
             Debug.Log("Async label texture generation. Hold on.");
 
@@ -336,7 +408,7 @@ namespace UnityVolumeRendering
 
             await Task.Run(() =>
             {
-                FindAllSegments();
+                FindAllSegments(progressHandler);
                 OrderLabelDictionary();
             });
 
@@ -348,9 +420,22 @@ namespace UnityVolumeRendering
 
                     await Task.Run(() =>
                     {
+                       
+                        int onePercentVal = labelData.Length / 100;
+                        int percentCounter = 0;
+
                         pixelBytes = new NativeArray<ushort>(labelData.Length, Allocator.TempJob);
                         for (int iData = 0; iData < labelData.Length; iData++)
+                        {
                             pixelBytes[iData] = Mathf.FloatToHalf(LabelValues[labelData[iData]]);                             //Assigning correct label map values
+
+                            if (percentCounter >= onePercentVal)
+                            {
+                                progressHandler.ReportProgress(iData, labelData.Length, "Creating Segmentation Data...");
+                                percentCounter = 0;
+                            }
+                            percentCounter++;
+                        }
                     });
 
                     Texture3D texture = new Texture3D(labelDimX, labelDimY, labelDimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
@@ -368,9 +453,21 @@ namespace UnityVolumeRendering
 
                     await Task.Run(() =>
                     {
+                        int onePercentVal = labelData.Length / 100;
+                        int percentCounter = 0;
+
                         pixelBytes = new NativeArray<float>(labelData.Length, Allocator.TempJob);
                         for (int iData = 0; iData < labelData.Length; iData++)
+                        {
                             pixelBytes[iData] = LabelValues[labelData[iData]];                             //Assigning correct label map values
+
+                            if (percentCounter >= onePercentVal)
+                            {
+                                progressHandler.ReportProgress(iData, labelData.Length, "Creating Segmentation Data...");
+                                percentCounter = 0;
+                            }
+                            percentCounter++;
+                        }
                     });
 
                     Texture3D texture = new Texture3D(labelDimX, labelDimY, labelDimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
@@ -458,7 +555,7 @@ namespace UnityVolumeRendering
             texture.Apply();
             return texture;
         }
-        private async Task CreateGradientTextureInternalAsync()
+        private async Task CreateGradientTextureInternalAsync(ProgressHandler progressHandler)
         {
             Debug.Log("Async gradient generation. Hold on.");
 
@@ -472,8 +569,8 @@ namespace UnityVolumeRendering
 
             await Task.Run(() => {
 
-                minValue = GetMinDataValue();
-                maxValue = GetMaxDataValue();
+                minValue = GetMinDataValue(progressHandler);
+                maxValue = GetMaxDataValue(progressHandler);
                 maxRange = maxValue - minValue;
             });
 
@@ -486,6 +583,11 @@ namespace UnityVolumeRendering
                 Texture3D textureTmp = new Texture3D(dimX, dimY, dimZ, texformat, false);
                 textureTmp.wrapMode = TextureWrapMode.Clamp;
 
+                int totalCount = dimX * dimY * dimZ;
+                int onePercentVal = totalCount / 100;
+                int percentCounter = 0;
+                int overall = 0;
+
                 for (int x = 0; x < dimX; x++)
                 {
                     for (int y = 0; y < dimY; y++)
@@ -496,6 +598,14 @@ namespace UnityVolumeRendering
                             Vector3 grad = GetGrad(x, y, z, minValue, maxRange);
 
                             textureTmp.SetPixel(x, y, z, new Color(grad.x, grad.y, grad.z, (float)(data[iData] - minValue) / maxRange));
+
+                            if (percentCounter >= onePercentVal)
+                            {
+                                progressHandler.ReportProgress(overall, totalCount, "Creating Gradient...");
+                                percentCounter = 0;
+                            }
+                            percentCounter++;
+                            overall++;
                         }
                     }
                 }
@@ -507,6 +617,12 @@ namespace UnityVolumeRendering
             }
 
             await Task.Run(() => {
+
+                int totalCount = dimX * dimY * dimZ;
+                int onePercentVal = totalCount / 100;
+                int percentCounter = 0;
+                int overall = 0;
+
                 for (int x = 0; x < dimX; x++)
                 {
                     for (int y = 0; y < dimY; y++)
@@ -517,6 +633,14 @@ namespace UnityVolumeRendering
                             Vector3 grad = GetGrad(x, y, z, minValue, maxRange);
 
                             cols[iData] = new Color(grad.x, grad.y, grad.z, (float)(data[iData] - minValue) / maxRange);
+
+                            if (percentCounter >= onePercentVal)
+                            {
+                                progressHandler.ReportProgress(overall, totalCount, "Creating Gradient...");
+                                percentCounter = 0;
+                            }
+                            percentCounter++;
+                            overall++;
                         }
                     }
                 }
