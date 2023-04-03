@@ -62,7 +62,7 @@ To add a custom dataset to the build with an option to spawn it at runtime, foll
 2. Create additional folder in the previously created folder, named <b> Data </b>.
 3. Paste the medical dataset into the <b>Data</b> folder. Supported file types are: <b>NRRD,NIFTI,DICOM and JPG sequence</b>. The files need to have corresponding suffix matching the file they represent (eg: DICOM data will have a .dcm suffix). If you have a lot of files without suffix, you can create suffixes in my simple bulk renaming tool, which is available [here](https://github.com/SitronX/FileRenamer). If you have the whole patient study, see [here](https://github.com/SitronX/FnO-Hololens2-visualisation/blob/VolumetricData/DatasetExtraction.md) how you can extract the specific dataset from study using Slicer3D.
 4. (Optional-Recommended) Create a second folder named <b>Thumbnail</b> and paste some image into that folder (.jpg or .png) so that dataset is easily recognizable in the spawn menu.
-5. (Optional) Create a third folder named <b>Labels</b> for segmentation support. Paste the segmentation [label map](https://slicer.readthedocs.io/en/latest/user_guide/modules/segmentations.html#export-segmentation-to-labelmap-volume) in this folder. The supported file types are the same as mentioned in step 3.
+5. (Optional) Create a third folder named <b>Labels</b> for segmentation support. Paste the segmentation [label map](https://slicer.readthedocs.io/en/latest/user_guide/modules/segmentations.html#export-segmentation-to-labelmap-volume) to this folder. The manual for correctly extracting segmentation from Slicer3D is available [here](https://github.com/SitronX/FnO-Hololens2-visualisation/blob/VolumetricData/SegmentationExtraction.md). The supported file types are the same as mentioned in step 3. 
 
 ### Spawning dataset in app
 
@@ -71,6 +71,7 @@ To add a custom dataset to the build with an option to spawn it at runtime, foll
 
 <img src="https://user-images.githubusercontent.com/68167377/226214129-0902cc3d-da77-4714-8229-eea4af8b02a4.gif" width=512>
 
+### Managing spawned datasets
 When the dataset is spawned, it can be reset by clicking the same previous button.
 
 <img src="https://user-images.githubusercontent.com/68167377/226214137-bf5b4928-0567-40d2-80b5-824463ec1050.gif" width=512>
@@ -130,22 +131,34 @@ Cutout methods are selectable in <b>Additional settings </b>.
 
 ![Cutouts](https://user-images.githubusercontent.com/68167377/226217175-80e0391c-f703-4be6-9d3f-07ee8a61e382.gif)
 
-## Second density slider
+## Multiple density sliders
 
-You can use additional second density slider to have two visibility intervals. With this, use can visualise two different parts of the body with different density, while your view is unobstructed by irrelevant parts.
+You can add additional density sliders to have more visibility intervals. With this, use can visualise several different parts of the body with different density, while your view is unobstructed by irrelevant parts.
 
-![DoubleSlider](https://user-images.githubusercontent.com/68167377/227983210-3160e0e8-7887-47ec-827d-58e8cd2ffdfe.gif)
+![MultipleSlider](https://user-images.githubusercontent.com/68167377/229572369-52f0b983-fee9-4475-a239-45fc3a86b15c.gif)
 
-## Downsampling datasets
+
+## More dataset options
+
+Dataset options ara available in the <b>Additional settings</b>.
+
+### Downsampling
 
 Some very large datasets can bring even powerful computers to their knees. When this happens, it's best to downsample the dataset.
 
-By downsampling very large datasets, the quality loss is usually negligible with a real boost in performance. The downsampling option is available in the <b>Additional settings</b>.
+By downsampling very large datasets, the quality loss is usually negligible with a real boost in performance.
 
 1. Grab the previously spawned dataset you want to downsample. The dataset will then become active, and you will see its name, thumbnail and dimensions.
 2. Press the downscale button (the dataset must finish previous loading).
 
-![Downscale](https://user-images.githubusercontent.com/68167377/226219048-e3ccf381-aa02-4b3d-ade1-7fc156817720.gif)
+<img src="https://user-images.githubusercontent.com/68167377/229569339-0788a979-aa92-42be-a603-74723dd70f99.gif" width=420>
+
+### Mirror correction
+
+Datasets should display correctly, but some specific datasets might still be affected by mirror issue. If you detect that body parts are mirror flipped, you can manually flip it to correct state
+
+![MirrorFlip](https://user-images.githubusercontent.com/68167377/229569745-eb5dc52e-8721-4928-9c6b-e372d6e6a5c7.gif)
+
 
 ## Changing background
 
