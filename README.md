@@ -140,7 +140,7 @@ You can add additional density sliders to have more visibility intervals. With t
 
 ## More dataset options
 
-Dataset options ara available in the <b>Additional settings</b>.
+Dataset options are available in the <b>Additional settings</b>.
 
 ### Downsampling
 
@@ -155,7 +155,7 @@ By downsampling very large datasets, the quality loss is usually negligible with
 
 ### Mirror correction
 
-Datasets should display correctly, but some specific datasets might still be affected by mirror issue. If you detect that body parts are mirror flipped, you can manually flip it to correct state
+Datasets should display correctly, but some specific datasets might still be affected by the mirror issue. If you detect that body parts are mirror flipped, you can manually flip it to the correct state.
 
 ![MirrorFlip](https://user-images.githubusercontent.com/68167377/229569745-eb5dc52e-8721-4928-9c6b-e372d6e6a5c7.gif)
 
