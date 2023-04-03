@@ -19,46 +19,34 @@ public class SliderIntervalUpdater : MonoBehaviour
 
     public Action OnIntervaSliderValueChanged { get; set; }
 
-    bool _isGrabbed = false;
-
     bool _isHovering = false;
 
     public void MiddleSliderUpdated(SliderEventData data)
-    {
-        if (_isGrabbed)
+    {      
+        float changedValue = data.NewValue - data.OldValue;
+
+        float firstSliderNewValue = _firstSlider.SliderValue + changedValue;
+        float secondSliderNewValue = _secondSlider.SliderValue + changedValue;
+
+        if (((firstSliderNewValue < 1) && (firstSliderNewValue > 0)) && ((secondSliderNewValue < 1) && (secondSliderNewValue > 0)))
         {
-            float changedValue = data.NewValue - data.OldValue;
-
-            float firstSliderNewValue = _firstSlider.SliderValue + changedValue;
-            float secondSliderNewValue = _secondSlider.SliderValue + changedValue;
-
-            if (((firstSliderNewValue < 1) && (firstSliderNewValue > 0)) && ((secondSliderNewValue < 1) && (secondSliderNewValue > 0)))
-            {
-                _firstSlider.SliderValue = firstSliderNewValue;
-                //_firstSlider.UpdateVisualsOrientation();
-
-                _secondSlider.SliderValue = secondSliderNewValue;
-                //_secondSlider.UpdateVisualsOrientation();
-            }
-        }      
+            _firstSlider.SliderValue = firstSliderNewValue;
+            _secondSlider.SliderValue = secondSliderNewValue;
+        }           
     }
     public void SetInitvalue(float min,float max)
     {
         _firstSlider.SliderValue = min;
         _secondSlider.SliderValue = max;
     }
-    public void OnMiddleSliderGrabbed(bool value)
-    {
-        _isGrabbed = value;
-    }
     public void OnChangeSliderValue()
     {
         OnIntervaSliderValueChanged?.Invoke();
 
-        float colliderSize=Mathf.Abs(_firstSlider.SliderValue-_secondSlider.SliderValue);
+        float middleSliderSize=Mathf.Abs(_firstSlider.SliderValue-_secondSlider.SliderValue);
 
         Vector3 updatedScale = _middleSliderCollider.transform.localScale;
-        updatedScale.x = colliderSize;
+        updatedScale.x = middleSliderSize;
         _middleSliderCollider.transform.localScale= updatedScale;
         _middleSliderCollider.transform.position=(_firstSliderThumb.transform.position+_secondSliderThumb.transform.position)*0.5f;
     }

@@ -51,10 +51,6 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
     public TransferFunction TransferFunction { get; set; }
 
-    Vector3 _startLocalPosition;
-    Vector3 _startLocalRotation;
-    Vector3 _startLocalScale;
-
     Vector3 _startLocalPlanePosition;
     Vector3 _startLocalPlaneRotation;
     Vector3 _startLocalPlaneScale;
@@ -81,6 +77,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
     public List<SliderIntervalUpdater> DensityIntervalSliders { get; private set; } = new List<SliderIntervalUpdater>();
     VolumeRenderedObject _volumeRenderedObject;
+    Camera _mainCamera;
 
     bool _segmentationPanelVisible = false;
     bool _isDatasetReversed;
@@ -92,13 +89,15 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         _tfColorUpdater.TfColorUpdated += SetTransferFunction;
         _tfColorUpdater.TfColorReset += OnTFReset;
     }
-    public async Task LoadDatasetAsync(string datasetFolderName,Texture volumeIcon,string description)        //Async addition so all the loading doesnt freeze the app
+    public async Task LoadDatasetAsync(string datasetFolderName,Texture volumeIcon,string description,Camera mainCamera)        //Async addition so all the loading doesnt freeze the app
     {
+        _mainCamera = mainCamera;
+
         using (ProgressHandler progressHandler = new ProgressHandler(_orbProgressView))
         {
             _saveSystem.TryLoadSaveTransformData();
 
-            progressHandler.Start("Loading started...", "MainLoad");
+            progressHandler.Start("Loading started...",8);
 
             _volumeRenderedObject.InitVisiblityWindow();
             _volumeDatasetIcon.material.mainTexture = volumeIcon;
@@ -125,6 +124,10 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
                 await InitSegmentationAsync(progressHandler);
                 _segmentationParent.SetActive(true);
             }
+            else
+            {
+                progressHandler.UpdateTotalNumberOfParts(5);
+            }
 
             TransferFunction = TransferFunctionDatabase.LoadTransferFunctionFromResources("default");      //TF in resources must be in .txt format, the .tf that is default for transfer function cannot be loaded from resources
             SetTransferFunction(TransferFunction);
@@ -147,11 +150,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneYNormalAxisObject);
             _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneZNormalAxisObject);
 
-            progressHandler.ReportProgress(0, "Creating gradient...");
-
             await Dataset.GetGradientTextureAsync(true,progressHandler);
-
-            progressHandler.Finish(ProgressStatus.Succeeded);
 
             HasBeenLoaded = true;
             DatasetSpawned?.Invoke(this);
@@ -196,7 +195,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
             try
             {
-                var result = await sequenceImporter.ImportSeriesAsync(sequence.First(), datasetName,progressHandler);
+                var result = await sequenceImporter.ImportSeriesAsync(sequence.First(), datasetName);
                 dataset = result.Item1;
                 isDatasetReversed = result.Item2;
             }
@@ -209,7 +208,8 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         {
             try
             {
-                var result = await fileImporter.ImportAsync(filePath,datasetName,progressHandler);
+                progressHandler.ReportProgress(0.2f, "Loading main file...");
+                var result = await fileImporter.ImportAsync(filePath,datasetName);
                 dataset=result.Item1;
                 isDatasetReversed = result.Item2;
             }
@@ -255,7 +255,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
             try
             {
-                await sequenceImporter.ImportSeriesSegmentationAsync(sequence.First(), volumeDataset,isDatasetReversed,progressHandler);
+                await sequenceImporter.ImportSeriesSegmentationAsync(sequence.First(), volumeDataset,isDatasetReversed);
             }
             catch
             {
@@ -266,8 +266,10 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         {
             try
             {
-                if(volumeDataset!=null)
-                    await fileImporter.ImportSegmentationAsync(filePath, volumeDataset, isDatasetReversed,progressHandler);
+                progressHandler.ReportProgress(0.2f, "Loading segmentation file...");
+
+                if (volumeDataset!=null)
+                    await fileImporter.ImportSegmentationAsync(filePath, volumeDataset, isDatasetReversed);
             }
             catch
             {
@@ -531,22 +533,17 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     {
         using (ProgressHandler progressHandler = new ProgressHandler(_orbProgressView))
         {
-            progressHandler.Start("Downscaling", "Downscaling dataset...");
+            progressHandler.Start("Downscaling dataset...",3);
            
-            await Dataset.DownScaleDataAsync();
+            await Dataset.DownScaleDataAsync(progressHandler);
 
             await RegenerateTexturesDataAsync(progressHandler);
 
-            progressHandler.Finish();
         }
     }
     private async Task RegenerateTexturesDataAsync(ProgressHandler progressHandler)
     {
-        progressHandler.ReportProgress(0, "Refreshing data...");
-
         VolumeMesh.sharedMaterial.SetTexture("_DataTex", await Dataset.GetDataTextureAsync(true, progressHandler));           //Very long
-
-        progressHandler.ReportProgress(0, "Refreshing gradient...");
 
         VolumeMesh.sharedMaterial.SetTexture("_GradientTex", await Dataset.GetGradientTextureAsync(true,progressHandler));           //Very long        
     }
@@ -566,9 +563,14 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     }
     public void ResetMainObjectTransform()
     {
-        transform.localPosition = _startLocalPosition;
-        transform.localRotation = Quaternion.Euler(_startLocalRotation);
-        transform.localScale = _startLocalScale;
+        Vector3 rot = _mainCamera.transform.rotation.eulerAngles;
+        rot.y += 90;
+        rot.x = 0;
+        rot.z = 0;
+
+        transform.position = _mainCamera.transform.position + (_mainCamera.transform.forward);
+        transform.rotation= Quaternion.Euler(rot);
+
     }
     public async Task MirrorFlipTexturesAsync()
     {
@@ -576,15 +578,17 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         {
             _isDatasetReversed = !_isDatasetReversed;
 
-            progressHandler.Start("Flipping", "Flipping Data...");
+            progressHandler.Start("Flipping Data...", 5);
 
             await Task.Run(() => Dataset.FlipTextureArrays());
 
             if (Segments.Count > 0)
             {
-                progressHandler.ReportProgress(0, "Refreshing Segmentation...");
-
                 VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync(true,progressHandler));           //Very long
+            }
+            else
+            {
+                progressHandler.UpdateTotalNumberOfParts(3);
             }
             if (_isDatasetReversed)
                 _volumeData.gameObject.transform.localRotation = Quaternion.Euler(_mirrorFlippedRotation);
@@ -624,10 +628,6 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
     private void SetInitialTransforms()
     {
-        _startLocalPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, transform.localPosition.z);
-        _startLocalRotation = new Vector3(transform.localRotation.eulerAngles.x, transform.localRotation.eulerAngles.y, transform.localRotation.eulerAngles.z);
-        _startLocalScale = new Vector3(transform.localScale.x, transform.localScale.y, transform.localScale.z);
-
         _startLocalPlanePosition = new Vector3(_cutoutPlane.transform.localPosition.x, _cutoutPlane.transform.localPosition.y, _cutoutPlane.transform.localPosition.z);
         _startLocalPlaneRotation = new Vector3(_cutoutPlane.transform.localRotation.eulerAngles.x, _cutoutPlane.transform.localRotation.eulerAngles.y, _cutoutPlane.transform.localRotation.eulerAngles.z);
         _startLocalPlaneScale = new Vector3(_cutoutPlane.transform.localScale.x, _cutoutPlane.transform.localScale.y, _cutoutPlane.transform.localScale.z);

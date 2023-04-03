@@ -55,7 +55,7 @@ namespace UnityVolumeRendering
 
             return volumeDataset;
         }
-        public async Task<(VolumeDataset, bool)> ImportAsync(string filePath, string datasetName,ProgressHandler progressHandler)
+        public async Task<(VolumeDataset, bool)> ImportAsync(string filePath, string datasetName)
         {
             float[] pixelData = null;
             VectorUInt32 size = null;
@@ -118,7 +118,7 @@ namespace UnityVolumeRendering
 
             return (volumeDataset, isDatasetReversed);
         }
-        public async Task ImportSegmentationAsync(string filePath, VolumeDataset volumeDataset, bool isDatasetReversed, ProgressHandler progressHandler)
+        public async Task ImportSegmentationAsync(string filePath, VolumeDataset volumeDataset, bool isDatasetReversed)
         {
             float[] pixelData = null;
             VectorUInt32 size = null;

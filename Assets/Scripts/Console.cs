@@ -84,9 +84,10 @@ public class Console : MonoBehaviour
             _toolkit.ActiveProfile = _noSpatial;
     }
     [Command("QRUpdateState")]
-    public void EnableQRUpdate(bool value)
+    public void EnableQRUpdates(bool value)
     {
-        FindObjectsOfType<MonoBehaviour>().OfType<IQRUpdate>().ToList().ForEach(x => x.EnableQRUpdate(value));
+        foreach (IQRUpdate i in FindObjectsOfType<MonoBehaviour>().OfType<IQRUpdate>())
+            i.EnableQRUpdate(value);
     }
     [Command]
     public void Quality(int numberOfSteps)

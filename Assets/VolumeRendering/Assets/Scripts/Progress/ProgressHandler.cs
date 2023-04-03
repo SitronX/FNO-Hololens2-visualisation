@@ -23,8 +23,9 @@ namespace UnityVolumeRendering
 
         private string description = "";
         private float currentProgress = 0.0f;
-        private Stack<ProgressStage> stageStack = new Stack<ProgressStage>(3);
         private IProgressView progressView;
+        private int _activePart;
+        private string _lastDescription = "";
 
         public ProgressHandler(IProgressView progressView)
         {
@@ -34,53 +35,13 @@ namespace UnityVolumeRendering
         /// <summary>
         /// Start the processing.
         /// </summary>
-        public void Start(string title, string description)
+        public void Start(string description,int numberOfParts)
         {
-            this.progressView.StartProgress(title, description);
+            this.progressView.StartProgress(description,numberOfParts);
             this.description = description;
             currentProgress = 0.0f;
-            stageStack.Clear();
-            stageStack.Push(new ProgressStage{ start = 0.0f, end = 1.0f });
-        }
-
-        /// <summary>
-        /// Finish the processing.
-        /// <param name="status">Completion status (succeeded or failed)</param>
-        /// </summary>
-        public void Finish(ProgressStatus status = ProgressStatus.Succeeded)
-        {
-            this.progressView.FinishProgress(status);
-            stageStack.Clear();
-        }
-
-        /// <summary>
-        /// Bramch a new sub-stage to track progress for.
-        /// Example:
-        ///   progress.StartStage(0.6f, "Do A"); // Will take up 60% of the progress.
-        ///   // Do work for A, and report progress with progress.ReportProgress(...)
-        ///   progress.EndStage();
-        ///   progress.StartStage(0.4f, "Do B"); // Will take up 40% of the progress.
-        ///   // Do work for B, and report progress with progress.ReportProgress(...)
-        ///   progress.EndStage();
-        /// <param name="status">Completion status (succeeded or failed)</param>
-        /// </summary>
-        public void StartStage(float weight, string description = "")
-        {
-            if (description != "")
-                this.description = description;
-
-            ProgressStage stage = stageStack.Peek();
-            stageStack.Push(new ProgressStage{ start = currentProgress, end = currentProgress + (stage.end - stage.start) * weight });
-            UpdateProgressView();
-        }
-
-        /// <summary>
-        /// End a previously started stage.
-        /// </summary>
-        public void EndStage()
-        {
-            ProgressStage childStage = stageStack.Pop();
-            currentProgress = childStage.end;
+            _activePart = 1;
+            _lastDescription = description;
         }
 
         /// <summary>
@@ -88,11 +49,17 @@ namespace UnityVolumeRendering
         /// <param name="progress">Current progress. Value between 0.0 and 1.0 (0-100%)</param>
         /// <param name="description">Description of the work being done</param>
         /// </summary>
-        public void ReportProgress(float progress, string description = "")
+        public void ReportProgress(float progress, string description)
         {
             if (description != "")
                 this.description = description;
-            currentProgress = GetAbsoluteProgress(progress);
+            currentProgress = progress;
+
+            if(description!=_lastDescription)
+            {
+                _activePart++;
+                _lastDescription = description;
+            }
 
             UpdateProgressView();
         }
@@ -103,29 +70,34 @@ namespace UnityVolumeRendering
         /// <param name="totalSteps">Total number of steps</param>
         /// <param name="description">Description of the work being done</param>
         /// </summary>
-        public void ReportProgress(int currentStep, int totalSteps, string description = "")
+        public void ReportProgress(int currentStep, int totalSteps, string description)
         {
             if (description != "")
                 this.description = description;
-            currentProgress = GetAbsoluteProgress(currentStep / (float)totalSteps);
+            currentProgress = (currentStep / (float)totalSteps);
+
+            if (description!= _lastDescription)
+            {
+                _activePart++;
+                _lastDescription = description;
+            }
 
             UpdateProgressView();
         }
 
         public void Dispose()
         {
-            Finish(ProgressStatus.Failed);
-        }
-
-        private float GetAbsoluteProgress(float progress)
-        {
-            ProgressStage stage = stageStack.Peek();
-            return Mathf.Lerp(stage.start, stage.end, progress);
+            this.progressView.FinishProgress();
         }
 
         private void UpdateProgressView()
         {
-            this.progressView.UpdateProgress(currentProgress, description);
+            this.progressView.UpdateProgress(currentProgress, description,_activePart);
+        }
+
+        public void UpdateTotalNumberOfParts(int numberOfParts)
+        {
+            progressView.UpdateTotalNumberOfParts(numberOfParts);
         }
     }
 }

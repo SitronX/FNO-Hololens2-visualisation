@@ -82,7 +82,7 @@ public class DatasetButton : MonoBehaviour
             ObjectManipulator manip= tmp.GetComponent<ObjectManipulator>();
             manip.OnManipulationStarted.AddListener(OnManipulationDatasetStarted);
 
-            await VolumeControlObject.LoadDatasetAsync(DatasetPath,ThumbnailTexture,DatasetName.text);
+            await VolumeControlObject.LoadDatasetAsync(DatasetPath,ThumbnailTexture,DatasetName.text,_mainCamera);
 
             
 

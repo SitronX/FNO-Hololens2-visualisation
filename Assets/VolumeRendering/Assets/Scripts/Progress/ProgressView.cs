@@ -7,8 +7,9 @@ namespace UnityVolumeRendering
     /// </summary>
     public interface IProgressView
     {
-        void StartProgress(string title, string description);
+        void StartProgress(string description,int numberOfParts);
         void FinishProgress(ProgressStatus status = ProgressStatus.Succeeded);
-        void UpdateProgress(float progress, string description);
+        void UpdateProgress(float progress, string description,int partNumber);
+        void UpdateTotalNumberOfParts(int numberOfParts);
     }
 }

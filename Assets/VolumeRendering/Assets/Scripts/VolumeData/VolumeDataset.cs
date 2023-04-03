@@ -189,13 +189,18 @@ namespace UnityVolumeRendering
             if(labelData!=null)
                 labelData= labelData.Reverse().ToArray();
         }
-        public async Task DownScaleDataAsync()
+        public async Task DownScaleDataAsync(ProgressHandler progressHandler)
         {
             await Task.Run(() => {
                 int halfDimX = dimX / 2 + dimX % 2;
                 int halfDimY = dimY / 2 + dimY % 2;
                 int halfDimZ = dimZ / 2 + dimZ % 2;
                 float[] downScaledData = new float[halfDimX * halfDimY * halfDimZ];
+
+                int totalCount=halfDimX*halfDimY*halfDimZ;
+                int onePercent = totalCount / 100;
+                int percentCount = 0;
+                int tmp = 0;
 
                 for (int x = 0; x < halfDimX; x++)
                 {
@@ -204,6 +209,14 @@ namespace UnityVolumeRendering
                         for (int z = 0; z < halfDimZ; z++)
                         {
                             downScaledData[x + y * halfDimX + z * (halfDimX * halfDimY)] = Mathf.Round(GetAvgerageVoxelValues(x * 2, y * 2, z * 2));
+
+                            if(percentCount>onePercent)
+                            {
+                                progressHandler.ReportProgress(tmp, totalCount, "Downscaling dataset...");
+                                percentCount = 0;
+                            }
+                            percentCount++;
+                            tmp++;
                         }
                     }
                 }

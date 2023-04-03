@@ -147,7 +147,8 @@ public class HandMenu : MonoBehaviour
     }
     public void UpdateQrStatus()
     {
-        FindObjectsOfType<MonoBehaviour>().OfType<IQRUpdate>().ToList().ForEach(x => x.EnableQRUpdate(_qrUpdatesEnabled));
+        foreach (IQRUpdate i in FindObjectsOfType<MonoBehaviour>().OfType<IQRUpdate>())
+            i.EnableQRUpdate(_qrUpdatesEnabled);
     }
     public void EnableQRButton(bool value)
     {

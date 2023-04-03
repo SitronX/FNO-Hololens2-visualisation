@@ -185,7 +185,7 @@ namespace UnityVolumeRendering
 
             return volumeDataset;
         }
-        public async Task<(VolumeDataset,bool)> ImportSeriesAsync(IImageSequenceSeries series,string datasetName,ProgressHandler progressHandler)
+        public async Task<(VolumeDataset,bool)> ImportSeriesAsync(IImageSequenceSeries series,string datasetName)
         {
             Image image = null;
             float[] pixelData = null;
@@ -270,7 +270,7 @@ namespace UnityVolumeRendering
             
             return (volumeDataset,isDatasetReversed);
         }
-        public async Task ImportSeriesSegmentationAsync(IImageSequenceSeries series,VolumeDataset volumeDataset,bool isDatasetReversed,ProgressHandler progressHandler)
+        public async Task ImportSeriesSegmentationAsync(IImageSequenceSeries series,VolumeDataset volumeDataset,bool isDatasetReversed)
         {
             Image image = null;
             float[] pixelData = null;

@@ -56,8 +56,12 @@ public class DatasetSaveSystem : MonoBehaviour
 
             if (File.Exists(_savePath))
             {
-                string jsonText = File.ReadAllText(_savePath);
-                _saveData = JsonConvert.DeserializeObject<DatasetSaveData>(jsonText);
+                try
+                {
+                    string jsonText = File.ReadAllText(_savePath);
+                    _saveData = JsonConvert.DeserializeObject<DatasetSaveData>(jsonText);           //If it is somehow corrupted, just ignore it, it will be overidden eventually
+                }
+                catch { }
             }
         });
     }
