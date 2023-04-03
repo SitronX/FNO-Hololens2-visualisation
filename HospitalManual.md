@@ -46,6 +46,8 @@ To add a custom dataset, follow these steps:
 
 <img src="https://user-images.githubusercontent.com/68167377/226214129-0902cc3d-da77-4714-8229-eea4af8b02a4.gif" width=512>
 
+### Managing spawned datasets
+
 When the dataset is spawned, it can be reset by clicking the same previous button.
 
 <img src="https://user-images.githubusercontent.com/68167377/226214137-bf5b4928-0567-40d2-80b5-824463ec1050.gif" width=512>
