@@ -12,8 +12,10 @@
 
 ![ExportToFile](https://user-images.githubusercontent.com/68167377/229524916-5a0d7060-d186-4f5d-bfd9-62e1cff439bc.jpg)
 
-### 4. Export the segmentation. This segmentation can then be placed into the Labels folder
+### 4. Export the segmentation. This segmentation can then be placed into the Labels folder in Dataset
 
 ![File](https://user-images.githubusercontent.com/68167377/229525711-ccb53594-aac3-4adc-b4a0-44639121e99a.jpg)
 
-Note: Make sure you that segmentation and medical dataset have same dimensions. For example: If you have cropped your dataset, the segmentation should also be cropped.
+<b>Note 1:</b> Make sure that segmentation and medical dataset have same dimensions. For example, if you have cropped your dataset, the segmentation should also be cropped.
+
+<b>Note 2:</b> Use NRRD format for segmentation, app can also read segment names from this format.
