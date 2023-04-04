@@ -49,6 +49,7 @@ public class VRMenu : MonoBehaviour
     {
         _vrControllerMenu.transform.parent = null;
         _vrControllerMenu.transform.GetChild(0).gameObject.SetActive(false);
+        _isMenuParented = false;
     }
     public void UnparrentVrMenu()
     {

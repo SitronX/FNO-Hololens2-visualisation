@@ -95,6 +95,8 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
         using (ProgressHandler progressHandler = new ProgressHandler(_orbProgressView))
         {
+            await _saveSystem.TryLoadSaveFileAsync(datasetFolderName);
+
             _saveSystem.TryLoadSaveTransformData();
 
             progressHandler.Start("Loading started...",8);
@@ -103,10 +105,10 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             _volumeDatasetIcon.material.mainTexture = volumeIcon;
             _volumeDatasetDescription.text = description;
 
-            var result = await CreateVolumeDatasetAsync(datasetFolderName,progressHandler);
+            (VolumeDataset result,bool isDatasetReversed) = await CreateVolumeDatasetAsync(datasetFolderName,progressHandler);
 
-            Dataset = result.Item1;
-            _isDatasetReversed = result.Item2;
+            Dataset = result;
+            _isDatasetReversed = isDatasetReversed;
 
             if (Dataset == null)
                 return;
@@ -118,6 +120,16 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
             await VolumeObjectFactory.FillObjectWithDatasetDataAsync(Dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject,progressHandler);
 
+            TransferFunction = TransferFunctionDatabase.LoadTransferFunctionFromResources("default");      //TF in resources must be in .txt format, the .tf that is default for transfer function cannot be loaded from resources
+            SetTransferFunction(TransferFunction);
+
+            _tfColorUpdater.InitUpdater(TransferFunction);
+            _saveSystem.TryLoadTFData(_tfColorUpdater);
+
+            if (!_saveSystem.TryLoadSaveDensitySliders(this))
+                AddValueDensitySlider(0, 1);                                     //Add default density slider if there are no save data
+
+            _densitySlidersContainer.SetActive(true);
 
             if (await TryLoadSegmentationToVolumeAsync(datasetFolderName, Dataset, _isDatasetReversed,progressHandler))
             {
@@ -128,23 +140,8 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             {
                 progressHandler.UpdateTotalNumberOfParts(5);
             }
-
-            TransferFunction = TransferFunctionDatabase.LoadTransferFunctionFromResources("default");      //TF in resources must be in .txt format, the .tf that is default for transfer function cannot be loaded from resources
-            SetTransferFunction(TransferFunction);
-
-
-            _tfColorUpdater.InitUpdater(TransferFunction);
-
-            _saveSystem.TryLoadTFData(_tfColorUpdater);
+       
             _saveSystem.TryLoadSaveSegmentData(this);
-
-            if (!_saveSystem.TryLoadSaveDensitySliders(this))
-                AddValueDensitySlider(0, 1);                                     //Add default density slider if there are no save data
-
-            _densitySlidersContainer.SetActive(true);
-
-
-            VolumeMesh.gameObject.SetActive(true);                          //It is disabled to this point, otherwise default mat is blocking loading indicator
 
             _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneXNormalAxisObject);
             _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneYNormalAxisObject);
@@ -350,7 +347,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             _removeSliderButton.SetActive(true);
 
         UpdateIsoRanges();
-        _saveSystem.SaveDataAsync(this);
+        _=_saveSystem.SaveDataAsync(this);
     }
     public void RemoveDensitySlider()
     {
@@ -367,7 +364,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
         UpdateIsoRanges();
         DensityIntervalsChanged?.Invoke();
-        _saveSystem.SaveDataAsync(this);
+        _=_saveSystem.SaveDataAsync(this);
     }
 
     public void UpdateIsoRanges()
@@ -515,7 +512,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     {
         Segments.ForEach(x => x.AlphaUpdate(value?1:0));
         AllAlphaButtonsPressed?.Invoke();
-        _saveSystem.SaveDataAsync(this);
+        _=_saveSystem.SaveDataAsync(this);
     }
     private void TurnMaterialLabelingKeyword(bool value)
     {
@@ -647,11 +644,11 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
     private void OnTFReset()
     {
-        _saveSystem.SaveDataAsync(this);
+        _=_saveSystem.SaveDataAsync(this);
     }
     public void OnInputUp(InputEventData eventData)
     {
-        _saveSystem.SaveDataAsync(this);
+        _=_saveSystem.SaveDataAsync(this);
     }
 
     public void OnInputDown(InputEventData eventData)

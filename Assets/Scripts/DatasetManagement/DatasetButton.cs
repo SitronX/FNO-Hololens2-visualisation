@@ -75,17 +75,12 @@ public class DatasetButton : MonoBehaviour
 
             GameObject tmp = Instantiate(_placeableVolumePrefab, _mainCamera.transform.position+(_mainCamera.transform.forward), Quaternion.Euler(rot));
 
-            DatasetSaveSystem saveSystem = tmp.GetComponent<DatasetSaveSystem>();
-            await saveSystem.TryLoadSaveFileAsync(DatasetPath);
-
             VolumeControlObject = tmp.GetComponent<VolumeDataControl>();
             ObjectManipulator manip= tmp.GetComponent<ObjectManipulator>();
             manip.OnManipulationStarted.AddListener(OnManipulationDatasetStarted);
 
             await VolumeControlObject.LoadDatasetAsync(DatasetPath,ThumbnailTexture,DatasetName.text,_mainCamera);
-
-            
-
+          
             _hasDatasetLoaded= true;
             _enablerObject.SetActive(true);
 
