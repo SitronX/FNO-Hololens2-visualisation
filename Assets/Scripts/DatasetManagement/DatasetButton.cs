@@ -14,16 +14,16 @@ public class DatasetButton : MonoBehaviour
     [SerializeField] MeshRenderer _loadButtonBackMesh;
     [SerializeField] GameObject _placeableVolumePrefab;
     [SerializeField] GameObject _loadButton;
-    [SerializeField] GameObject _qrActiveLabel;
     [SerializeField] GameObject _qrButton;
     [SerializeField] ButtonConfigHelper _configHelper;
     [SerializeField] Texture _defaultTexture;
     [SerializeField] GameObject _enablerObject;
+    [SerializeField] TMP_Text _qrButtonText;
+    [SerializeField] MeshRenderer _qrButtonMesh;
 
 
     [field: SerializeField] public TMP_Text DatasetName { get; set; }
     Camera _mainCamera;
-    bool _hasDatasetLoaded = false;
 
     public enum LoadButtonState
     {
@@ -64,7 +64,7 @@ public class DatasetButton : MonoBehaviour
         _loadButtonBackMesh.material.mainTexture = ThumbnailTexture;
         DatasetName.text = name;
     }
-    public async Task LoadDatasetAsync()
+    public async void LoadDatasetAsync()
     {      
         if (VolumeControlObject == null)
         {
@@ -79,13 +79,13 @@ public class DatasetButton : MonoBehaviour
             ObjectManipulator manip= tmp.GetComponent<ObjectManipulator>();
             manip.OnManipulationStarted.AddListener(OnManipulationDatasetStarted);
 
-            await VolumeControlObject.LoadDatasetAsync(DatasetPath,ThumbnailTexture,DatasetName.text,_mainCamera);
-          
-            _hasDatasetLoaded= true;
+
             _enablerObject.SetActive(true);
 
-            if(PlatformSpecific.Instance.CurrentPlatform==PlatformSpecific.TargetPlatform.Hololens2)
+            if (PlatformSpecific.Instance.CurrentPlatform == PlatformSpecific.TargetPlatform.Hololens2)
                 _qrButton.SetActive(true);
+
+            await VolumeControlObject.LoadDatasetAsync(DatasetPath,ThumbnailTexture,DatasetName.text,_mainCamera);        
         }
     }
 
@@ -143,8 +143,8 @@ public class DatasetButton : MonoBehaviour
     }
     public void SetQrActiveState(bool value)
     {
-        if(_hasDatasetLoaded)
-            _qrActiveLabel.SetActive(value);     
+        _qrButtonText.color=value ? Color.green : Color.white;
+        _qrButtonMesh.sharedMaterial.color = value ? Color.green : Color.white;
     }
     public void SetDatasetActive(bool value)
     {

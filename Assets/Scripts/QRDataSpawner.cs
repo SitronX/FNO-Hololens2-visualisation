@@ -10,14 +10,13 @@ public class QRDataSpawner : MonoBehaviour
 
     public static Action QrCodeSpawned { get; set; }
 
-    private async void Start()
+    private void Start()
     {
         if (HandMenu.Instance.ActiveQRDataset != null)
         {
             if (HandMenu.Instance.ActiveQRDataset.VolumeControlObject == null)
             {
-                await HandMenu.Instance.ActiveQRDataset.LoadDatasetAsync();
-                HandMenu.Instance.ActiveQRDataset.TryUpdateQRVolume();
+                HandMenu.Instance.ActiveQRDataset.LoadDatasetAsync();
             }
             else
             {

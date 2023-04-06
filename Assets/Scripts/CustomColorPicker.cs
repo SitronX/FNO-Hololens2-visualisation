@@ -13,11 +13,10 @@ public class CustomColorPicker : MonoBehaviour
     [SerializeField] GameObject _pickerObject;
 
     Color _pickerColor;
-    private int _callerID;
 
     public static CustomColorPicker Instance { get; private set; }
-    public Action<Color,int> ColorUpdated { get; set; }
 
+    private IColorPickerListener _listener;
 
     private void Awake()
     {
@@ -37,12 +36,12 @@ public class CustomColorPicker : MonoBehaviour
         _pickerColor.b = _bSlider.SliderValue;
         _pickerColor.a = 1;
 
-        ColorUpdated?.Invoke(_pickerColor, _callerID);
+        _listener.OnColorUpdated(_pickerColor);
     }
-    public void ShowColorPicker(Color defaultColor,Transform targetTransform,int callerID)
+    public void OpenColorPicker(IColorPickerListener listener, Color defaultColor,Transform targetTransform)
     {
+        _listener = listener;
         transform.parent = targetTransform;
-        _callerID = callerID;
         transform.localPosition = Vector3.zero;
         transform.localRotation = Quaternion.identity;
         _pickerObject.SetActive(true);
@@ -51,7 +50,4 @@ public class CustomColorPicker : MonoBehaviour
         _gSlider.SliderValue = defaultColor.g;
         _bSlider.SliderValue = defaultColor.b;
     }
-    
-
-
 }

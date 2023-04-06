@@ -488,7 +488,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     {
         VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync(true, progressHandler));           //Very long
 
-        Color[] uniqueColors = Utils.CreateColors(Dataset.LabelValues.Keys.Count);
+        Color[] uniqueColors = Utils.CreateDistinctColors(Dataset.LabelValues.Keys.Count);
         for (int i = 1; i < Dataset.LabelValues.Keys.Count; i++)
         {
             Color col = uniqueColors[i - 1];

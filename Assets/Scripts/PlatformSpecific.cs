@@ -21,6 +21,7 @@ public class PlatformSpecific : MonoBehaviour
     [SerializeField] GameObject _vrControllerMenu;
     [SerializeField] GameObject _vrNecessary;
     [SerializeField] GameObject _mainCamera;
+    [SerializeField] SkyboxChanger _skyboxChanger;
 
     public static PlatformSpecific Instance { get; private set; }
 
@@ -39,14 +40,15 @@ public class PlatformSpecific : MonoBehaviour
         {
             _hololensHandMenu.SetActive(true);
             _remotingObject.SetActive(true);
-            _qrCodeManager.SetActive(true);           
+            _qrCodeManager.SetActive(true);
+            //_skyboxChanger.ChangeSkybox(SkyboxChanger.SkyboxType.NoSkybox);
         }
         else if(CurrentPlatform == TargetPlatform.PCVR)
         {
             _vrNecessary.SetActive(true);
             _vrControllerMenu.SetActive(true);
             _vrControllerMenu.GetComponent<HandMenu>().EnableQRButton(false);
-            RenderSettings.skybox = _skyboxMaterial;
+            _skyboxChanger.ChangeSkybox(SkyboxChanger.SkyboxType.Classic);
         }
     }
 }

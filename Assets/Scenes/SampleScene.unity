@@ -777,8 +777,8 @@ Camera:
   m_GameObject: {fileID: 963194225}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.122641504, g: 0.11280704, b: 0.11280704, a: 1}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -1109,7 +1109,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83d9acc7968244a8886f3af591305bcb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  activeProfile: {fileID: 11400000, guid: 3c1deb1c8de581e45844e1c12a90ea0d, type: 2}
+  activeProfile: {fileID: 11400000, guid: 806a00a6204438043a661ed92b268443, type: 2}
 --- !u!4 &1319592963
 Transform:
   m_ObjectHideFlags: 0
@@ -1136,7 +1136,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2e92f4ccace23649ac45c87c6138689, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <CurrentPlatform>k__BackingField: 1
+  <CurrentPlatform>k__BackingField: 0
   _remotingObject: {fileID: 1169797922}
   _volumeObjectPrefab: {fileID: 4186097702043771639, guid: 02e1fe8d459124a42b8ada10457a2be3, type: 3}
   _qrCodeManager: {fileID: 876340972}
@@ -1145,6 +1145,7 @@ MonoBehaviour:
   _vrControllerMenu: {fileID: 273734675}
   _vrNecessary: {fileID: 293227633}
   _mainCamera: {fileID: 963194225}
+  _skyboxChanger: {fileID: 1319592965}
 --- !u!114 &1319592965
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1161,6 +1162,7 @@ MonoBehaviour:
   _skybox: {fileID: 11400000, guid: 3c1deb1c8de581e45844e1c12a90ea0d, type: 2}
   _darkColor: {fileID: 11400000, guid: ed1e7f7b644c36d428185bf545858531, type: 2}
   _lightColor: {fileID: 11400000, guid: 11a492d1d7ccfd349a0e9415603375ed, type: 2}
+  _noSkybox: {fileID: 11400000, guid: 806a00a6204438043a661ed92b268443, type: 2}
 --- !u!1 &1674125919 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5842008468016540175, guid: 983e56c2203f308479b07b9ae0492b3a, type: 3}

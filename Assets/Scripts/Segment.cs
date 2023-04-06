@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class Segment : MonoBehaviour
+public class Segment : MonoBehaviour, IColorPickerListener
 {
     [SerializeField] PinchSlider _slider;
     [SerializeField] Transform _colorPickerAnchorTransform;
@@ -23,11 +23,6 @@ public class Segment : MonoBehaviour
     {
         get { return _segmentColor; }
         set { _segmentColor = value; }
-    }
-
-    private void Start()
-    {
-        CustomColorPicker.Instance.ColorUpdated += OnColorPickerColorUpdated;
     }
 
     public void AlphaUpdate(float value)
@@ -57,15 +52,12 @@ public class Segment : MonoBehaviour
 
     public void OpenColorPicker()
     {
-        CustomColorPicker.Instance.ShowColorPicker(SegmentColor, _colorPickerAnchorTransform,SegmentID);
+        CustomColorPicker.Instance.OpenColorPicker(this, SegmentColor, _colorPickerAnchorTransform);
     }
-    public void OnColorPickerColorUpdated(Color color,int callerID)
-    {
-        if (callerID == SegmentID)
-        {
-            InitColor(color);
-            ColorUpdated?.Invoke();
-        }
 
+    public void OnColorUpdated(Color color)
+    {
+        InitColor(color);
+        ColorUpdated?.Invoke();
     }
 }
