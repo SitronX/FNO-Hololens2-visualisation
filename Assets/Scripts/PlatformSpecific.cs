@@ -49,6 +49,7 @@ public class PlatformSpecific : MonoBehaviour
             _vrControllerMenu.SetActive(true);
             _vrControllerMenu.GetComponent<HandMenu>().EnableQRButton(false);
             _skyboxChanger.ChangeSkybox(SkyboxChanger.SkyboxType.Classic);
+            RenderSettings.skybox = _skyboxMaterial;
         }
     }
 }
