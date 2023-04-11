@@ -13,9 +13,6 @@ public class Segment : MonoBehaviour, IColorPickerListener
     [SerializeField] TMP_Text _segmentName;
     [SerializeField] GameObject _mainObject;
 
-
-    public int SegmentID { get; set; }
-
     public Action ColorUpdated { get; set; }
 
     private Color _segmentColor;

@@ -151,7 +151,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
             HasBeenLoaded = true;
             DatasetSpawned?.Invoke(this);
-            await _saveSystem.SaveDataAsync(this);
+            _saveSystem.SaveDataAsync(this);
         }
     }
     public async Task<(VolumeDataset,bool)> CreateVolumeDatasetAsync(string datasetFolderName,ProgressHandler progressHandler)
@@ -337,7 +337,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         newSlider.transform.localPosition = new Vector3(0.09f - (DensityIntervalSliders.Count * 0.09f), 0.011f, 0.3f);
         newSlider.transform.localRotation = Quaternion.Euler(new Vector3(90, -90, 0));
         SliderIntervalUpdater sliderUpdater = newSlider.GetComponent<SliderIntervalUpdater>();
-        sliderUpdater.OnIntervaSliderValueChanged += UpdateIsoRanges;
+        sliderUpdater.IntervalSliderValueChanged += UpdateIsoRanges;
         sliderUpdater.SetInitvalue(minVal, maxVal);
         _sliderControlButtons.transform.localPosition = new Vector3(-0.03f - (DensityIntervalSliders.Count * 0.09f), 0, DensityIntervalSliders.Count > 0 ? 0.3f : 0.22f);
 
@@ -347,12 +347,12 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             _removeSliderButton.SetActive(true);
 
         UpdateIsoRanges();
-        _=_saveSystem.SaveDataAsync(this);
+        _saveSystem.SaveDataAsync(this);
     }
     public void RemoveDensitySlider()
     {
         SliderIntervalUpdater sliderUpdater = DensityIntervalSliders.Last();
-        sliderUpdater.OnIntervaSliderValueChanged -= UpdateIsoRanges;
+        sliderUpdater.IntervalSliderValueChanged -= UpdateIsoRanges;
 
         _sliderControlButtons.transform.localPosition = new Vector3(-0.03f - ((DensityIntervalSliders.Count - 2) * 0.09f), 0, DensityIntervalSliders.Count - 2>=1? 0.3f:0.22f);
 
@@ -364,7 +364,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
         UpdateIsoRanges();
         DensityIntervalsChanged?.Invoke();
-        _=_saveSystem.SaveDataAsync(this);
+        _saveSystem.SaveDataAsync(this);
     }
 
     public void UpdateIsoRanges()
@@ -496,7 +496,6 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             tmp.transform.localPosition = new Vector3(0,0.3f -(0.06f * i), 0.33f);
             tmp.transform.localRotation = Quaternion.Euler(new Vector3(0,-90,0));
             Segment segment = tmp.GetComponent<Segment>();
-            segment.SegmentID= i-1;
             segment.ColorUpdated += UpdateShaderLabelArray;
             segment.InitColor(col);
 
@@ -512,7 +511,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     {
         Segments.ForEach(x => x.AlphaUpdate(value?1:0));
         AllAlphaButtonsPressed?.Invoke();
-        _=_saveSystem.SaveDataAsync(this);
+        _saveSystem.SaveDataAsync(this);
     }
     private void TurnMaterialLabelingKeyword(bool value)
     {
@@ -644,11 +643,11 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
     private void OnTFReset()
     {
-        _=_saveSystem.SaveDataAsync(this);
+        _saveSystem.SaveDataAsync(this);
     }
     public void OnInputUp(InputEventData eventData)
     {
-        _=_saveSystem.SaveDataAsync(this);
+        _saveSystem.SaveDataAsync(this);
     }
 
     public void OnInputDown(InputEventData eventData)

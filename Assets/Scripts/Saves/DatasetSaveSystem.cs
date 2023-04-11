@@ -20,7 +20,7 @@ public class DatasetSaveSystem : MonoBehaviour
 
     string _savePath = "";
 
-    public async Task SaveDataAsync(VolumeDataControl volumeControl)
+    public async void SaveDataAsync(VolumeDataControl volumeControl)
     {
         if (volumeControl.HasBeenLoaded)
         {

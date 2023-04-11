@@ -17,7 +17,7 @@ public class SliderIntervalUpdater : MonoBehaviour
     [SerializeField] GameObject _secondSliderThumb;
     [SerializeField] Animator _middleSliderAnimator;
 
-    public Action OnIntervaSliderValueChanged { get; set; }
+    public Action IntervalSliderValueChanged { get; set; }
 
     bool _isHovering = false;
 
@@ -41,7 +41,7 @@ public class SliderIntervalUpdater : MonoBehaviour
     }
     public void OnChangeSliderValue()
     {
-        OnIntervaSliderValueChanged?.Invoke();
+        IntervalSliderValueChanged?.Invoke();
 
         float middleSliderSize=Mathf.Abs(_firstSlider.SliderValue-_secondSlider.SliderValue);
 

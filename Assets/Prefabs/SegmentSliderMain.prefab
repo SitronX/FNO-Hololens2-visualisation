@@ -241,7 +241,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: b765d10f7f039904ebfb9e4db1f949b0, type: 3}
+  m_Sprite: {fileID: 21300000, guid: d732449ede8643f4d9c057f911a3cc55, type: 3}
   m_Color: {r: 0.5283019, g: 0.3959655, b: 0.35635456, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -304,6 +304,7 @@ MonoBehaviour:
   _colorPickerAnchorTransform: {fileID: 7712226616873982106}
   _spriteRenderer: {fileID: 6105531747251680949}
   _segmentName: {fileID: 6445466322026411034}
+  _mainObject: {fileID: 0}
 --- !u!1 &8873194510341460245
 GameObject:
   m_ObjectHideFlags: 0
