@@ -9,7 +9,6 @@ public class CuttingModelManager : MonoBehaviour
     // Start is called before the first frame update
 
     [SerializeField] GameObject _emptyGameObjectPrefab;
-    List<SliceData> _segmentObjects = new List<SliceData>();
     [SerializeField] GameObject _slicingPlaneObject;
     [SerializeField] GameObject _alphaSliderPrefab;
     [SerializeField] GameObject _alphaSliderContainer;
@@ -24,6 +23,8 @@ public class CuttingModelManager : MonoBehaviour
     Vector3 _startLocalPlaneScale;
 
     GameObject _mainObject;
+    List<SliceData> _segmentObjects = new List<SliceData>();
+
 
     public struct SliceData
     {
@@ -83,10 +84,8 @@ public class CuttingModelManager : MonoBehaviour
             data.segment = seg;
 
             _segmentObjects.Add(data);
-
-
-            ResetInitialPosition();
         }
+        ResetInitialPosition();
     }
 
     public void UpdateSlicingData()
@@ -97,14 +96,14 @@ public class CuttingModelManager : MonoBehaviour
             {
                 Destroy(j.gameObject);
             }
-            Tuple<GameObject,GameObject> slicedObjectFragments= _segmentObjects[i].slice.ComputeSlice(_slicingPlaneObject.transform.up, _slicingPlaneObject.transform.position+ (_slicingPlaneObject.transform.up*0.001f), true, true, _segmentObjects[i].fragmentRootContainer);
+            Tuple<GameObject,GameObject> slicedObjectFragments= _segmentObjects[i].slice.ComputeSlice(sliceNormalWorld: _slicingPlaneObject.transform.up, sliceOriginWorld: _slicingPlaneObject.transform.position+ (_slicingPlaneObject.transform.up*0.001f),instantiateOnlyLeftFragment: true,isKinematic: true, fragmentRootObject: _segmentObjects[i].fragmentRootContainer);
 
             GameObject firstSlicedFragment=slicedObjectFragments.Item1;
 
-            if(firstSlicedFragment!= null )
-            {
-                //TODO SLICE BY SLIDER
-            }
+            //if(firstSlicedFragment!= null )
+            //{
+            //    //TODO SLICE BY SLIDER
+            //}
         }
     }
     public void ResetObjectTransform()
