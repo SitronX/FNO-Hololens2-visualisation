@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class CuttingModelManager : MonoBehaviour
@@ -12,6 +13,7 @@ public class CuttingModelManager : MonoBehaviour
     [SerializeField] GameObject _slicingPlaneObject;
     [SerializeField] GameObject _alphaSliderPrefab;
     [SerializeField] GameObject _alphaSliderContainer;
+    [SerializeField] GameObject _parentSpawnObject;
 
     Vector3 _startLocalPosition;
     Vector3 _startLocalRotation;
@@ -21,6 +23,7 @@ public class CuttingModelManager : MonoBehaviour
     Vector3 _startLocalPlaneRotation;
     Vector3 _startLocalPlaneScale;
 
+    GameObject _mainObject;
 
     public struct SliceData
     {
@@ -33,11 +36,17 @@ public class CuttingModelManager : MonoBehaviour
 
     void Start()
     {
-        int currentChildCount = transform.childCount;
+        GameObject[] obj=Resources.LoadAll<GameObject>("");
+       
+        _mainObject = Instantiate(obj[0], _parentSpawnObject.transform);        //Loading first item from resources folder
+        _mainObject.transform.localPosition = new Vector3(0, 0, 0);
+        _mainObject.transform.localRotation = Quaternion.identity;
+
+        int currentChildCount = _mainObject.transform.childCount;
 
         for (int i = 0; i < currentChildCount; i++)
         {
-            GameObject current = transform.GetChild(i).gameObject;
+            GameObject current = _mainObject.transform.GetChild(i).gameObject;
 
             Slice currentSlice= current.AddComponent<Slice>();
             currentSlice.sliceOptions = new SliceOptions
@@ -94,9 +103,9 @@ public class CuttingModelManager : MonoBehaviour
     }
     public void ResetObjectTransform()
     {
-        transform.parent.localPosition = _startLocalPosition;
-        transform.parent.localRotation = Quaternion.Euler(_startLocalRotation);
-        transform.parent.localScale = _startLocalScale;
+        _mainObject.transform.parent.localPosition = _startLocalPosition;
+        _mainObject.transform.parent.localRotation = Quaternion.Euler(_startLocalRotation);
+        _mainObject.transform.parent.localScale = _startLocalScale;
 
         _slicingPlaneObject.transform.parent.localPosition = _startLocalPlanePosition;
         _slicingPlaneObject.transform.parent.localRotation = Quaternion.Euler(_startLocalPlaneRotation);
@@ -107,9 +116,9 @@ public class CuttingModelManager : MonoBehaviour
 
     private void ResetInitialPosition()
     {
-        _startLocalPosition = new Vector3(transform.parent.localPosition.x, transform.parent.localPosition.y, transform.parent.localPosition.z);
-        _startLocalRotation = new Vector3(transform.parent.localRotation.eulerAngles.x, transform.parent.localRotation.eulerAngles.y, transform.parent.localRotation.eulerAngles.z);
-        _startLocalScale = new Vector3(transform.parent.localScale.x, transform.parent.localScale.y, transform.parent.localScale.z);
+        _startLocalPosition = new Vector3(_mainObject.transform.parent.localPosition.x, _mainObject.transform.parent.localPosition.y, _mainObject.transform.parent.localPosition.z);
+        _startLocalRotation = new Vector3(_mainObject.transform.parent.localRotation.eulerAngles.x, _mainObject.transform.parent.localRotation.eulerAngles.y, _mainObject.transform.parent.localRotation.eulerAngles.z);
+        _startLocalScale = new Vector3(_mainObject.transform.parent.localScale.x, _mainObject.transform.parent.localScale.y, _mainObject.transform.parent.localScale.z);
 
         _startLocalPlanePosition = new Vector3(_slicingPlaneObject.transform.parent.localPosition.x, _slicingPlaneObject.transform.parent.localPosition.y, _slicingPlaneObject.transform.parent.localPosition.z);
         _startLocalPlaneRotation = new Vector3(_slicingPlaneObject.transform.parent.localRotation.eulerAngles.x, _slicingPlaneObject.transform.parent.localRotation.eulerAngles.y, _slicingPlaneObject.transform.parent.localRotation.eulerAngles.z);
