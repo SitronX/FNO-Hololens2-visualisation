@@ -4,7 +4,7 @@
 </p>
 
 # FnO-Model-visualisation
-This branch is for data visualisation that are represented by 3D mesh/model using AR/VR headsets running on target devices without the PC. [OpenFracture](https://github.com/dgreenheck/OpenFracture) library from dgreenheck is used for reality mesh slicing providing similar functionality as cutout plane in [VolumeBranch](https://github.com/SitronX/FnO-Hololens2-visualisation/tree/QRCodeRecognition-VolumetricData). Solution is tested to work on Hololens 2 (AR) and Oculus Quest 2 (VR).
+This branch is for data visualisation that are represented by 3D mesh/model using AR/VR headsets running on target devices without the PC. [OpenFracture](https://github.com/dgreenheck/OpenFracture) library from dgreenheck is used for reality mesh slicing providing similar functionality as cutout plane in [VolumeBranch](https://github.com/SitronX/FnO-Hololens2-visualisation/tree/VolumetricData). Solution is tested to work on Hololens 2 (AR) and Oculus Quest 2 (VR).
 
 <table>
   <tr>  
@@ -56,6 +56,6 @@ In the scene, make sure the Quest is selected here as target platform
 
 Make sure the Android is selected in build and all settings are same as on next picture
 
-<img src="https://user-images.githubusercontent.com/68167377/220969725-bc977142-38f1-4549-837d-9ced841c6e22.jpg" width=720>
+<img src="https://user-images.githubusercontent.com/68167377/231197260-d15debd4-1f9b-47dc-91bb-c9b1ccdfb337.jpg" width=720>
 
 Simply select <b>build and run</b> option and app should automatically install on connected Quest device.
