@@ -33,6 +33,7 @@ Individual sections:
 - [Exporting the model from segmentation in Slicer3D](https://youtu.be/affo3I7i2-8)
 - [Processing the model in Blender](https://youtu.be/affo3I7i2-8?t=33)
 - [Importing model into Unity](https://youtu.be/affo3I7i2-8?t=192)
+- [Editor showcase](https://youtu.be/affo3I7i2-8?t=227)
 
 ## App build
 
