@@ -23,7 +23,8 @@ namespace UnityVolumeRendering
         [SerializeField]
         public float[] labelData;
 
-        public Dictionary<float,float> LabelValues { get; set; } =new Dictionary<float,float>();      //Label value and position
+        public Dictionary<float,float> LabelValues { get; set; } =new Dictionary<float,float>();      //Label value and index
+        public Dictionary<float,string> LabelNames { get; set; }=new Dictionary<float, string>();       //Names correction
 
         [SerializeField]
         public int dimX, dimY, dimZ;
@@ -49,7 +50,6 @@ namespace UnityVolumeRendering
         //TODO
         private Texture3D labelTexture = null;
         public int labelDimX, labelDimY, labelDimZ;
-        public List<string> LabelNames { get; set; } = new List<string>();
 
 
         public Texture3D GetDataTexture()
@@ -421,7 +421,7 @@ namespace UnityVolumeRendering
 
             await Task.Run(() =>
             {
-                FindAllSegments(progressHandler);
+                FindAllSegments(progressHandler);       //Althought LabelNames should contain this info, it is not always the case (empty metadatas), so we still need to check it manually
                 OrderLabelDictionary();
             });
 
@@ -454,7 +454,7 @@ namespace UnityVolumeRendering
                     Texture3D texture = new Texture3D(labelDimX, labelDimY, labelDimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
                     texture.wrapMode = TextureWrapMode.Clamp;
                     texture.SetPixelData(pixelBytes, 0);
-                    texture.filterMode= FilterMode.Point;           //Main culprit of impossible shader issue. Without point interpolation, it refused to round out to whole int number and was giving strangest results
+                    texture.filterMode= FilterMode.Point;           
                     texture.Apply();
                     labelTexture = texture;
 
@@ -513,15 +513,10 @@ namespace UnityVolumeRendering
         }
         private void OrderLabelDictionary()
         {
-            List<float> values = new List<float>();
+            List<float> orderedKeys = LabelValues.Keys.OrderBy(x=>x).ToList();
 
-            foreach(float i in LabelValues.Keys)
-                values.Add(i);
-
-            values=values.OrderBy(x=>x).ToList();
-
-            for (int i = 0; i < values.Count; i++)
-                LabelValues[values[i]] = i;
+            for (int i = 0; i < orderedKeys.Count; i++)
+                LabelValues[orderedKeys[i]] = i;
         }
 
         private Texture3D CreateGradientTextureInternal()

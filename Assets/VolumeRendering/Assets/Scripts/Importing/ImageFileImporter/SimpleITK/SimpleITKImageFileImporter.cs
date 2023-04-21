@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Globalization;
+using System.Xml;
 
 namespace UnityVolumeRendering
 {
@@ -73,19 +75,6 @@ namespace UnityVolumeRendering
 
                 Image image = reader.Execute();
 
-                int slicesNumber = (int)(image.GetDepth() - 1);
-
-                Image firstSlice = Utils.ExtractSlice(image, 0);
-                Image lastSlice = Utils.ExtractSlice(image, slicesNumber);
-
-                List<string> tmp = reader.GetMetaDataKeys().ToList();
-
-
-                if (Utils.IsHeadFeetDataset(firstSlice, lastSlice))
-                {
-                    isDatasetReversed = false;
-                }
-
                 // Cast to 32-bit float
                 image = SimpleITK.Cast(image, PixelIDValueEnum.sitkFloat32);
 
@@ -102,7 +91,7 @@ namespace UnityVolumeRendering
 
                 spacing = image.GetSpacing();
 
-                volumeDataset.data = isDatasetReversed? pixelData.Reverse().ToArray():pixelData;
+                volumeDataset.data = pixelData.Reverse().ToArray();
                 volumeDataset.dimX = (int)size[0];
                 volumeDataset.dimY = (int)size[1];
                 volumeDataset.dimZ = (int)size[2];
@@ -148,9 +137,13 @@ namespace UnityVolumeRendering
                 while (true)
                 {
                     string key = $"Segment{segmentNumber}_Name";
+                    string keyValue= $"Segment{segmentNumber}_LabelValue";
                     if (metaDataKeys.Contains(key))
                     {
-                        volumeDataset.LabelNames.Add(reader.GetMetaData(key));
+                        float segmentValue = float.Parse(reader.GetMetaData(keyValue), CultureInfo.InvariantCulture);
+                        string segmentName = reader.GetMetaData(key);
+
+                        volumeDataset.LabelNames.Add(segmentValue,segmentName);
                         segmentNumber++;
                     }
                     else
@@ -159,6 +152,7 @@ namespace UnityVolumeRendering
                     }
                        
                 }
+
 
                 // Cast to 32-bit float
                 image = SimpleITK.Cast(image, PixelIDValueEnum.sitkFloat32);

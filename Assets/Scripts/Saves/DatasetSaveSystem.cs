@@ -67,51 +67,79 @@ public class DatasetSaveSystem : MonoBehaviour
     }
     public bool TryLoadSaveTransformData()
     {
-        if (_saveData != null)
+        try
         {
-            Converters.UpdateTransform(_mainDatasetT.transform, _saveData.MainDatasetTransform);
-            Converters.UpdateTransform(_grabHandleT.transform, _saveData.GrabHandleTransform);
-            Converters.UpdateTransform(_crossPlaneT.transform, _saveData.CrossPlaneTransform);
-            Converters.UpdateTransform(_crossSphereT.transform, _saveData.CrossSphereTransform);
-            return true;
+            if (_saveData != null)
+            {
+                Converters.UpdateTransform(_mainDatasetT.transform, _saveData.MainDatasetTransform);
+                Converters.UpdateTransform(_grabHandleT.transform, _saveData.GrabHandleTransform);
+                Converters.UpdateTransform(_crossPlaneT.transform, _saveData.CrossPlaneTransform);
+                Converters.UpdateTransform(_crossSphereT.transform, _saveData.CrossSphereTransform);
+                return true;
+            }
+            return false;
         }
-        return false;
+        catch
+        {
+            return false;
+        }
     }
     public bool TryLoadSaveDensitySliders(VolumeDataControl volumeControl)
     {
-        if (_saveData != null)
+        try
         {
-            for (int i = 0; i < _saveData.DensityIntervalSliders.Count; i++)
-                volumeControl.AddValueDensitySlider(_saveData.DensityIntervalSliders[i].MinValue, _saveData.DensityIntervalSliders[i].MaxValue);
+            if (_saveData != null)
+            {
+                for (int i = 0; i < _saveData.DensityIntervalSliders.Count; i++)
+                    volumeControl.AddValueDensitySlider(_saveData.DensityIntervalSliders[i].MinValue, _saveData.DensityIntervalSliders[i].MaxValue);
 
-            return true;
+                return true;
+            }
+            return false;
         }
-        return false;
+        catch
+        {
+            return false;
+        }
     }
     public bool TryLoadSaveSegmentData(VolumeDataControl volumeControl)
     {
-        if (_saveData != null)
+        try
         {
-            for (int i = 0; i < _saveData.SegmentColors.Count; i++)
+            if (_saveData != null)
             {
-                Color col = Converters.ConvertColor(_saveData.SegmentColors[i]);
-                volumeControl.Segments[i].InitColor(col);
-                volumeControl.Segments[i].AlphaUpdate(_saveData.SegmentColors[i].A);
+                for (int i = 0; i < _saveData.SegmentColors.Count; i++)
+                {
+                    Color col = Converters.ConvertColor(_saveData.SegmentColors[i]);
+                    volumeControl.Segments[i].InitColor(col);
+                    volumeControl.Segments[i].AlphaUpdate(_saveData.SegmentColors[i].A);
+                }
+                return true;
             }
-            return true;
+            return false;
         }
-        return false;
+        catch
+        {
+            return false;
+        }
     }
     public bool TryLoadTFData(TFColorUpdater tfUpdater)
     {
-        if (_saveData != null)
+        try
         {
-            for (int i = 0; i < _saveData.TransferFunction.ColourControlPoints.Count; i++)
+            if (_saveData != null)
             {
-                tfUpdater.UpdateSliderColorPosition(i, _saveData.TransferFunction.ColourControlPoints[i].SliderValue);
+                for (int i = 0; i < _saveData.TransferFunction.ColourControlPoints.Count; i++)
+                {
+                    tfUpdater.UpdateSliderColorPosition(i, _saveData.TransferFunction.ColourControlPoints[i].SliderValue);
+                }
+                return true;
             }
-            return true;
+            return false;
         }
-        return false;
+        catch
+        {
+            return false;
+        }
     }
 }

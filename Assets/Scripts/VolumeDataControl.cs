@@ -140,7 +140,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             {
                 progressHandler.UpdateTotalNumberOfParts(5);
             }
-       
+
             _saveSystem.TryLoadSaveSegmentData(this);
 
             _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneXNormalAxisObject);
@@ -489,21 +489,29 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync(true, progressHandler));           //Very long
 
         Color[] uniqueColors = Utils.CreateDistinctColors(Dataset.LabelValues.Keys.Count);
-        for (int i = 1; i < Dataset.LabelValues.Keys.Count; i++)
+
+        int iter = 0;
+
+        foreach (float key in Dataset.LabelValues.Keys.OrderBy(x=>x))
         {
-            Color col = uniqueColors[i - 1];
+            if (key == 0) continue; 
+
+            Color col = uniqueColors[iter];
             GameObject tmp = Instantiate(_segmentationSliderPrefab, _segmentationParentContainer.transform);
-            tmp.transform.localPosition = new Vector3(0,0.3f -(0.06f * i), 0.33f);
+            tmp.transform.localPosition = new Vector3(0,0.24f -(0.06f * iter), 0.33f);
             tmp.transform.localRotation = Quaternion.Euler(new Vector3(0,-90,0));
             Segment segment = tmp.GetComponent<Segment>();
             segment.ColorUpdated += UpdateShaderLabelArray;
             segment.InitColor(col);
 
-            if(Dataset.LabelNames.Count>=i)
-                segment.ChangeSegmentName(Dataset.LabelNames[i-1]);
+            if(Dataset.LabelNames.ContainsKey(key))
+                segment.ChangeSegmentName(Dataset.LabelNames[key]);
 
             Segments.Add(segment);
+
+            iter++;
         }
+
         UpdateShaderLabelArray();
 
     }
