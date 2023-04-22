@@ -91,7 +91,7 @@ public class DatasetSaveSystem : MonoBehaviour
             if (_saveData != null)
             {
                 for (int i = 0; i < _saveData.DensityIntervalSliders.Count; i++)
-                    volumeControl.AddValueDensitySlider(_saveData.DensityIntervalSliders[i].MinValue, _saveData.DensityIntervalSliders[i].MaxValue);
+                    volumeControl.AddValueDensitySlider(_saveData.DensityIntervalSliders[i].MinValue, _saveData.DensityIntervalSliders[i].MaxValue,false);
 
                 return true;
             }

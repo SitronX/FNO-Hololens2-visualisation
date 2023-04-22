@@ -4,8 +4,10 @@ using Microsoft.MixedReality.Toolkit.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.Profiling;
 using UnityEngine;
+using static UnityEngine.ProBuilder.AutoUnwrapSettings;
 
 public class SliderIntervalUpdater : MonoBehaviour
 {
@@ -16,6 +18,12 @@ public class SliderIntervalUpdater : MonoBehaviour
     [SerializeField] GameObject _firstSliderThumb;
     [SerializeField] GameObject _secondSliderThumb;
     [SerializeField] Animator _middleSliderAnimator;
+    [SerializeField] TMP_Text _sliderFirstHULabel;
+    [SerializeField] TMP_Text _sliderSecondHULabel;
+
+    float _maxHounsfieldValue;
+    float _minHounsfieldValue;
+    float _hounsfieldRange;
 
     public Action IntervalSliderValueChanged { get; set; }
 
@@ -23,22 +31,58 @@ public class SliderIntervalUpdater : MonoBehaviour
 
     public void MiddleSliderUpdated(SliderEventData data)
     {      
-        float changedValue = data.NewValue - data.OldValue;
+        float sliderRange=_firstSlider.SliderValue-_secondSlider.SliderValue;
 
-        float firstSliderNewValue = _firstSlider.SliderValue + changedValue;
-        float secondSliderNewValue = _secondSlider.SliderValue + changedValue;
+        bool isSecondSliderGreater = sliderRange < 0;
 
-        if (((firstSliderNewValue < 1) && (firstSliderNewValue > 0)) && ((secondSliderNewValue < 1) && (secondSliderNewValue > 0)))
+        float firstSliderNewValue = isSecondSliderGreater ? data.NewValue - (sliderRange * 0.5f) : data.NewValue + (sliderRange * 0.5f);
+        float secondSliderNewValue = isSecondSliderGreater ? data.NewValue + (sliderRange * 0.5f) : data.NewValue - (sliderRange * 0.5f);
+
+        if((firstSliderNewValue <= 1)&& (secondSliderNewValue <= 1))
         {
-            _firstSlider.SliderValue = firstSliderNewValue;
-            _secondSlider.SliderValue = secondSliderNewValue;
-        }           
+            if((firstSliderNewValue >= 0)&& (secondSliderNewValue >= 0))
+            {
+                _firstSlider.SliderValue = firstSliderNewValue;
+                _secondSlider.SliderValue = secondSliderNewValue;
+            }
+            else                                //In case some slider has reached value below 0, move both sliders by same range to the start
+            {
+                float toFill;
+                if (isSecondSliderGreater)
+                    toFill =  _firstSlider.SliderValue; 
+                else
+                    toFill = _secondSlider.SliderValue;
+              
+                _firstSlider.SliderValue -= toFill;
+                _secondSlider.SliderValue -= toFill;
+            }
+        }
+        else                                    //In case some slider has reached value above 1, move both sliders by same range to the end
+        {
+            float toFill;
+            if (isSecondSliderGreater)
+                toFill = 1 - _secondSlider.SliderValue;
+            else
+                toFill = 1 - _firstSlider.SliderValue;
+
+            _firstSlider.SliderValue += toFill;
+            _secondSlider.SliderValue += toFill;
+        } 
     }
+    public void SetHounsfieldValues(float minValue,float maxValue)
+    {
+        _minHounsfieldValue = minValue;
+        _maxHounsfieldValue = maxValue;
+        _hounsfieldRange = maxValue - minValue;
+    }
+
     public void SetInitvalue(float min,float max)
     {
         _firstSlider.SliderValue = min;
         _secondSlider.SliderValue = max;
+        _middleSlider.SliderValue = (max + min) * 0.5f;
     }
+
     public void OnChangeSliderValue()
     {
         IntervalSliderValueChanged?.Invoke();
@@ -47,8 +91,13 @@ public class SliderIntervalUpdater : MonoBehaviour
 
         Vector3 updatedScale = _middleSliderCollider.transform.localScale;
         updatedScale.x = middleSliderSize;
-        _middleSliderCollider.transform.localScale= updatedScale;
-        _middleSliderCollider.transform.position=(_firstSliderThumb.transform.position+_secondSliderThumb.transform.position)*0.5f;
+
+        _middleSliderCollider.transform.localScale = updatedScale;
+        _middleSliderCollider.transform.position = (_firstSliderThumb.transform.position + _secondSliderThumb.transform.position) * 0.5f;
+        
+
+        _sliderFirstHULabel.text= $"{(int)(_minHounsfieldValue + (_firstSlider.SliderValue * _hounsfieldRange))}<br>HU";
+        _sliderSecondHULabel.text = $"{(int)(_minHounsfieldValue + (_secondSlider.SliderValue * _hounsfieldRange))}<br>HU";
     }
     public void GetSliderValues(out float value1,out float value2)
     {

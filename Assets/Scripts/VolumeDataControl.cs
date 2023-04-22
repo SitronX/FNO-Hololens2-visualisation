@@ -127,7 +127,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             _saveSystem.TryLoadTFData(_tfColorUpdater);
 
             if (!_saveSystem.TryLoadSaveDensitySliders(this))
-                AddValueDensitySlider(0, 1);                                     //Add default density slider if there are no save data
+                AddValueDensitySlider(0, 1,false);                                     //Add default density slider if there are no save data
 
             _densitySlidersContainer.SetActive(true);
 
@@ -328,9 +328,9 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     }
     public void AddDensitySlider()
     {
-        AddValueDensitySlider(0, 0.2f);
+        AddValueDensitySlider(0, 0.2f,saveAfter:true);
     }
-    public void AddValueDensitySlider(float minVal,float maxVal)
+    public void AddValueDensitySlider(float minVal,float maxVal,bool saveAfter)
     {
         GameObject newSlider = Instantiate(_densitySliderPrefab, _densitySlidersContainer.transform);
 
@@ -339,6 +339,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         SliderIntervalUpdater sliderUpdater = newSlider.GetComponent<SliderIntervalUpdater>();
         sliderUpdater.IntervalSliderValueChanged += UpdateIsoRanges;
         sliderUpdater.SetInitvalue(minVal, maxVal);
+        sliderUpdater.SetHounsfieldValues(Dataset.MinDataValue, Dataset.MaxDataValue);
         _sliderControlButtons.transform.localPosition = new Vector3(-0.03f - (DensityIntervalSliders.Count * 0.09f), 0, DensityIntervalSliders.Count > 0 ? 0.3f : 0.22f);
 
         DensityIntervalSliders.Add(sliderUpdater);
@@ -347,7 +348,9 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             _removeSliderButton.SetActive(true);
 
         UpdateIsoRanges();
-        _saveSystem.SaveDataAsync(this);
+
+        if(saveAfter)
+            _saveSystem.SaveDataAsync(this);
     }
     public void RemoveDensitySlider()
     {

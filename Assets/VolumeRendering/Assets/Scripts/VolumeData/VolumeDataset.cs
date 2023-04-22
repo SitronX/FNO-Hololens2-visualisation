@@ -41,8 +41,8 @@ namespace UnityVolumeRendering
         [SerializeField]
         public string datasetName;
 
-        private float minDataValue = float.MaxValue;
-        private float maxDataValue = float.MinValue;
+        public float MinDataValue { get; set; } = float.MaxValue;
+        public float MaxDataValue { get; set; } = float.MinValue;
 
         private Texture3D dataTexture = null;
         private Texture3D gradientTexture = null;
@@ -92,28 +92,28 @@ namespace UnityVolumeRendering
 
         public float GetMinDataValue(ProgressHandler progressHandler)
         {
-            if (minDataValue == float.MaxValue)
+            if (MinDataValue == float.MaxValue)
                 CalculateValueBounds(progressHandler);
-            return minDataValue;
+            return MinDataValue;
         }
         public float GetMinDataValue()
         {
-            if (minDataValue == float.MaxValue)
+            if (MinDataValue == float.MaxValue)
                 CalculateValueBounds();
-            return minDataValue;
+            return MinDataValue;
         }
 
         public float GetMaxDataValue(ProgressHandler progressHandler)
         {
-            if (maxDataValue == float.MinValue)
+            if (MaxDataValue == float.MinValue)
                 CalculateValueBounds(progressHandler);
-            return maxDataValue;
+            return MaxDataValue;
         }
         public float GetMaxDataValue()
         {
-            if (maxDataValue == float.MinValue)
+            if (MaxDataValue == float.MinValue)
                 CalculateValueBounds();
-            return maxDataValue;
+            return MaxDataValue;
         }
 
         public void FindAllSegments(ProgressHandler progressHandler)
@@ -231,8 +231,8 @@ namespace UnityVolumeRendering
 
         private void CalculateValueBounds(ProgressHandler progressHandler)
         {
-            minDataValue = float.MaxValue;
-            maxDataValue = float.MinValue;
+            MinDataValue = float.MaxValue;
+            MaxDataValue = float.MinValue;
 
             if (data != null)
             {
@@ -242,8 +242,8 @@ namespace UnityVolumeRendering
                 for (int i = 0; i < totalCount; i++)
                 {
                     float val = data[i];
-                    minDataValue = Mathf.Min(minDataValue, val);
-                    maxDataValue = Mathf.Max(maxDataValue, val);
+                    MinDataValue = Mathf.Min(MinDataValue, val);
+                    MaxDataValue = Mathf.Max(MaxDataValue, val);
 
                     if (percentCounter >= onePercent)
                     {
@@ -256,8 +256,8 @@ namespace UnityVolumeRendering
         }
         private void CalculateValueBounds()
         {
-            minDataValue = float.MaxValue;
-            maxDataValue = float.MinValue;
+            MinDataValue = float.MaxValue;
+            MaxDataValue = float.MinValue;
 
             if (data != null)
             {
@@ -266,8 +266,8 @@ namespace UnityVolumeRendering
                 for (int i = 0; i < totalCount; i++)
                 {
                     float val = data[i];
-                    minDataValue = Mathf.Min(minDataValue, val);
-                    maxDataValue = Mathf.Max(maxDataValue, val);
+                    MinDataValue = Mathf.Min(MinDataValue, val);
+                    MaxDataValue = Mathf.Max(MaxDataValue, val);
                 }
             }
         }
