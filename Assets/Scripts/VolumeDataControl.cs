@@ -143,9 +143,9 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
             _saveSystem.TryLoadSaveSegmentData(this);
 
-            _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneXNormalAxisObject);
-            _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneYNormalAxisObject);
-            _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneZNormalAxisObject);
+            _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneXNormalAxisObject,Dataset.MinDataValue,Dataset.MaxDataValue);
+            _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneYNormalAxisObject, Dataset.MinDataValue, Dataset.MaxDataValue);
+            _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneZNormalAxisObject, Dataset.MinDataValue, Dataset.MaxDataValue);
 
             await Dataset.GetGradientTextureAsync(true,progressHandler);
 

@@ -72,8 +72,10 @@ Shader "VolumeRendering/SliceRenderingShader"
                 {
                    // Sample the volume texture.
                    float dataVal = tex3D(_DataTex, dataCoord);
-                   float4 col = tex2D(_TFTex, float2(dataVal, 0.0f));
-                   col.a = 1.0f;
+                   //float4 col = tex2D(_TFTex, float2(dataVal, 0.0f));
+
+                   float4 col=float4(dataVal,dataVal,dataVal,1.0f);     //Grayscale
+                   //col.a = 1.0f;
                    return col;
                 }
             }

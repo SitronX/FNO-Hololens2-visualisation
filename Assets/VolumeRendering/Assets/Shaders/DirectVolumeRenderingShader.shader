@@ -7,10 +7,6 @@
         _GradientTex("Gradient Texture (Generated)", 3D) = "" {}
         _NoiseTex("Noise Texture (Generated)", 2D) = "white" {}
         _TFTex("Transfer Function Texture (Generated)", 2D) = "" {}
-        _Min1Val("Min1 val", Range(0.0, 1.0)) = 0.0
-        _Max1Val("Max1 val", Range(0.0, 1.0)) = 1.0
-        _Min2Val("Min2 val", Range(0.0, 1.0)) = 0.0
-        _Max2Val("Max2 val", Range(0.0, 1.0)) = 1.0
         _stepNumber("Step number",int)=512
     }
     SubShader

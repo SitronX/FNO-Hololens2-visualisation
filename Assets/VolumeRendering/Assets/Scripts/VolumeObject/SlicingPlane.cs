@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 
 namespace UnityVolumeRendering
 {
@@ -7,10 +8,23 @@ namespace UnityVolumeRendering
     {
         public VolumeRenderedObject targetObject;
         private MeshRenderer meshRenderer;
+        [SerializeField] TMP_Text _maxHU;
+        [SerializeField] TMP_Text _minHU;
+        [SerializeField] TMP_Text _maxHU2;
+        [SerializeField] TMP_Text _minHU2;
 
         private void Start()
         {
             meshRenderer = GetComponent<MeshRenderer>();
+        }
+
+        public void InitHounsfield(float min,float max)
+        {
+            _minHU.text = $"{min} <sprite=0>";
+            _maxHU.text = $"{max} <sprite=0>";
+
+            _minHU2.text = $"{min} <sprite=0>";
+            _maxHU2.text = $"{max} <sprite=0>";
         }
 
         private void Update()
