@@ -1,45 +1,37 @@
 using Microsoft.MixedReality.Toolkit.UI;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityVolumeRendering;
+
 
 public class DatasetButton : MonoBehaviour
 {
     [SerializeField] MeshRenderer _loadButtonBackMesh;
     [SerializeField] GameObject _placeableVolumePrefab;
-    [SerializeField] GameObject _loadButton;
-    [SerializeField] GameObject _qrButton;
     [SerializeField] ButtonConfigHelper _configHelper;
     [SerializeField] Texture _defaultTexture;
     [SerializeField] GameObject _enablerObject;
     [SerializeField] TMP_Text _qrButtonText;
     [SerializeField] MeshRenderer _qrButtonMesh;
 
-
-    [field: SerializeField] public TMP_Text DatasetName { get; set; }
     Camera _mainCamera;
 
-    public enum LoadButtonState
-    {
-        Selectable,ReadyToLoad,Active
-    }
+    [field: SerializeField] public Interactable LoadButton { get; set; }
+    [field: SerializeField] public Interactable QrButton { get; set; }
+    [field: SerializeField] public TMP_Text DatasetName { get; set; }
     public LoadButtonState ButtonState { private set; get; }
-
     public VolumeDataControl VolumeControlObject { get; set; }
-
     public Texture ThumbnailTexture { get; set; }
     public string DatasetPath { get; set; }
     public int ButtonIndex { get; set; }
-    public Action<int> QrCodeDatasetActivated { get; set; }
-    public Action<int> LoadButtonPressed { get; set; }
 
     public static Action<DatasetButton> DatasetGrabbed { get; set; }
+
+    public enum LoadButtonState
+    {
+        Selectable, ReadyToLoad, Active
+    }
 
     private void Start()
     {
@@ -64,7 +56,7 @@ public class DatasetButton : MonoBehaviour
         _loadButtonBackMesh.material.mainTexture = ThumbnailTexture;
         DatasetName.text = name;
     }
-    public async void LoadDatasetAsync()
+    public void LoadDatasetAsync()
     {      
         if (VolumeControlObject == null)
         {
@@ -73,30 +65,22 @@ public class DatasetButton : MonoBehaviour
             rot.x= 0;
             rot.z = 0;
 
-            GameObject tmp = Instantiate(_placeableVolumePrefab, _mainCamera.transform.position+(_mainCamera.transform.forward), Quaternion.Euler(rot));
+            GameObject spawned = Instantiate(_placeableVolumePrefab, _mainCamera.transform.position+(_mainCamera.transform.forward), Quaternion.Euler(rot));
 
-            VolumeControlObject = tmp.GetComponent<VolumeDataControl>();
-            ObjectManipulator manip= tmp.GetComponent<ObjectManipulator>();
-            manip.OnManipulationStarted.AddListener(OnManipulationDatasetStarted);
+            VolumeControlObject = spawned.GetComponent<VolumeDataControl>();
+            ObjectManipulator manip= spawned.GetComponent<ObjectManipulator>();
 
+            manip.OnManipulationStarted.AddListener((data)=> DatasetGrabbed?.Invoke(this));
 
             _enablerObject.SetActive(true);
 
             if (PlatformSpecific.Instance.CurrentPlatform == PlatformSpecific.TargetPlatform.Hololens2)
-                _qrButton.SetActive(true);
+                QrButton.gameObject.SetActive(true);
 
-            await VolumeControlObject.LoadDatasetAsync(DatasetPath,ThumbnailTexture,DatasetName.text,_mainCamera);        
+            VolumeControlObject.LoadDatasetAsync(DatasetPath,ThumbnailTexture,DatasetName.text,_mainCamera);        
         }
     }
 
-    public void OnManipulationDatasetStarted(ManipulationEventData data)
-    {
-        DatasetGrabbed?.Invoke(this);
-    }
-    public void ButtonPressed()
-    {
-        LoadButtonPressed?.Invoke(ButtonIndex);
-    }
     public void SetButtonState(LoadButtonState state)
     {
         if (state != ButtonState)
@@ -131,10 +115,6 @@ public class DatasetButton : MonoBehaviour
                 qrPlaced.ChangeVolumeData(VolumeControlObject);
             }
         }
-    }
-    public void QrClicked()
-    {
-        QrCodeDatasetActivated?.Invoke(ButtonIndex);
     }
     public void ResetClicked()
     {

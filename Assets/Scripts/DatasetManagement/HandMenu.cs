@@ -6,9 +6,6 @@ using System.IO;
 using System.Linq;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem.XR;
-
-using UnityEngine.XR;
 
 public class HandMenu : MonoBehaviour
 {
@@ -25,15 +22,14 @@ public class HandMenu : MonoBehaviour
     [SerializeField] TMP_Text _version;
     [SerializeField] string _lastUpdateText;
 
-    public List<DatasetButton> AllDatasetButtons { get; set; } = new List<DatasetButton>();
-    public DatasetButton ActiveQRDataset { get; set; }
-
     bool _showCutPlane = false;
     bool _useCubicInterpolation = false;
     bool _useLighting = false;
     bool _additionalSettingShown = false;
     bool _qrUpdatesEnabled = true;
 
+    public List<DatasetButton> AllDatasetButtons { get; set; } = new List<DatasetButton>();
+    public DatasetButton ActiveQRDataset { get; set; }
     public static HandMenu Instance { get; private set; }              //Singleton
 
     IEnumerator Start()
@@ -57,8 +53,9 @@ public class HandMenu : MonoBehaviour
             currentScroll.DatasetPath = _datasetDirectories[i];
             currentScroll.ButtonIndex = i;
 
-            currentScroll.QrCodeDatasetActivated += OnAnyQrActivated;
-            currentScroll.LoadButtonPressed += OnDatasetLoadButtonClicked;
+            currentScroll.QrButton.OnClick.AddListener(()=> OnAnyQrActivated(currentScroll.ButtonIndex));
+            currentScroll.LoadButton.OnClick.AddListener(()=> OnDatasetLoadButtonClicked(currentScroll.ButtonIndex)); 
+
             AllDatasetButtons.Add(currentScroll);
         }
 
@@ -71,7 +68,7 @@ public class HandMenu : MonoBehaviour
         yield return new WaitForEndOfFrame();
         _gridObjectCollection.UpdateCollection();
         yield return new WaitForEndOfFrame();
-        _scrollingObjectCollection.UpdateContent();     //This needs to be here like this in coroutine due to bug : https://github.com/microsoft/MixedRealityToolkit-Unity/issues/10350
+        _scrollingObjectCollection.UpdateContent();     //This needs to be here in coroutine due this to bug : https://github.com/microsoft/MixedRealityToolkit-Unity/issues/10350
     } 
     private void OnDestroy()
     {
@@ -80,7 +77,7 @@ public class HandMenu : MonoBehaviour
     }
     private void OnNewDatasetSpawned(VolumeDataControl volumeDataControl)
     {
-        volumeDataControl.UpdateSlicePlane(_showCutPlane);                              //Check if all volume objects are set same as handmenu
+        volumeDataControl.UpdateSlicePlane(_showCutPlane);                              //Check if all volume objects are set same as handmenu settings
         volumeDataControl.UpdateCubicInterpolation(_useCubicInterpolation);
         volumeDataControl.UpdateLighting(_useLighting);
         volumeDataControl.UpdateIsoRanges();
@@ -89,21 +86,14 @@ public class HandMenu : MonoBehaviour
         ChangeCrossSectionType();
         UpdateRaymarchSteps();
     }
-
     public void UpdateRenderingMode()
     {
-        if (_renderModes.CurrentIndex == 0)
-            AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.UpdateRenderingMode(UnityVolumeRendering.RenderMode.DirectVolumeRendering); });
-        else if (_renderModes.CurrentIndex == 1)
-            AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.UpdateRenderingMode(UnityVolumeRendering.RenderMode.MaximumIntensityProjectipon); });
-        else if (_renderModes.CurrentIndex == 2)
-            AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.UpdateRenderingMode(UnityVolumeRendering.RenderMode.IsosurfaceRendering); });
+        UnityVolumeRendering.RenderMode mode = _renderModes.CurrentIndex == 0 ? UnityVolumeRendering.RenderMode.DirectVolumeRendering : _renderModes.CurrentIndex == 1 ? UnityVolumeRendering.RenderMode.MaximumIntensityProjectipon : UnityVolumeRendering.RenderMode.IsosurfaceRendering;
+         AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.UpdateRenderingMode(mode); });
     }
-
     public void LightingUpdated()
     {
         _useLighting = !_useLighting;
-
         AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.UpdateLighting(_useLighting); });
     }
     public void SlicePlaneUpdated()
@@ -114,7 +104,6 @@ public class HandMenu : MonoBehaviour
     public void CubicInterpolationUpdated()
     {
         _useCubicInterpolation=!_useCubicInterpolation;
-
         AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.UpdateCubicInterpolation(_useCubicInterpolation); });
     }
     public void UpdateRaymarchSteps()
@@ -128,17 +117,12 @@ public class HandMenu : MonoBehaviour
     public void UpdateAdditionalSettings()
     {
         _additionalSettingShown = !_additionalSettingShown;
-
         _additionalSettingAnimator.SetBool("AdditionalSettings", _additionalSettingShown);
     }
     public void ChangeCrossSectionType()
     {
-        if (_crossSectionModes.CurrentIndex == 0)
-            AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.Plane); });
-        else if (_crossSectionModes.CurrentIndex == 1)
-            AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.SphereInclusive); });
-        else if (_crossSectionModes.CurrentIndex == 2)
-            AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.SetCrossSectionType(UnityVolumeRendering.CrossSectionType.SphereExclusive); });
+        UnityVolumeRendering.CrossSectionType type = _crossSectionModes.CurrentIndex == 0 ? UnityVolumeRendering.CrossSectionType.Plane : _crossSectionModes.CurrentIndex == 1 ? UnityVolumeRendering.CrossSectionType.SphereInclusive : UnityVolumeRendering.CrossSectionType.SphereExclusive;
+        AllDatasetButtons.ForEach(_x => { if ((_x.VolumeControlObject != null) && _x.VolumeControlObject.HasBeenLoaded) _x.VolumeControlObject.SetCrossSectionType(type); });
     }
     public void ChangeQRUpdates()
     {
@@ -202,5 +186,4 @@ public class HandMenu : MonoBehaviour
             }
         }
     }
-
 }

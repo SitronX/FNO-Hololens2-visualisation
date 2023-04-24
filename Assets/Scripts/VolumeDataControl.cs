@@ -48,6 +48,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     public VolumeDataset Dataset { get; set; }
     public bool HasBeenLoaded { get; set; }
     public List<Segment> Segments { get; set; } = new List<Segment>();
+    public DatasetProcessingType ProcessingType { get; set; } = DatasetProcessingType.Normal;
 
     public TransferFunction TransferFunction { get; set; }
 
@@ -72,15 +73,17 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     public Action AllAlphaButtonsPressed { get; set; }
     public Action DensityIntervalsChanged { get; set; }
 
-    //public static List<string> TF2D { get; set; } = new List<string>();
-    //public static List<string> TF1D { get; set; } = new List<string>();
-
     public List<SliderIntervalUpdater> DensityIntervalSliders { get; private set; } = new List<SliderIntervalUpdater>();
     VolumeRenderedObject _volumeRenderedObject;
     Camera _mainCamera;
 
     bool _segmentationPanelVisible = false;
     bool _isDatasetReversed;
+
+    public enum DatasetProcessingType
+    {
+        Mirrorflipping,Downsampling,Normal
+    }
 
     private void Start()
     {
@@ -89,7 +92,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         _tfColorUpdater.TfColorUpdated += SetTransferFunction;
         _tfColorUpdater.TfColorReset += OnTFReset;
     }
-    public async Task LoadDatasetAsync(string datasetFolderName,Texture volumeIcon,string description,Camera mainCamera)        //Async addition so all the loading doesnt freeze the app
+    public async void LoadDatasetAsync(string datasetFolderName,Texture volumeIcon,string description,Camera mainCamera)        //Async addition so all the loading doesnt freeze the app
     {
         _mainCamera = mainCamera;
 
@@ -541,11 +544,11 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         using (ProgressHandler progressHandler = new ProgressHandler(_orbProgressView))
         {
             progressHandler.Start("Downscaling dataset...",3);
-           
+
+            ProcessingType = DatasetProcessingType.Downsampling;
             await Dataset.DownScaleDataAsync(progressHandler);
-
             await RegenerateTexturesDataAsync(progressHandler);
-
+            ProcessingType = DatasetProcessingType.Normal;
         }
     }
     private async Task RegenerateTexturesDataAsync(ProgressHandler progressHandler)
@@ -583,6 +586,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     {
         using (ProgressHandler progressHandler = new ProgressHandler(_orbProgressView))
         {
+            ProcessingType = DatasetProcessingType.Mirrorflipping;
             _isDatasetReversed = !_isDatasetReversed;
 
             progressHandler.Start("Flipping Data...", 5);
@@ -603,6 +607,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
                 _volumeData.gameObject.transform.localRotation = Quaternion.Euler(_normalRotation);
 
             await RegenerateTexturesDataAsync(progressHandler);
+            ProcessingType = DatasetProcessingType.Normal;
         }
     }
     public void ResetCrossSectionToolsTransform()

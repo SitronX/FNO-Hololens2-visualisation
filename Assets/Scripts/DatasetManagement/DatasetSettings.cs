@@ -1,7 +1,4 @@
 using Microsoft.MixedReality.Toolkit.UI;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
@@ -15,14 +12,12 @@ public class DatasetSettings : MonoBehaviour
     [SerializeField] Collider _downsamplingButtonCollider;
     [SerializeField] Collider _mirrorButtonCollider;
 
-
     DatasetButton _latestDatasetData;
-
-
-    public enum ButtonState
+    public enum ButtonType
     {
-        Processing,Ready,DatasetStillLoading
+        DownscaleReady,DownscaleActive,MirrorFlipReady,MirrorFlipActive,DatasetLoading
     }
+
     private void Start()
     {
         DatasetButton.DatasetGrabbed += OnLatestDatasetGrabbed;
@@ -34,21 +29,13 @@ public class DatasetSettings : MonoBehaviour
         DatasetButton.DatasetGrabbed -= OnLatestDatasetGrabbed;
         VolumeDataControl.DatasetSpawned -= OnVolumeDatasetSpawned;
     }
-    public void OnLatestDatasetGrabbed(DatasetButton button)
+    private void OnLatestDatasetGrabbed(DatasetButton button)
     {
-        if (button.VolumeControlObject.HasBeenLoaded)
-            ChangeButtonLoadingState(_downsamplingButton,_downsamplingButtonCollider,ButtonState.Ready, "IconProfiler","Downscale Dataset");
-        else
-            ChangeButtonLoadingState(_downsamplingButton,_downsamplingButtonCollider, ButtonState.DatasetStillLoading, "IconClose","Dataset is still loading");
-
-        if (button.VolumeControlObject.HasBeenLoaded)
-            ChangeButtonLoadingState(_mirrorFlipButton,_mirrorButtonCollider, ButtonState.Ready, "IconSettings", "Mirror Flip correction");
-        else
-            ChangeButtonLoadingState(_mirrorFlipButton,_mirrorButtonCollider, ButtonState.DatasetStillLoading, "IconClose", "Dataset is still loading");
+        SetCorrectButtonsState(button);
 
         _latestDatasetData = button;
-            _activeDatasetTextureMesh.material.mainTexture = button.ThumbnailTexture;
-            _datasetText.text = button.DatasetName.text;
+        _activeDatasetTextureMesh.material.mainTexture = button.ThumbnailTexture;
+        _datasetText.text = button.DatasetName.text;
 
         try
         {
@@ -59,54 +46,78 @@ public class DatasetSettings : MonoBehaviour
             _dimensions.text = "";
         }
     }
-    public void OnVolumeDatasetSpawned(VolumeDataControl control)
+    private void SetCorrectButtonsState(DatasetButton button)
+    {
+        if (button.VolumeControlObject.HasBeenLoaded)
+        {
+            if (button.VolumeControlObject.ProcessingType == VolumeDataControl.DatasetProcessingType.Normal)
+            {
+                ChangeButtonLoadingState(_downsamplingButton, _downsamplingButtonCollider, ButtonType.DownscaleReady);
+                ChangeButtonLoadingState(_mirrorFlipButton, _mirrorButtonCollider, ButtonType.MirrorFlipReady);
+            }
+            else if (button.VolumeControlObject.ProcessingType == VolumeDataControl.DatasetProcessingType.Downsampling)
+            {
+                ChangeButtonLoadingState(_downsamplingButton, _downsamplingButtonCollider, ButtonType.DownscaleActive);
+                ChangeButtonLoadingState(_mirrorFlipButton, _mirrorButtonCollider, ButtonType.DownscaleActive);
+            }
+            else if(button.VolumeControlObject.ProcessingType == VolumeDataControl.DatasetProcessingType.Mirrorflipping)
+            {
+                ChangeButtonLoadingState(_downsamplingButton, _downsamplingButtonCollider, ButtonType.MirrorFlipActive);
+                ChangeButtonLoadingState(_mirrorFlipButton, _mirrorButtonCollider, ButtonType.MirrorFlipActive);
+            }    
+        }
+        else
+        {
+            ChangeButtonLoadingState(_downsamplingButton, _downsamplingButtonCollider, ButtonType.DatasetLoading);
+            ChangeButtonLoadingState(_mirrorFlipButton, _mirrorButtonCollider, ButtonType.DatasetLoading);
+        }
+    }
+    private void OnVolumeDatasetSpawned(VolumeDataControl control)
     {
         DatasetButton but = HandMenu.Instance.AllDatasetButtons.Find(x => x.VolumeControlObject == control);
         OnLatestDatasetGrabbed(but);
     }
     public async void DownscaleDataset()
     {
-        ChangeButtonLoadingState(_downsamplingButton,_downsamplingButtonCollider, ButtonState.Processing, "IconShow", "Downscaling");
-        ChangeButtonLoadingState(_mirrorFlipButton, _mirrorButtonCollider, ButtonState.Processing, "IconShow", "Downscaling");
+        ChangeButtonLoadingState(_downsamplingButton,_downsamplingButtonCollider, ButtonType.DownscaleActive);
+        ChangeButtonLoadingState(_mirrorFlipButton, _mirrorButtonCollider, ButtonType.DownscaleActive);
 
         await _latestDatasetData.VolumeControlObject.DownScaleDatasetAsync();
-
-        ChangeButtonLoadingState(_downsamplingButton,_downsamplingButtonCollider, ButtonState.Ready, "IconProfiler", "Downscale Dataset");
-        ChangeButtonLoadingState(_mirrorFlipButton, _mirrorButtonCollider, ButtonState.Ready, "IconSettings", "Mirror Flip correction");
 
         OnLatestDatasetGrabbed(_latestDatasetData);
     }
     public async void MirrorFlipDataset()
     {
-        ChangeButtonLoadingState(_mirrorFlipButton,_mirrorButtonCollider, ButtonState.Processing, "IconShow", "Flipping");
-        ChangeButtonLoadingState(_downsamplingButton, _downsamplingButtonCollider, ButtonState.Processing, "IconShow", "Flipping");
+        ChangeButtonLoadingState(_mirrorFlipButton,_mirrorButtonCollider, ButtonType.MirrorFlipActive);
+        ChangeButtonLoadingState(_downsamplingButton, _downsamplingButtonCollider, ButtonType.MirrorFlipActive);
 
         await _latestDatasetData.VolumeControlObject.MirrorFlipTexturesAsync();
 
-        ChangeButtonLoadingState(_mirrorFlipButton,_mirrorButtonCollider, ButtonState.Ready, "IconSettings", "Mirror Flip correction");
-        ChangeButtonLoadingState(_downsamplingButton, _downsamplingButtonCollider, ButtonState.Ready, "IconProfiler", "Downscale Dataset");
-
         OnLatestDatasetGrabbed(_latestDatasetData);
     }
-    public void ChangeButtonLoadingState(ButtonConfigHelper button,Collider collider, ButtonState state, string iconName, string message)
+    private (string,string) GetButtonInfo(ButtonType type)
     {
-        if(state== ButtonState.Processing)
-        {
-            button.MainLabelText = message;
-            button.SetQuadIconByName(iconName);
-            collider.enabled = false;
-        }    
-        else if(state== ButtonState.Ready)
-        {
-            button.MainLabelText = message;
-            button.SetQuadIconByName(iconName);
-            collider.enabled = true;
-        }
+        if (type == ButtonType.DownscaleReady)
+            return ("IconProfiler", "Downscale Dataset");
+        else if (type == ButtonType.DownscaleActive)
+            return ("IconShow", "Downscaling");
+        else if (type == ButtonType.MirrorFlipReady)
+            return ("IconSettings", "Mirror Flip correction");
+        else if (type == ButtonType.MirrorFlipActive)
+            return ("IconShow", "Flipping");
         else
-        {
-            button.MainLabelText = message;
-            button.SetQuadIconByName(iconName);
-            collider.enabled = false;
-        }
+            return ("IconClose", "Dataset is still loading");
+    }
+    private void ChangeButtonLoadingState(ButtonConfigHelper button,Collider collider, ButtonType type)
+    {
+        var but = GetButtonInfo(type);
+
+        button.MainLabelText = but.Item2;
+        button.SetQuadIconByName(but.Item1);
+    
+        if ((type == ButtonType.DownscaleReady)|| (type == ButtonType.MirrorFlipReady))    
+            collider.enabled = true;      
+        else
+            collider.enabled = false;      
     }
 }
