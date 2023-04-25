@@ -2,6 +2,7 @@ using Microsoft.MixedReality.Toolkit.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityVolumeRendering;
 
@@ -16,21 +17,30 @@ public class TFColorUpdater : MonoBehaviour
     public Action<TransferFunction> TfColorUpdated { get; set; }
     public Action TfColorReset { get; set;}
 
+    float _minHuValue;
+    float _maxHuValue;
+    float _huRange;
+
     [Serializable]
     public struct SliderData
     {
         public PinchSlider _slider;
         public float _initialValue;
+        public TMP_Text _huValue;
     }
 
-    public void InitUpdater(TransferFunction function)
+    public void InitUpdater(TransferFunction function,float minHu,float maxHu)
     {
+        _minHuValue = minHu;
+        _maxHuValue = maxHu;
+        _huRange = maxHu - minHu;
         TransferFunction = function;
         ShowTfUpdater(true);
     }
     public void ShowTfUpdater(bool value)
     {
         _mainObject.SetActive(value);
+        UpdateHuLabels();
     }
     private void Start()
     {
@@ -58,6 +68,7 @@ public class TFColorUpdater : MonoBehaviour
 
             TransferFunction.GenerateTexture();
             TfColorUpdated?.Invoke(TransferFunction);
+            UpdateHuLabels();
         }
     }
     public void ResetTF()
@@ -67,6 +78,13 @@ public class TFColorUpdater : MonoBehaviour
             _sliders[i]._slider.SliderValue = _initialSliderValues[i];
         }
         TfColorReset?.Invoke();
+    }
+    public void UpdateHuLabels()
+    {
+        for(int i=0; i< _sliders.Count; i++)
+        {
+            _sliders[i]._huValue.text = $"{(int)(_minHuValue + _sliders[i]._slider.SliderValue * _huRange)}<br>HU";
+        }
     }
 
 }

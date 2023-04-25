@@ -43,6 +43,9 @@ Shader "VolumeRendering/SliceRenderingShader"
             // Plane transform
             uniform float4x4 _planeMat;
 
+            float minVal = 0;
+            float maxVal = 1;
+
             v2f vert (appdata v)
             {
                 v2f o;
@@ -74,9 +77,26 @@ Shader "VolumeRendering/SliceRenderingShader"
                    float dataVal = tex3D(_DataTex, dataCoord);
                    //float4 col = tex2D(_TFTex, float2(dataVal, 0.0f));
 
-                   float4 col=float4(dataVal,dataVal,dataVal,1.0f);     //Grayscale
-                   //col.a = 1.0f;
-                   return col;
+                   if (dataVal > minVal)
+                   {
+                       if (dataVal < maxVal)
+                       {
+                           float normVal = (dataVal - minVal) / (maxVal - minVal);
+                           float4 col = float4(normVal, normVal, normVal, 1.0f);     //Grayscale
+                           //col.a = 1.0f;
+                           return col;
+                       }
+                       else
+                       {
+                            return float4(1.0f, 1.0f, 1.0f, 1.0f);
+                       }
+
+                   }
+                   else
+                   {
+					   return float4(0.0f, 0.0f, 0.0f, 1.0f);
+				   }
+                   
                 }
             }
             ENDCG

@@ -99,6 +99,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetObject: {fileID: 0}
+  _meshRenderer: {fileID: 23453273908375442}
   _maxHU: {fileID: 863973745275948682}
   _minHU: {fileID: 4286315277981277290}
   _maxHU2: {fileID: 472836758674036153}

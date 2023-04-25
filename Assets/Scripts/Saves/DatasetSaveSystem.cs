@@ -37,6 +37,7 @@ public class DatasetSaveSystem : MonoBehaviour
                 _saveData.DensityIntervalSliders = Converters.ConvertDensitySliders(volumeControl.DensityIntervalSliders);
                 _saveData.SegmentColors = Converters.ConvertColors(volumeControl.Segments.Select(x => x.SegmentColor).ToList());
                 _saveData.TransferFunction = Converters.ConvertTransferFunction(volumeControl.TransferFunction);
+                _saveData.SliceWindowRange=Converters.ConvertVector(new Vector3(volumeControl.SliceWindowMin, volumeControl.SliceWindowMax,0));
 
                 string jsonText = JsonConvert.SerializeObject(_saveData);
                 File.WriteAllText(_savePath, jsonText);
@@ -114,6 +115,22 @@ public class DatasetSaveSystem : MonoBehaviour
                     volumeControl.Segments[i].InitColor(col);
                     volumeControl.Segments[i].AlphaUpdate(_saveData.SegmentColors[i].A);
                 }
+                return true;
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+    public bool TryLoadSliceWindow(VolumeDataControl volumeControl)
+    {
+        try
+        {
+            if (_saveData != null)
+            {
+                volumeControl.SliceRendererWindow.SetInitvalue(_saveData.SliceWindowRange.X,_saveData.SliceWindowRange.Y);
                 return true;
             }
             return false;

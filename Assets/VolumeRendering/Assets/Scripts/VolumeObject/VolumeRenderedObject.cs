@@ -60,7 +60,7 @@ namespace UnityVolumeRendering
             slicingPlaneComp.targetObject = this;
             return slicingPlaneComp;
         }
-        public void FillSlicingPlaneWithData(GameObject sliceRenderingPlane,float minHounsfield,float maxHounsfield)
+        public void FillSlicingPlaneWithData(GameObject sliceRenderingPlane)
         {
             sliceRenderingPlane.transform.parent = transform;
             //sliceRenderingPlane.transform.localPosition = Vector3.zero;
@@ -76,7 +76,6 @@ namespace UnityVolumeRendering
 
             SlicingPlane slicingPlaneComp = sliceRenderingPlane.GetComponent<SlicingPlane>();
             slicingPlaneComp.targetObject = this;
-            slicingPlaneComp.InitHounsfield(minHounsfield, maxHounsfield);
         }
 
         public void SetRenderMode(RenderMode mode)

@@ -47,11 +47,7 @@ public class SliderIntervalUpdater : MonoBehaviour
             }
             else                                //In case some slider has reached value below 0, move both sliders by same range to the start
             {
-                float toFill;
-                if (isSecondSliderGreater)
-                    toFill =  _firstSlider.SliderValue; 
-                else
-                    toFill = _secondSlider.SliderValue;
+                float toFill = isSecondSliderGreater? _firstSlider.SliderValue: _secondSlider.SliderValue; 
               
                 _firstSlider.SliderValue -= toFill;
                 _secondSlider.SliderValue -= toFill;
@@ -59,11 +55,7 @@ public class SliderIntervalUpdater : MonoBehaviour
         }
         else                                    //In case some slider has reached value above 1, move both sliders by same range to the end
         {
-            float toFill;
-            if (isSecondSliderGreater)
-                toFill = 1 - _secondSlider.SliderValue;
-            else
-                toFill = 1 - _firstSlider.SliderValue;
+            float toFill = 1 - (isSecondSliderGreater ? _secondSlider.SliderValue : _firstSlider.SliderValue);
 
             _firstSlider.SliderValue += toFill;
             _secondSlider.SliderValue += toFill;

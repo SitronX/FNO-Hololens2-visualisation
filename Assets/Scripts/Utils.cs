@@ -20,6 +20,12 @@ public class Utils
 
         return colors;
     }
+    public static int GetHUFromFloat(float value, float minHu, float maxHu)       //Getting HU value from float value
+    {
+        float huRange = maxHu - minHu;
+        int huValue = (int)(minHu + (value * huRange));
+        return huValue;
+    }
     public static bool TryGetPositionInPatient(Image sliceImage, out Vector3 position)
     {
         try

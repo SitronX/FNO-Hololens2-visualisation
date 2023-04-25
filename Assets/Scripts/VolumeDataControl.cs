@@ -26,9 +26,9 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     [SerializeField] TMP_Text _raymarchStepsLabel;
     [SerializeField] CrossSectionSphere _cutoutSphere;
     [SerializeField] GameObject _cutoutPlane;
-    [SerializeField] GameObject _slicingPlaneXNormalAxisObject;
-    [SerializeField] GameObject _slicingPlaneYNormalAxisObject;
-    [SerializeField] GameObject _slicingPlaneZNormalAxisObject;
+    [SerializeField] SlicingPlane _slicingPlaneXNormalAxisObject;
+    [SerializeField] SlicingPlane _slicingPlaneYNormalAxisObject;
+    [SerializeField] SlicingPlane _slicingPlaneZNormalAxisObject;
     [SerializeField] GameObject _controlHandle;
     [SerializeField] GameObject _segmentationSliderPrefab;
     [SerializeField] GameObject _segmentationParentContainer;
@@ -44,13 +44,17 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     [SerializeField] OrbProgressView _orbProgressView;
 
     [field: SerializeField] public MeshRenderer VolumeMesh { get; set; }
+    [field: SerializeField] public SliderIntervalUpdater SliceRendererWindow { get; set; }
+
 
     public VolumeDataset Dataset { get; set; }
     public bool HasBeenLoaded { get; set; }
     public List<Segment> Segments { get; set; } = new List<Segment>();
     public DatasetProcessingType ProcessingType { get; set; } = DatasetProcessingType.Normal;
-
     public TransferFunction TransferFunction { get; set; }
+
+    public float SliceWindowMin { get; set; }
+    public float SliceWindowMax { get; set; }
 
     Vector3 _startLocalPlanePosition;
     Vector3 _startLocalPlaneRotation;
@@ -91,6 +95,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         SetInitialTransforms();
         _tfColorUpdater.TfColorUpdated += SetTransferFunction;
         _tfColorUpdater.TfColorReset += OnTFReset;
+        SliceRendererWindow.IntervalSliderValueChanged += UpdateSlicePlaneWindow;
     }
     public async void LoadDatasetAsync(string datasetFolderName,Texture volumeIcon,string description,Camera mainCamera)        //Async addition so all the loading doesnt freeze the app
     {
@@ -126,11 +131,18 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             TransferFunction = TransferFunctionDatabase.LoadTransferFunctionFromResources("default");      //TF in resources must be in .txt format, the .tf that is default for transfer function cannot be loaded from resources
             SetTransferFunction(TransferFunction);
 
-            _tfColorUpdater.InitUpdater(TransferFunction);
+            _tfColorUpdater.InitUpdater(TransferFunction,Dataset.MinDataValue,Dataset.MaxDataValue);
             _saveSystem.TryLoadTFData(_tfColorUpdater);
 
             if (!_saveSystem.TryLoadSaveDensitySliders(this))
                 AddValueDensitySlider(0, 1,false);                                     //Add default density slider if there are no save data
+
+
+            SliceRendererWindow.SetHounsfieldValues(Dataset.MinDataValue, Dataset.MaxDataValue);
+            if (!_saveSystem.TryLoadSliceWindow(this))
+                SliceRendererWindow.SetInitvalue(0, 1);
+            
+            
 
             _densitySlidersContainer.SetActive(true);
 
@@ -146,9 +158,9 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
             _saveSystem.TryLoadSaveSegmentData(this);
 
-            _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneXNormalAxisObject,Dataset.MinDataValue,Dataset.MaxDataValue);
-            _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneYNormalAxisObject, Dataset.MinDataValue, Dataset.MaxDataValue);
-            _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneZNormalAxisObject, Dataset.MinDataValue, Dataset.MaxDataValue);
+            _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneXNormalAxisObject.gameObject);
+            _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneYNormalAxisObject.gameObject);
+            _volumeRenderedObject.FillSlicingPlaneWithData(_slicingPlaneZNormalAxisObject.gameObject);
 
             await Dataset.GetGradientTextureAsync(true,progressHandler);
 
@@ -560,9 +572,23 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
     public void UpdateSlicePlane(bool value)
     {
-        _slicingPlaneXNormalAxisObject.SetActive(value);
-        _slicingPlaneYNormalAxisObject.SetActive(value);
-        _slicingPlaneZNormalAxisObject.SetActive(value);
+        _tfColorUpdater.gameObject.transform.localPosition = value ? new Vector3(0.275f, 0.02f, 0.3f) : new Vector3(0.1705f, 0.02f, 0.3f);  //Move the tf color slider if enabled
+
+        SliceRendererWindow.gameObject.SetActive(value);
+
+        _slicingPlaneXNormalAxisObject.gameObject.SetActive(value);
+        _slicingPlaneYNormalAxisObject.gameObject.SetActive(value);
+        _slicingPlaneZNormalAxisObject.gameObject.SetActive(value);
+    }
+    public void UpdateSlicePlaneWindow()
+    {
+        SliceRendererWindow.GetSliderValues(out float minVal, out float maxVal);
+        SliceWindowMin = minVal;
+        SliceWindowMax = maxVal;
+
+        _slicingPlaneXNormalAxisObject.UpdateHounsfieldWindow(minVal, maxVal, Dataset.MinDataValue,Dataset.MaxDataValue);
+        _slicingPlaneYNormalAxisObject.UpdateHounsfieldWindow(minVal, maxVal, Dataset.MinDataValue, Dataset.MaxDataValue);
+        _slicingPlaneZNormalAxisObject.UpdateHounsfieldWindow(minVal, maxVal, Dataset.MinDataValue, Dataset.MaxDataValue);
     }
     public void ResetAllTransforms()
     {

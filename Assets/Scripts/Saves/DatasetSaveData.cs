@@ -17,6 +17,7 @@ public class DatasetSaveData
     public TransformSave GrabHandleTransform { get; set; }
     public TransformSave CrossPlaneTransform { get; set; }
     public TransformSave CrossSphereTransform { get; set; }
+    public Vector3Save SliceWindowRange { get; set; } = new Vector3Save { X = 0, Y = 1 };  //x is min and y is max
 }
 
 public struct TransformSave
