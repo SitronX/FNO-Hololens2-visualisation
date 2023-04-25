@@ -1,4 +1,4 @@
-﻿Shader "VolumeRendering/DirectVolumeRenderingShader"
+﻿Shader "VolumeRendering/VolumeRenderingShader"
 {
     Properties
     {
@@ -72,10 +72,6 @@
             sampler2D _NoiseTex;
             sampler2D _TFTex;
 
-            float _MinVal1;
-            float _MaxVal1;
-            float _MinVal2;
-            float _MaxVal2;
             float3 _TextureSize;
             int _stepNumber;
             float4 _SegmentsColors[500];                                       //Dynamic arrays are not possible, so here it is capped to 500 segments, it should not be really possible to overcome this number (i hope?)
