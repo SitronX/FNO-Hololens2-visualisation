@@ -1,11 +1,6 @@
-using Microsoft.MixedReality.Toolkit.Input;
 using Newtonsoft.Json;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -15,6 +10,10 @@ public class DatasetSaveSystem : MonoBehaviour
     [SerializeField] Transform _grabHandleT;
     [SerializeField] Transform _crossPlaneT;
     [SerializeField] Transform _crossSphereT;
+
+    [SerializeField] Transform _sliceXT;
+    [SerializeField] Transform _sliceYT;
+    [SerializeField] Transform _sliceZT;
 
     DatasetSaveData _saveData;
 
@@ -31,6 +30,10 @@ public class DatasetSaveSystem : MonoBehaviour
             _saveData.GrabHandleTransform = Converters.ConvertTransform(_grabHandleT);
             _saveData.CrossPlaneTransform = Converters.ConvertTransform(_crossPlaneT);
             _saveData.CrossSphereTransform = Converters.ConvertTransform(_crossSphereT);
+
+            _saveData.SliceXTransform = Converters.ConvertTransform(_sliceXT);
+            _saveData.SliceYTransform = Converters.ConvertTransform(_sliceYT);
+            _saveData.SliceZTransform = Converters.ConvertTransform(_sliceZT);
 
             await Task.Run(() =>
             {
@@ -60,9 +63,9 @@ public class DatasetSaveSystem : MonoBehaviour
                 try
                 {
                     string jsonText = File.ReadAllText(_savePath);
-                    _saveData = JsonConvert.DeserializeObject<DatasetSaveData>(jsonText);           //If it is somehow corrupted, just ignore it, it will be overidden eventually
+                    _saveData = JsonConvert.DeserializeObject<DatasetSaveData>(jsonText);           
                 }
-                catch { }
+                catch { }       //If it is somehow corrupted, just ignore it, save will be overidden eventually
             }
         });
     }
@@ -76,6 +79,10 @@ public class DatasetSaveSystem : MonoBehaviour
                 Converters.UpdateTransform(_grabHandleT.transform, _saveData.GrabHandleTransform);
                 Converters.UpdateTransform(_crossPlaneT.transform, _saveData.CrossPlaneTransform);
                 Converters.UpdateTransform(_crossSphereT.transform, _saveData.CrossSphereTransform);
+
+                Converters.UpdateTransform(_sliceXT.transform, _saveData.SliceXTransform);
+                Converters.UpdateTransform(_sliceYT.transform, _saveData.SliceYTransform);
+                Converters.UpdateTransform(_sliceZT.transform, _saveData.SliceZTransform);
                 return true;
             }
             return false;
@@ -89,7 +96,7 @@ public class DatasetSaveSystem : MonoBehaviour
     {
         try
         {
-            if (_saveData != null)
+            if (_saveData != null&& _saveData.DensityIntervalSliders.Count>0)
             {
                 for (int i = 0; i < _saveData.DensityIntervalSliders.Count; i++)
                     volumeControl.AddValueDensitySlider(_saveData.DensityIntervalSliders[i].MinValue, _saveData.DensityIntervalSliders[i].MaxValue,false);
@@ -107,7 +114,7 @@ public class DatasetSaveSystem : MonoBehaviour
     {
         try
         {
-            if (_saveData != null)
+            if (_saveData != null&& _saveData.SegmentColors.Count>0)
             {
                 for (int i = 0; i < _saveData.SegmentColors.Count; i++)
                 {
@@ -128,7 +135,7 @@ public class DatasetSaveSystem : MonoBehaviour
     {
         try
         {
-            if (_saveData != null)
+            if (_saveData != null&&!_saveData.SliceWindowRange.IsVectorEmpty())
             {
                 volumeControl.SliceRendererWindow.SetInitvalue(_saveData.SliceWindowRange.X,_saveData.SliceWindowRange.Y);
                 return true;
@@ -144,7 +151,7 @@ public class DatasetSaveSystem : MonoBehaviour
     {
         try
         {
-            if (_saveData != null)
+            if (_saveData != null&& _saveData.TransferFunction.ColourControlPoints.Count>0)
             {
                 for (int i = 0; i < _saveData.TransferFunction.ColourControlPoints.Count; i++)
                 {

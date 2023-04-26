@@ -12,6 +12,7 @@ namespace UnityVolumeRendering
         [SerializeField] TMP_Text _minHU;
         [SerializeField] TMP_Text _maxHU2;
         [SerializeField] TMP_Text _minHU2;
+        [SerializeField] Transform _parentMatrix;
 
         
         public void UpdateHounsfieldWindow(float lower,float upper,float minHU,float maxHU)
@@ -31,7 +32,7 @@ namespace UnityVolumeRendering
 
         private void Update()
         {
-            _meshRenderer.sharedMaterial.SetMatrix("_parentInverseMat", transform.parent.worldToLocalMatrix);
+            _meshRenderer.sharedMaterial.SetMatrix("_parentInverseMat", _parentMatrix.worldToLocalMatrix);
             //meshRenderer.sharedMaterial.SetMatrix("_planeMat", Matrix4x4.TRS(transform.position, transform.rotation, transform.parent.lossyScale)); // TODO: allow changing scale
             _meshRenderer.sharedMaterial.SetMatrix("_planeMat", transform.localToWorldMatrix);
         }

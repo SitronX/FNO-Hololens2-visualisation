@@ -6,7 +6,7 @@ using System.Globalization;
 using System.Linq;
 using UnityEngine;
 
-public class Utils
+public static class Utils
 {
     public static Color[] CreateDistinctColors(int numberOfColors)       //Creating distinct colors based on hue
     {
@@ -26,6 +26,12 @@ public class Utils
         int huValue = (int)(minHu + (value * huRange));
         return huValue;
     }
+
+    public static bool IsVectorEmpty(this Vector3Save vector)
+    {
+        return vector.X == 0 && vector.Y == 0 && vector.Z == 0;
+    }
+
     public static bool TryGetPositionInPatient(Image sliceImage, out Vector3 position)
     {
         try

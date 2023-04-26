@@ -133,24 +133,20 @@ namespace UnityVolumeRendering
             {
                 int segmentNumber = 0;
                 List<string> metaDataKeys = reader.GetMetaDataKeys().ToList();
-
-                while (true)
+                
+                for(int i=0;i< metaDataKeys.Count;i++)
                 {
                     string key = $"Segment{segmentNumber}_Name";
                     string keyValue= $"Segment{segmentNumber}_LabelValue";
-                    if (metaDataKeys.Contains(key))
+
+                    if (metaDataKeys[i]==key)
                     {
                         float segmentValue = float.Parse(reader.GetMetaData(keyValue), CultureInfo.InvariantCulture);
                         string segmentName = reader.GetMetaData(key);
 
-                        volumeDataset.LabelNames.Add(segmentValue,segmentName);
+                        volumeDataset.LabelNames.Add(segmentValue, segmentName);
                         segmentNumber++;
                     }
-                    else
-                    {
-                        break;
-                    }
-                       
                 }
 
 

@@ -596,6 +596,8 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         ResetCrossSectionToolsTransform();
         ResetHandleTransform();
         ResetSlicesTransform();
+
+        _saveSystem.SaveDataAsync(this);
     }
     public void ResetMainObjectTransform()
     {
@@ -654,14 +656,17 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     }
     public void ResetSlicesTransform()
     {
-        _slicingPlaneXNormalAxisObject.transform.localPosition = Vector3.zero;
-        _slicingPlaneXNormalAxisObject.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
+        _slicingPlaneXNormalAxisObject.transform.localPosition = new Vector3(0, 0, -0.1f);
+        _slicingPlaneXNormalAxisObject.transform.localRotation = Quaternion.Euler(new Vector3(-29.78f, -84.4f, 102.256f));
+        _slicingPlaneXNormalAxisObject.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 
-        _slicingPlaneYNormalAxisObject.transform.localPosition = Vector3.zero;
-        _slicingPlaneYNormalAxisObject.transform.localRotation = Quaternion.Euler(new Vector3(90, 0, 0));
+        _slicingPlaneYNormalAxisObject.transform.localPosition = new Vector3(0, 0, -0.1f);
+        _slicingPlaneYNormalAxisObject.transform.localRotation = Quaternion.Euler(new Vector3(-10.617f, 11.759f, 59.647f));
+        _slicingPlaneYNormalAxisObject.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 
-        _slicingPlaneZNormalAxisObject.transform.localPosition = Vector3.zero;
-        _slicingPlaneZNormalAxisObject.transform.localRotation = Quaternion.Euler(new Vector3(90, 0, -90));
+        _slicingPlaneZNormalAxisObject.transform.localPosition = new Vector3(0, 0, -0.1f);
+        _slicingPlaneZNormalAxisObject.transform.localRotation = Quaternion.Euler(new Vector3(-10.617f, 11.759f, -30.353f));
+        _slicingPlaneZNormalAxisObject.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
     }
 
     private void SetInitialTransforms()
