@@ -16,7 +16,7 @@ public class QRDataSpawner : MonoBehaviour
         {
             if (HandMenu.Instance.ActiveQRDataset.VolumeControlObject == null)
             {
-                HandMenu.Instance.ActiveQRDataset.LoadDatasetAsync();
+                HandMenu.Instance.ActiveQRDataset.LoadDataset();
             }
             else
             {

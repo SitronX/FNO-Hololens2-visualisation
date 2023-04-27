@@ -56,7 +56,7 @@ public class DatasetButton : MonoBehaviour
         _loadButtonBackMesh.material.mainTexture = ThumbnailTexture;
         DatasetName.text = name;
     }
-    public void LoadDatasetAsync()
+    public void LoadDataset()
     {      
         if (VolumeControlObject == null)
         {

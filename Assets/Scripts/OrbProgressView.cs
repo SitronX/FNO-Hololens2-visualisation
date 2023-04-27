@@ -1,7 +1,5 @@
 using Microsoft.MixedReality.Toolkit.UI;
-using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityVolumeRendering;
@@ -12,15 +10,9 @@ public class OrbProgressView :MonoBehaviour,IProgressView
     [SerializeField] TMP_Text _textIndicator;
     [SerializeField] TMP_Text _textPartNumber;
 
-    ConcurrentQueue<ProgressData> progressQueue= new ConcurrentQueue<ProgressData>();       //Queue due to the fact that background thread cannot update ui, which is an issue with async tasks
     int _numberOfParts;
-
     Camera _mainCamera;
-
-    private void Start()
-    {
-        _mainCamera = FindObjectOfType<Camera>();
-    }
+    ConcurrentQueue<ProgressData> _progressQueue = new ConcurrentQueue<ProgressData>();       //Queue due to the fact that background thread cannot update ui, which is an issue with async tasks
 
     struct ProgressData
     {
@@ -28,6 +20,10 @@ public class OrbProgressView :MonoBehaviour,IProgressView
         public string description;
         public int partNumber;
     }
+    private void Start()
+    {
+        _mainCamera = FindObjectOfType<Camera>();
+    }  
     public void FinishProgress(ProgressStatus status = ProgressStatus.Succeeded)
     {
         _orbObject.CloseAsync();
@@ -56,12 +52,12 @@ public class OrbProgressView :MonoBehaviour,IProgressView
         progressData.progress = progress;
         progressData.description = description;
         progressData.partNumber = partNumber;
-        progressQueue.Enqueue(progressData);
+        _progressQueue.Enqueue(progressData);
     }
 
     private void FixedUpdate()
     {
-        if(progressQueue.TryDequeue(out ProgressData progressData))
+        if(_progressQueue.TryDequeue(out ProgressData progressData))
         {
             _orbObject.Message=progressData.description;
             _textIndicator.text = $"{(int)(progressData.progress*100)} %";
@@ -69,7 +65,6 @@ public class OrbProgressView :MonoBehaviour,IProgressView
         }
         transform.rotation = _mainCamera.transform.rotation;
     }
-
     public void UpdateTotalNumberOfParts(int numberOfParts)
     {
         _numberOfParts = numberOfParts;

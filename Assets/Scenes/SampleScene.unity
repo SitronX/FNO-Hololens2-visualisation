@@ -1670,6 +1670,7 @@ MonoBehaviour:
   _default: {fileID: 11400000, guid: 3c1deb1c8de581e45844e1c12a90ea0d, type: 2}
   _diagnostics: {fileID: 11400000, guid: af455b8575a652b409ea550088c883eb, type: 2}
   _noSpatial: {fileID: 11400000, guid: 21697d906eaeb874ab99fcf6317d2343, type: 2}
+  _noSkybox: {fileID: 11400000, guid: 806a00a6204438043a661ed92b268443, type: 2}
   _toolkit: {fileID: 1319592962}
   _errorNotifier: {fileID: 222276049}
 --- !u!114 &1774669998 stripped

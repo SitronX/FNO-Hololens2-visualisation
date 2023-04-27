@@ -1,12 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityVolumeRendering;
 
 public class CrossSectionSphere : MonoBehaviour,CrossSectionObject
 {
-    [SerializeField]
-    private VolumeRenderedObject targetObject;
+    [SerializeField] VolumeRenderedObject targetObject;
     [field:SerializeField] public CutoutType CutoutType { get; set; } = CutoutType.Exclusive;
 
     public CrossSectionType GetCrossSectionType()
@@ -21,24 +18,20 @@ public class CrossSectionSphere : MonoBehaviour,CrossSectionObject
                 throw new System.NotImplementedException();
         }
     }
-
     public Matrix4x4 GetMatrix()
     {
         return transform.worldToLocalMatrix * targetObject.transform.localToWorldMatrix;
     }
-
     private void OnEnable()
     {
         if (targetObject != null)
             targetObject.GetCrossSectionManager().AddCrossSectionObject(this);
     }
-
     private void OnDisable()
     {
         if (targetObject != null)
             targetObject.GetCrossSectionManager().RemoveCrossSectionObject(this);
     }
-
     public void SetTargetObject(VolumeRenderedObject target)
     {
         if (this.enabled && targetObject != null)

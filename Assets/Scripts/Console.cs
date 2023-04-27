@@ -1,13 +1,7 @@
 using Microsoft.MixedReality.OpenXR.BasicSample;
-using Microsoft.MixedReality.SampleQRCodes;
 using Microsoft.MixedReality.Toolkit;
-using Microsoft.MixedReality.Toolkit.Experimental.UI;
-using Microsoft.MixedReality.Toolkit.SpatialAwareness;
 using QFSW.QC;
-using QFSW.QC.Suggestors.Tags;
 using QRTracking;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -22,15 +16,17 @@ public class Console : MonoBehaviour
     [SerializeField] MixedRealityToolkitConfigurationProfile _default;
     [SerializeField] MixedRealityToolkitConfigurationProfile _diagnostics;
     [SerializeField] MixedRealityToolkitConfigurationProfile _noSpatial;
+    [SerializeField] MixedRealityToolkitConfigurationProfile _noSkybox;
     [SerializeField] MixedRealityToolkit _toolkit;
     [SerializeField] ErrorNotifier _errorNotifier;
 
+
     public enum MRTKModule
     {
-        WireFrame,Default,Diagnostics,NoSpatial
+        WireFrame,Default,Diagnostics,NoSpatial,NoSkybox
     }
 
-    public void OpenConsole()
+    private void OpenConsole()
     {
         if (!_quantumConsole.IsActive)
         {
@@ -46,7 +42,9 @@ public class Console : MonoBehaviour
     {
         try
         {
-            HandMenu.Instance.AllDatasetButtons[index].LoadDatasetAsync();
+            int clampedIndex = Mathf.Clamp(index, 0, HandMenu.Instance.AllDatasetButtons.Count - 1);
+            HandMenu.Instance.AllDatasetButtons[clampedIndex].LoadDataset();
+            HandMenu.Instance.AllDatasetButtons[clampedIndex].SetButtonState(DatasetButton.LoadButtonState.Active);
         }
         catch
         {
@@ -78,32 +76,20 @@ public class Console : MonoBehaviour
             _toolkit.ActiveProfile = _wireFrame;
         else if (module == MRTKModule.Default)
             _toolkit.ActiveProfile = _default;
-        if (module == MRTKModule.Diagnostics)
+        else if (module == MRTKModule.Diagnostics)
             _toolkit.ActiveProfile = _diagnostics;
-        if (module == MRTKModule.NoSpatial)
+        else if (module == MRTKModule.NoSpatial)
             _toolkit.ActiveProfile = _noSpatial;
+        else if(module==MRTKModule.NoSkybox)
+            _toolkit.ActiveProfile= _noSkybox;
     }
-    [Command("QRUpdateState")]
-    public void EnableQRUpdates(bool value)
-    {
-        foreach (IQRUpdate i in FindObjectsOfType<MonoBehaviour>().OfType<IQRUpdate>())
-            i.EnableQRUpdate(value);
-    }
-    [Command]
-    public void Quality(int numberOfSteps)
-    {
-        FindObjectOfType<VolumeDataControl>().SetRaymarchStepCount(numberOfSteps);
-    }
+
     [Command]
     public void Disconnect()
     {
         FindObjectOfType<AppRemotingSample>().OnDisconnectButtonPressed();
     }
-    //[Command]
-    //public void SetTransferFunction(string tf)
-    //{
-    //    FindObjectsOfType<VolumeDataControl>().ToList().ForEach(x=>x.SetTransferFunction(tf));
-    //}
+   
     [Command]
     public void ResetObjectsTransform()
     {
@@ -114,15 +100,4 @@ public class Console : MonoBehaviour
     {
         FindObjectsOfType<VolumeDataControl>().ToList()[volumeIndex].SetVolumePosition(position);
     }
-
-    //public IEnumerable<IQcSuggestion> GetSuggestions(SuggestionContext context, SuggestorOptions options)
-    //{
-    //    if (context.TargetType == typeof(string))
-    //    {
-    //        foreach (string i in VolumeDataControl.TF1D)
-    //            yield return new RawSuggestion(i);
-    //        foreach (string i in VolumeDataControl.TF2D)
-    //            yield return new RawSuggestion(i);
-    //    }
-    //}
 }

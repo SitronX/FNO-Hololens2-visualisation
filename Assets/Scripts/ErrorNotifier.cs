@@ -1,6 +1,3 @@
-using QRTracking;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -9,7 +6,7 @@ public class ErrorNotifier : MonoBehaviour
     [SerializeField] TMP_Text _errorText;
     [SerializeField] GameObject _notificatorObject;
 
-    public static ErrorNotifier Instance { get; private set; }
+    public static ErrorNotifier Instance { get; private set; }      //Singleton
 
     private void Awake()
     {
