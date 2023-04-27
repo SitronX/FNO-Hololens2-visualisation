@@ -70,6 +70,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
     Vector3 _mirrorFlippedRotation = new Vector3(29.78f,95.6f,77.744f);
     Vector3 _normalRotation = new Vector3(-150.22f,95.6f,282.256f);
+    bool _isDatasetReversed = true;
 
     public static Action<VolumeDataControl> DatasetSpawned { get; set; }
     public static Action<VolumeDataControl> DatasetDespawned { get; set; }
@@ -82,7 +83,6 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     Camera _mainCamera;
 
     bool _segmentationPanelVisible = false;
-    bool _isDatasetReversed;
 
     public enum DatasetProcessingType
     {
@@ -113,18 +113,12 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             _volumeDatasetIcon.material.mainTexture = volumeIcon;
             _volumeDatasetDescription.text = description;
 
-            (VolumeDataset result,bool isDatasetReversed) = await CreateVolumeDatasetAsync(datasetFolderName,progressHandler);
+            VolumeDataset result = await CreateVolumeDatasetAsync(datasetFolderName,progressHandler);
 
             Dataset = result;
-            _isDatasetReversed = isDatasetReversed;
 
             if (Dataset == null)
                 return;
-
-            if (_isDatasetReversed)
-                _volumeData.gameObject.transform.transform.localRotation = Quaternion.Euler(_mirrorFlippedRotation);
-            else
-                _volumeData.gameObject.transform.localRotation = Quaternion.Euler(_normalRotation);
 
             await VolumeObjectFactory.FillObjectWithDatasetDataAsync(Dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject,progressHandler);
 
@@ -146,7 +140,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
             _densitySlidersContainer.SetActive(true);
 
-            if (await TryLoadSegmentationToVolumeAsync(datasetFolderName, Dataset, _isDatasetReversed,progressHandler))
+            if (await TryLoadSegmentationToVolumeAsync(datasetFolderName, Dataset,progressHandler))
             {
                 await InitSegmentationAsync(progressHandler);
                 _segmentationParent.SetActive(true);
@@ -169,7 +163,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             _saveSystem.SaveDataAsync(this);
         }
     }
-    public async Task<(VolumeDataset,bool)> CreateVolumeDatasetAsync(string datasetFolderName,ProgressHandler progressHandler)
+    public async Task<VolumeDataset> CreateVolumeDatasetAsync(string datasetFolderName,ProgressHandler progressHandler)
     {
         string datasetName = datasetFolderName.Split('/').Last();
         string dataFolderName = datasetFolderName + "/Data/";
@@ -183,19 +177,18 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         if (errorFlag == 1)
         {
             ErrorNotifier.Instance.AddErrorMessageToUser($"No data detected in dataset named: {datasetName} in folder Data");
-            return (null,false);
+            return null;
         }
         else if (errorFlag == 2)
         {
             ErrorNotifier.Instance.AddErrorMessageToUser($"Unknown data detected in dataset named: {datasetName} in folder Data");
-            return (null,false);
+            return null;
         }
 
 
         SimpleITKImageSequenceImporter sequenceImporter = new SimpleITKImageSequenceImporter();
         SimpleITKImageFileImporter fileImporter = new SimpleITKImageFileImporter();
         VolumeDataset dataset = null;
-        bool isDatasetReversed = true;
 
         if (isDicomImageSequence)
         {
@@ -207,9 +200,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
             try
             {
-                var result = await sequenceImporter.ImportSeriesAsync(sequence.First(), datasetName);
-                dataset = result.Item1;
-                isDatasetReversed = result.Item2;
+                dataset = await sequenceImporter.ImportSeriesAsync(sequence.First(), datasetName);
             }
             catch
             {
@@ -221,19 +212,17 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             try
             {
                 progressHandler.ReportProgress(0.2f, "Loading main file...");
-                var result = await fileImporter.ImportAsync(filePath,datasetName);
-                dataset=result.Item1;
-                isDatasetReversed = result.Item2;
+                dataset = await fileImporter.ImportAsync(filePath,datasetName); 
             }
             catch
             {
                 ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted data in dataset named: {datasetName} in folder Data");
             }
         }
-        return (dataset,isDatasetReversed);
+        return dataset;
     }
 
-    public async Task<bool> TryLoadSegmentationToVolumeAsync(string datasetFolderName, VolumeDataset volumeDataset, bool isDatasetReversed,ProgressHandler progressHandler)
+    public async Task<bool> TryLoadSegmentationToVolumeAsync(string datasetFolderName, VolumeDataset volumeDataset,ProgressHandler progressHandler)
     {
         string segmentationFolderName = datasetFolderName + "/Labels/";
         if (!Directory.Exists(segmentationFolderName))
@@ -267,11 +256,12 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
             try
             {
-                await sequenceImporter.ImportSeriesSegmentationAsync(sequence.First(), volumeDataset,isDatasetReversed);
+                await sequenceImporter.ImportSeriesSegmentationAsync(sequence.First(), volumeDataset);
             }
             catch
             {
                 ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted image series in dataset named: {datasetFolderName.Split('/').Last()} in folder Labels");
+                return false;
             }
         }
         else
@@ -281,11 +271,12 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
                 progressHandler.ReportProgress(0.2f, "Loading segmentation file...");
 
                 if (volumeDataset!=null)
-                    await fileImporter.ImportSegmentationAsync(filePath, volumeDataset, isDatasetReversed);
+                    await fileImporter.ImportSegmentationAsync(filePath, volumeDataset);
             }
             catch
             {
                 ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted data in dataset named: {datasetFolderName.Split('/').Last()} in folder Labels");
+                return false;
             }
         }
         return true;
@@ -638,6 +629,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             ProcessingType = DatasetProcessingType.Normal;
         }
     }
+    //TODO vsechny resety nedelat k initial hodnotam, ale defaultnim prednastavenym hodnotam, tak samo bude pouzit defaultni scaling atd...
     public void ResetCrossSectionToolsTransform()
     {
         _cutoutPlane.transform.localPosition = _startLocalPlanePosition;
@@ -687,10 +679,9 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     {
         transform.position = position;
     }
-
     private void OnTFReset()
     {
-        _saveSystem.SaveDataAsync(this);
+        _saveSystem.SaveDataAsync(this);        //MRTK buttons do not trigger OnInputUp event from IMixedRealityInputHandler so we need to save it manually
     }
     public void OnInputUp(InputEventData eventData)
     {

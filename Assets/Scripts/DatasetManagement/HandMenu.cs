@@ -63,7 +63,6 @@ public class HandMenu : MonoBehaviour
         UpdateQrStatus();
 
         VolumeDataControl.DatasetSpawned += OnNewDatasetSpawned;
-        QRDataSpawner.QrCodeSpawned += UpdateQrStatus;
 
         yield return new WaitForEndOfFrame();
         _gridObjectCollection.UpdateCollection();
@@ -73,7 +72,6 @@ public class HandMenu : MonoBehaviour
     private void OnDestroy()
     {
         VolumeDataControl.DatasetSpawned -= OnNewDatasetSpawned;
-        QRDataSpawner.QrCodeSpawned -= UpdateQrStatus;
     }
     private void OnNewDatasetSpawned(VolumeDataControl volumeDataControl)
     {

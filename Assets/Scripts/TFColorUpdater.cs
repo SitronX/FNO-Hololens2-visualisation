@@ -1,6 +1,5 @@
 using Microsoft.MixedReality.Toolkit.UI;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -8,32 +7,28 @@ using UnityVolumeRendering;
 
 public class TFColorUpdater : MonoBehaviour
 {
-    public TransferFunction TransferFunction { get; set; }
     [SerializeField] List<SliderData> _sliders;
-    [SerializeField] GameObject _mainObject;
+    [SerializeField] GameObject _mainObject;  
 
-    List<float> _initialSliderValues=new List<float>();
-
-    public Action<TransferFunction> TfColorUpdated { get; set; }
-    public Action TfColorReset { get; set;}
-
+    List<float> _initialSliderValues = new List<float>();       //The initial TF slider values are saved for reset option
     float _minHuValue;
     float _maxHuValue;
-    float _huRange;
+
+    public TransferFunction TransferFunction { get; set; }
+    public Action<TransferFunction> TfColorUpdated { get; set; }
+    public Action TfColorReset { get; set; }
 
     [Serializable]
     public struct SliderData
     {
         public PinchSlider _slider;
         public float _initialValue;
-        public TMP_Text _huValue;
+        public TMP_Text _huValueText;
     }
-
     public void InitUpdater(TransferFunction function,float minHu,float maxHu)
     {
         _minHuValue = minHu;
         _maxHuValue = maxHu;
-        _huRange = maxHu - minHu;
         TransferFunction = function;
         ShowTfUpdater(true);
     }
@@ -42,7 +37,7 @@ public class TFColorUpdater : MonoBehaviour
         _mainObject.SetActive(value);
         UpdateHuLabels();
     }
-    private void Start()
+    private void Awake()
     {
         foreach(SliderData i in _sliders)
         {
@@ -79,12 +74,11 @@ public class TFColorUpdater : MonoBehaviour
         }
         TfColorReset?.Invoke();
     }
-    public void UpdateHuLabels()
+    private void UpdateHuLabels()
     {
         for(int i=0; i< _sliders.Count; i++)
         {
-            _sliders[i]._huValue.text = $"{(int)(_minHuValue + _sliders[i]._slider.SliderValue * _huRange)}<br>HU";
+            _sliders[i]._huValueText.text = $"{Utils.GetHUFromFloat(_sliders[i]._slider.SliderValue,_minHuValue,_maxHuValue)}<br>HU";
         }
     }
-
 }

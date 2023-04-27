@@ -57,14 +57,13 @@ namespace UnityVolumeRendering
 
             return volumeDataset;
         }
-        public async Task<(VolumeDataset, bool)> ImportAsync(string filePath, string datasetName)
+        public async Task<VolumeDataset> ImportAsync(string filePath, string datasetName)
         {
             float[] pixelData = null;
             VectorUInt32 size = null;
             VectorDouble spacing = null;
             // Create dataset
             VolumeDataset volumeDataset = new VolumeDataset();
-            bool isDatasetReversed = true;
 
 
             await Task.Run(() =>
@@ -105,9 +104,9 @@ namespace UnityVolumeRendering
                 volumeDataset.FixDimensions();
             });
 
-            return (volumeDataset, isDatasetReversed);
+            return volumeDataset;
         }
-        public async Task ImportSegmentationAsync(string filePath, VolumeDataset volumeDataset, bool isDatasetReversed)
+        public async Task ImportSegmentationAsync(string filePath, VolumeDataset volumeDataset)
         {
             float[] pixelData = null;
             VectorUInt32 size = null;
@@ -166,7 +165,7 @@ namespace UnityVolumeRendering
                 IntPtr imgBuffer = image.GetBufferAsFloat();
                 Marshal.Copy(imgBuffer, pixelData, 0, numPixels);
 
-                volumeDataset.labelData = isDatasetReversed ? pixelData.Reverse().ToArray() : pixelData;
+                volumeDataset.labelData =  pixelData.Reverse().ToArray();
                 volumeDataset.labelDimX = (int)size[0];
                 volumeDataset.labelDimY = (int)size[1];
                 volumeDataset.labelDimZ = (int)size[2];

@@ -1,6 +1,4 @@
 using Microsoft.MixedReality.Toolkit;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 //Changing skybox in runtime must be done via MixedRealityToolkit profile, it is not possible to update skybox material classically
@@ -20,7 +18,7 @@ public class SkyboxChanger : MonoBehaviour
     }
     private void Update()
     {
-        if (PlatformSpecific.Instance.CurrentPlatform == PlatformSpecific.TargetPlatform.PCVR)
+        if (PlatformSpecific.Instance.CurrentPlatform == PlatformSpecific.TargetPlatform.PCVR)  //On hololens changing background is blocked
         {
             if (Input.GetKeyDown(KeyCode.F2))
                 ChangeSkybox(SkyboxType.Classic);
@@ -41,5 +39,4 @@ public class SkyboxChanger : MonoBehaviour
         else if (type == SkyboxType.NoSkybox)
             _toolkit.ActiveProfile = _noSkybox;
     }
-
 }

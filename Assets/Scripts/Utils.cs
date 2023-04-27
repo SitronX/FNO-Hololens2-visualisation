@@ -1,6 +1,4 @@
 using itk.simple;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -20,7 +18,7 @@ public static class Utils
 
         return colors;
     }
-    public static int GetHUFromFloat(float value, float minHu, float maxHu)       //Getting HU value from float value
+    public static int GetHUFromFloat(float value, float minHu, float maxHu)       //Getting HU value from float normalized value 
     {
         float huRange = maxHu - minHu;
         int huValue = (int)(minHu + (value * huRange));
@@ -70,21 +68,5 @@ public static class Utils
             }
         }
         return false;
-    }
-    public static Image ExtractSlice(Image imageSeries, int sliceIndex)
-    {
-        if (sliceIndex < 0 || sliceIndex >= imageSeries.GetDepth())
-        {
-            throw new ArgumentOutOfRangeException(nameof(sliceIndex), $"Slice index {sliceIndex} is out of range.");
-        }
-
-        VectorUInt32 extractionSize = new VectorUInt32(new uint[] { imageSeries.GetWidth(), imageSeries.GetHeight(), 1 });
-        VectorInt32 extractionIndex = new VectorInt32(new int[] { 0, 0, sliceIndex });
-
-        ExtractImageFilter extractor = new ExtractImageFilter();
-        extractor.SetSize(extractionSize);
-        extractor.SetIndex(extractionIndex);
-
-        return extractor.Execute(imageSeries);
     }
 }

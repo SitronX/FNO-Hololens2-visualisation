@@ -1,7 +1,5 @@
 using Microsoft.MixedReality.Toolkit.UI;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -13,9 +11,10 @@ public class Segment : MonoBehaviour, IColorPickerListener
     [SerializeField] TMP_Text _segmentName;
     [SerializeField] GameObject _mainObject;
 
+    private Color _segmentColor;
+
     public Action ColorUpdated { get; set; }
 
-    private Color _segmentColor;
     public Color SegmentColor
     {
         get { return _segmentColor; }

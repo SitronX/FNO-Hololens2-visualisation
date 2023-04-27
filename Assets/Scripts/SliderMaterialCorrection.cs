@@ -17,9 +17,9 @@ public class SliderMaterialCorrection : MonoBehaviour
         (Color col1,Color col2) = isFirstSliderGreater ? (Color.white, Color.black):(Color.black, Color.white);
 
         _firstSliderText.color = col2;
-        _firstSliderRenderer.sharedMaterial.color = col1;
+        _firstSliderRenderer.material.color = col1;
 
         _secondSliderText.color = col1;
-        _secondSliderRenderer.sharedMaterial.color = col2;
+        _secondSliderRenderer.material.color = col2;
     }
 }

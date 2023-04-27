@@ -1,13 +1,8 @@
-using JetBrains.Annotations;
-using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.UI;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
-using Unity.Profiling;
 using UnityEngine;
-using static UnityEngine.ProBuilder.AutoUnwrapSettings;
 
 public class SliderIntervalUpdater : MonoBehaviour
 {
@@ -21,13 +16,11 @@ public class SliderIntervalUpdater : MonoBehaviour
     [SerializeField] TMP_Text _sliderFirstHULabel;
     [SerializeField] TMP_Text _sliderSecondHULabel;
 
-    float _maxHounsfieldValue;
     float _minHounsfieldValue;
-    float _hounsfieldRange;
+    float _maxHounsfieldValue;
+    bool _isHovering = false;
 
     public Action IntervalSliderValueChanged { get; set; }
-
-    bool _isHovering = false;
 
     public void MiddleSliderUpdated(SliderEventData data)
     {      
@@ -35,8 +28,10 @@ public class SliderIntervalUpdater : MonoBehaviour
 
         bool isSecondSliderGreater = sliderRange < 0;
 
-        float firstSliderNewValue = isSecondSliderGreater ? data.NewValue - (sliderRange * 0.5f) : data.NewValue + (sliderRange * 0.5f);
-        float secondSliderNewValue = isSecondSliderGreater ? data.NewValue + (sliderRange * 0.5f) : data.NewValue - (sliderRange * 0.5f);
+        float shift = sliderRange * 0.5f;
+        float lower = data.NewValue - shift;
+        float upper= data.NewValue + shift;
+        (float firstSliderNewValue,float secondSliderNewValue) = isSecondSliderGreater ? (lower, upper):(upper, lower);
 
         if((firstSliderNewValue <= 1)&& (secondSliderNewValue <= 1))
         {
@@ -65,16 +60,13 @@ public class SliderIntervalUpdater : MonoBehaviour
     {
         _minHounsfieldValue = minValue;
         _maxHounsfieldValue = maxValue;
-        _hounsfieldRange = maxValue - minValue;
     }
-
     public void SetInitvalue(float min,float max)
     {
         _firstSlider.SliderValue = min;
         _secondSlider.SliderValue = max;
         _middleSlider.SliderValue = (max + min) * 0.5f;
     }
-
     public void OnChangeSliderValue()
     {
         IntervalSliderValueChanged?.Invoke();
@@ -85,11 +77,10 @@ public class SliderIntervalUpdater : MonoBehaviour
         updatedScale.x = middleSliderSize;
 
         _middleSliderCollider.transform.localScale = updatedScale;
-        _middleSliderCollider.transform.position = (_firstSliderThumb.transform.position + _secondSliderThumb.transform.position) * 0.5f;
-        
+        _middleSliderCollider.transform.position = (_firstSliderThumb.transform.position + _secondSliderThumb.transform.position) * 0.5f;     
 
-        _sliderFirstHULabel.text= $"{(int)(_minHounsfieldValue + (_firstSlider.SliderValue * _hounsfieldRange))}<br>HU";
-        _sliderSecondHULabel.text = $"{(int)(_minHounsfieldValue + (_secondSlider.SliderValue * _hounsfieldRange))}<br>HU";
+        _sliderFirstHULabel.text= $"{Utils.GetHUFromFloat(_firstSlider.SliderValue, _minHounsfieldValue,_maxHounsfieldValue)}<br>HU";
+        _sliderSecondHULabel.text = $"{Utils.GetHUFromFloat(_secondSlider.SliderValue, _minHounsfieldValue, _maxHounsfieldValue)}<br>HU";
     }
     public void GetSliderValues(out float value1,out float value2)
     {
@@ -98,7 +89,7 @@ public class SliderIntervalUpdater : MonoBehaviour
     }
     public void SetHoverState()
     {
-        StartCoroutine(SetHoverStateDelay());
+        StartCoroutine(SetHoverStateDelay());     
     }
 
     IEnumerator SetHoverStateDelay()           
@@ -108,8 +99,7 @@ public class SliderIntervalUpdater : MonoBehaviour
         if (_isHovering)
             _middleSliderAnimator.SetTrigger("Hover");
     }
-
-    public void UpdateHover(bool value)             //This must be called before SetHoverState if the slider is released, however it is not the case inside mrtk PinchSlider so SetHoverState method has one frame delay in coroutine
+    public void UpdateHover(bool value)             //This must be called before SetHoverState when the slider is released, however it was not the case inside mrtk PinchSlider so SetHoverState method has one frame delay in coroutine
     {
         _isHovering = value;
         if (value)

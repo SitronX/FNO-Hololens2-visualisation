@@ -185,13 +185,12 @@ namespace UnityVolumeRendering
 
             return volumeDataset;
         }
-        public async Task<(VolumeDataset,bool)> ImportSeriesAsync(IImageSequenceSeries series,string datasetName)
+        public async Task<VolumeDataset> ImportSeriesAsync(IImageSequenceSeries series,string datasetName)
         {
             Image image = null;
             float[] pixelData = null;
             VectorUInt32 size = null;
             VectorString dicomNames = null;
-            bool isDatasetReversed = true;
 
             // Create dataset
             VolumeDataset volumeDataset = new VolumeDataset();
@@ -200,7 +199,7 @@ namespace UnityVolumeRendering
             if (sequenceSeries.files.Count == 0)
             {
                 Debug.LogError("Empty series. No files to load.");
-                return (null,false);
+                return (null);
             }
 
             await Task.Run(() => {
@@ -209,11 +208,6 @@ namespace UnityVolumeRendering
 
                 string first = sequenceSeries.files.First().filePath;
                 string last = sequenceSeries.files.Last().filePath;
-
-                Image firstImage = SimpleITK.ReadImage(first);
-                Image lastImage = SimpleITK.ReadImage(last);
-
-                isDatasetReversed = !Utils.IsHeadFeetDataset(firstImage, lastImage);
 
                 dicomNames = new VectorString();
           
@@ -237,24 +231,10 @@ namespace UnityVolumeRendering
                 IntPtr imgBuffer = image.GetBufferAsFloat();
                 Marshal.Copy(imgBuffer, pixelData, 0, numPixels);
 
-                //int onePercent=pixelData.Length / 100;
-                //int percentCounter = 0;
-                //for (int i = 0; i < pixelData.Length; i++)
-                //{
-                //    pixelData[i] = Mathf.Clamp(pixelData[i], -1024, 3071);      //Hounsfield values clamp
-                //
-                //    if(percentCounter>=onePercent)
-                //    {
-                //        progressHandler.ReportProgress(i, pixelData.Length, "Clamping data...");
-                //        percentCounter =0;
-                //    }
-                //    percentCounter++;
-                //}
-
                 VectorDouble spacing = image.GetSpacing();
 
 
-                volumeDataset.data = isDatasetReversed? pixelData.Reverse().ToArray():pixelData;
+                volumeDataset.data = pixelData.Reverse().ToArray();
                 volumeDataset.dimX = (int)size[0];
                 volumeDataset.dimY = (int)size[1];
                 volumeDataset.dimZ = (int)size[2];
@@ -268,9 +248,9 @@ namespace UnityVolumeRendering
                 volumeDataset.FixDimensions();
             });
             
-            return (volumeDataset,isDatasetReversed);
+            return volumeDataset;
         }
-        public async Task ImportSeriesSegmentationAsync(IImageSequenceSeries series,VolumeDataset volumeDataset,bool isDatasetReversed)
+        public async Task ImportSeriesSegmentationAsync(IImageSequenceSeries series,VolumeDataset volumeDataset)
         {
             Image image = null;
             float[] pixelData = null;
@@ -319,7 +299,7 @@ namespace UnityVolumeRendering
 
                 VectorDouble spacing = image.GetSpacing();
 
-                volumeDataset.labelData = isDatasetReversed? pixelData.Reverse().ToArray():pixelData;
+                volumeDataset.labelData = pixelData.Reverse().ToArray();
 
                 volumeDataset.labelDimX = (int)size[0];
                 volumeDataset.labelDimY = (int)size[1];
