@@ -3,7 +3,7 @@ using UnityEngine;
 public class QRDataSpawner : MonoBehaviour
 {
     GameObject _activeVolume = null;
-    Vector3 _defaultVolumScale = new Vector3(0.3f, 0.3f, 0.3f);
+    Vector3 _defaultVolumScale = new Vector3(0.33f, 0.33f, 0.33f);
 
     private void Start()
     {
@@ -24,6 +24,7 @@ public class QRDataSpawner : MonoBehaviour
         _activeVolume.transform.localRotation= Quaternion.identity;
         _activeVolume.transform.localScale = _defaultVolumScale;
 
+        volume.SetQRRotation();
         volume.ResetCrossSectionToolsTransform();
         volume.ResetHandleTransform();
         volume.ResetSlicesTransform();      

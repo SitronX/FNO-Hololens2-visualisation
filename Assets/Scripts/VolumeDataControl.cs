@@ -43,7 +43,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     TransformSave _slicingPlaneYTransformSave;
     TransformSave _slicingPlaneZTransformSave;
 
-    Vector3 _mirrorFlippedRotation = new Vector3(29.78f, 95.6f, 77.744f);
+    Vector3 _mirrorFlippedRotation = new Vector3(34.418f,74.889f, 64.967f);
     Vector3 _normalRotation = new Vector3(-150.22f, 95.6f, 282.256f);
     Camera _mainCamera;
     bool _isDatasetReversed = true;
@@ -446,7 +446,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     private async Task RegenerateTexturesDataAsync(ProgressHandler progressHandler)
     {
         VolumeMesh.sharedMaterial.SetTexture("_DataTex", await Dataset.GetDataTextureAsync(true, progressHandler));           //Very long
-        VolumeMesh.sharedMaterial.SetTexture("_GradientTex", await Dataset.GetGradientTextureAsync(true,progressHandler));           //Very long        
+        VolumeMesh.sharedMaterial.SetTexture("_GradientTex", await Dataset.GetGradientTextureAsync(true,progressHandler));    //Very long        
     }
     public void UpdateSlicePlane(bool value)
     {
@@ -496,6 +496,12 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             ProcessingType = DatasetProcessingType.Normal;
         }
     }
+    public void SetQRRotation()
+    {
+        Vector3 rot = _volumeRenderedObject.gameObject.transform.localRotation.eulerAngles;
+        rot.z = 244.906f;
+        _volumeRenderedObject.gameObject.transform.localRotation = Quaternion.Euler(rot);
+    }
     public void ResetAllTransforms()
     {
         ResetMainObjectTransform();
@@ -514,7 +520,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
         transform.position = _mainCamera.transform.position + (_mainCamera.transform.forward);
         transform.rotation = Quaternion.Euler(rot);
-        transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
+        transform.localScale = new Vector3(0.33f, 0.33f, 0.33f);
     }
     public void ResetCrossSectionToolsTransform()
     {
