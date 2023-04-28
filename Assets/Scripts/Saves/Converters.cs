@@ -14,9 +14,11 @@ public class Converters
 
         return save;
     }
-    public static void UpdateTransform(Transform transform, TransformSave save)
+    public static void UpdateTransform(Transform transform, TransformSave save,bool checkEmptiness)
     {
-        if(!save.LocalPosition.IsVectorEmpty()||!save.LocalRotationEuler.IsVectorEmpty()||!save.LocalScale.IsVectorEmpty())
+        bool update = checkEmptiness ? (!save.LocalPosition.IsVectorEmpty() || !save.LocalRotationEuler.IsVectorEmpty() || !save.LocalScale.IsVectorEmpty()):true;
+
+        if (update)
         {
             transform.localPosition = ConvertVector(save.LocalPosition);
             transform.localRotation = Quaternion.Euler(ConvertVector(save.LocalRotationEuler));

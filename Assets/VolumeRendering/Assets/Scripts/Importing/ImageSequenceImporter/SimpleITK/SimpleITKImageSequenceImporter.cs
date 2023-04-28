@@ -75,7 +75,7 @@ namespace UnityVolumeRendering
 
             return seriesList;
         }
-        public async Task<IEnumerable<IImageSequenceSeries>> LoadSeriesAsync(IEnumerable<string> files,ProgressHandler progressHandler,bool segmentation)
+        public async Task<IEnumerable<IImageSequenceSeries>> LoadSeriesAsync(IEnumerable<string> files,ProgressHandler progressHandler,bool isSegmentation)
         {
             List<ImageSequenceSeries> seriesList = null;
             await Task.Run(() => {
@@ -94,7 +94,7 @@ namespace UnityVolumeRendering
 
                     if(percentCounter > onePercent)
                     {
-                        progressHandler.ReportProgress(overall, totalCount, segmentation?"Loading segmentation slices...": "Loading main slices...");
+                        progressHandler.ReportProgress(overall, totalCount, isSegmentation ? "Loading segmentation slices...": "Loading main slices...");
                         percentCounter = 0;
                     }
                     percentCounter++;

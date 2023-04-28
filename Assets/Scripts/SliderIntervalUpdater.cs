@@ -56,16 +56,14 @@ public class SliderIntervalUpdater : MonoBehaviour
             _secondSlider.SliderValue += toFill;
         } 
     }
-    public void SetHounsfieldValues(float minValue,float maxValue)
-    {
-        _minHounsfieldValue = minValue;
-        _maxHounsfieldValue = maxValue;
-    }
-    public void SetInitvalue(float min,float max)
+    public void SetInitValues(float min,float max,float minHuValue,float maxHuValue)
     {
         _firstSlider.SliderValue = min;
         _secondSlider.SliderValue = max;
         _middleSlider.SliderValue = (max + min) * 0.5f;
+
+        _minHounsfieldValue = minHuValue;
+        _maxHounsfieldValue = maxHuValue;
     }
     public void OnChangeSliderValue()
     {

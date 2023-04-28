@@ -75,14 +75,14 @@ public class DatasetSaveSystem : MonoBehaviour
         {
             if (_saveData != null)
             {
-                Converters.UpdateTransform(_mainDatasetT.transform, _saveData.MainDatasetTransform);
-                Converters.UpdateTransform(_grabHandleT.transform, _saveData.GrabHandleTransform);
-                Converters.UpdateTransform(_crossPlaneT.transform, _saveData.CrossPlaneTransform);
-                Converters.UpdateTransform(_crossSphereT.transform, _saveData.CrossSphereTransform);
+                Converters.UpdateTransform(_mainDatasetT.transform, _saveData.MainDatasetTransform,true);
+                Converters.UpdateTransform(_grabHandleT.transform, _saveData.GrabHandleTransform,true);
+                Converters.UpdateTransform(_crossPlaneT.transform, _saveData.CrossPlaneTransform,true);
+                Converters.UpdateTransform(_crossSphereT.transform, _saveData.CrossSphereTransform,true);
 
-                Converters.UpdateTransform(_sliceXT.transform, _saveData.SliceXTransform);
-                Converters.UpdateTransform(_sliceYT.transform, _saveData.SliceYTransform);
-                Converters.UpdateTransform(_sliceZT.transform, _saveData.SliceZTransform);
+                Converters.UpdateTransform(_sliceXT.transform, _saveData.SliceXTransform,true);
+                Converters.UpdateTransform(_sliceYT.transform, _saveData.SliceYTransform,true);
+                Converters.UpdateTransform(_sliceZT.transform, _saveData.SliceZTransform,true);
                 return true;
             }
             return false;
@@ -137,7 +137,7 @@ public class DatasetSaveSystem : MonoBehaviour
         {
             if (_saveData != null&&!_saveData.SliceWindowRange.IsVectorEmpty())
             {
-                volumeControl.SliceRendererWindow.SetInitvalue(_saveData.SliceWindowRange.X,_saveData.SliceWindowRange.Y);
+                volumeControl.SliceRendererWindow.SetInitValues(_saveData.SliceWindowRange.X,_saveData.SliceWindowRange.Y,volumeControl.Dataset.MinDataValue,volumeControl.Dataset.MaxDataValue);
                 return true;
             }
             return false;

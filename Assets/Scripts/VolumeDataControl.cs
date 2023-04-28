@@ -1,28 +1,18 @@
-using itk.simple;
-using Microsoft.MixedReality.Toolkit.Experimental.UI;
 using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.UI;
-using QFSW.QC.Actions;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using TMPro;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Assertions.Must;
-using UnityEngine.InputSystem;
 using UnityVolumeRendering;
 using RenderMode = UnityVolumeRendering.RenderMode;
 
 public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 {
-    [SerializeField] VolumeRenderedObject _volumeData;
     [SerializeField] InteractableToggleCollection _renderModes;
-    [SerializeField] GameObject _volumetricDataMainParentObject;
     [SerializeField] TMP_Text _raymarchStepsLabel;
     [SerializeField] CrossSectionSphere _cutoutSphere;
     [SerializeField] GameObject _cutoutPlane;
@@ -42,47 +32,38 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     [SerializeField] GameObject _removeSliderButton;
     [SerializeField] DatasetSaveSystem _saveSystem;
     [SerializeField] OrbProgressView _orbProgressView;
+    [SerializeField] VolumeRenderedObject _volumeRenderedObject;
+
+
+    TransformSave _cutoutPlaneTransformSave;
+    TransformSave _cutoutSphereTransformSave;
+    TransformSave _grabHandleTransformSave;
+
+    TransformSave _slicingPlaneXTransformSave;
+    TransformSave _slicingPlaneYTransformSave;
+    TransformSave _slicingPlaneZTransformSave;
+
+    Vector3 _mirrorFlippedRotation = new Vector3(29.78f, 95.6f, 77.744f);
+    Vector3 _normalRotation = new Vector3(-150.22f, 95.6f, 282.256f);
+    Camera _mainCamera;
+    bool _isDatasetReversed = true;
+    bool _segmentationPanelVisible = false;
 
     [field: SerializeField] public MeshRenderer VolumeMesh { get; set; }
     [field: SerializeField] public SliderIntervalUpdater SliceRendererWindow { get; set; }
 
-
     public VolumeDataset Dataset { get; set; }
     public bool HasBeenLoaded { get; set; }
-    public List<Segment> Segments { get; set; } = new List<Segment>();
     public DatasetProcessingType ProcessingType { get; set; } = DatasetProcessingType.Normal;
     public TransferFunction TransferFunction { get; set; }
-
     public float SliceWindowMin { get; set; }
     public float SliceWindowMax { get; set; }
-
-    Vector3 _startLocalPlanePosition;
-    Vector3 _startLocalPlaneRotation;
-    Vector3 _startLocalPlaneScale;
-
-    Vector3 _startLocalSpherePosition;
-    Vector3 _startLocalSphereRotation;
-    Vector3 _startLocalSphereScale;
-
-    Vector3 _startLocalHandlePosition;
-    Vector3 _startLocalHandleRotation;
-    Vector3 _startLocalHandleScale;
-
-    Vector3 _mirrorFlippedRotation = new Vector3(29.78f,95.6f,77.744f);
-    Vector3 _normalRotation = new Vector3(-150.22f,95.6f,282.256f);
-    bool _isDatasetReversed = true;
-
-    public static Action<VolumeDataControl> DatasetSpawned { get; set; }
-    public static Action<VolumeDataControl> DatasetDespawned { get; set; }
+    public List<Segment> Segments { get; set; } = new List<Segment>();
+    public List<SliderIntervalUpdater> DensityIntervalSliders { get; private set; } = new List<SliderIntervalUpdater>();
 
     public Action AllAlphaButtonsPressed { get; set; }
     public Action DensityIntervalsChanged { get; set; }
-
-    public List<SliderIntervalUpdater> DensityIntervalSliders { get; private set; } = new List<SliderIntervalUpdater>();
-    VolumeRenderedObject _volumeRenderedObject;
-    Camera _mainCamera;
-
-    bool _segmentationPanelVisible = false;
+    public static Action<VolumeDataControl> DatasetSpawned { get; set; }
 
     public enum DatasetProcessingType
     {
@@ -91,8 +72,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
     private void Start()
     {
-        _volumeRenderedObject = _volumetricDataMainParentObject.GetComponent<VolumeRenderedObject>();
-        SetInitialTransforms();
+        SaveInitialTransforms();
         _tfColorUpdater.TfColorUpdated += SetTransferFunction;
         _tfColorUpdater.TfColorReset += OnTFReset;
         SliceRendererWindow.IntervalSliderValueChanged += UpdateSlicePlaneWindow;
@@ -107,20 +87,18 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
             _saveSystem.TryLoadSaveTransformData();
 
-            progressHandler.Start("Loading started...",8);
+            progressHandler.Start("Loading started...",numberOfParts:8);
 
             _volumeRenderedObject.InitVisiblityWindow();
             _volumeDatasetIcon.material.mainTexture = volumeIcon;
             _volumeDatasetDescription.text = description;
 
-            VolumeDataset result = await CreateVolumeDatasetAsync(datasetFolderName,progressHandler);
-
-            Dataset = result;
+            Dataset = await CreateVolumeDatasetAsync(datasetFolderName,progressHandler);
 
             if (Dataset == null)
                 return;
 
-            await VolumeObjectFactory.FillObjectWithDatasetDataAsync(Dataset, _volumetricDataMainParentObject, _volumetricDataMainParentObject.transform.GetChild(0).gameObject,progressHandler);
+            await VolumeObjectFactory.FillObjectWithDatasetDataAsync(Dataset, _volumeRenderedObject.gameObject,VolumeMesh.gameObject,progressHandler);
 
             TransferFunction = TransferFunctionDatabase.LoadTransferFunctionFromResources("default");      //TF in resources must be in .txt format, the .tf that is default for transfer function cannot be loaded from resources
             SetTransferFunction(TransferFunction);
@@ -129,13 +107,11 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             _saveSystem.TryLoadTFData(_tfColorUpdater);
 
             if (!_saveSystem.TryLoadSaveDensitySliders(this))
-                AddValueDensitySlider(0, 1,false);                                     //Add default density slider if there are no save data
+                AddValueDensitySlider(0, 1,saveAfter:false);                                     //Add default density slider if there are no save data
 
 
-            SliceRendererWindow.SetHounsfieldValues(Dataset.MinDataValue, Dataset.MaxDataValue);
             if (!_saveSystem.TryLoadSliceWindow(this))
-                SliceRendererWindow.SetInitvalue(0, 1);
-            
+                SliceRendererWindow.SetInitValues(0, 1,Dataset.MinDataValue,Dataset.MaxDataValue);
             
 
             _densitySlidersContainer.SetActive(true);
@@ -163,86 +139,49 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             _saveSystem.SaveDataAsync(this);
         }
     }
-    public async Task<VolumeDataset> CreateVolumeDatasetAsync(string datasetFolderName,ProgressHandler progressHandler)
+    private async Task<VolumeDataset> CreateVolumeDatasetAsync(string datasetFolderName,ProgressHandler progressHandler)
+    {
+        return await DataProcessing(datasetFolderName,"Data",progressHandler);
+    }
+    private async Task<bool> TryLoadSegmentationToVolumeAsync(string datasetFolderName, VolumeDataset volumeDataset,ProgressHandler progressHandler)
+    {
+        return (await DataProcessing(datasetFolderName,"Labels",progressHandler,volumeDataset)!=null);
+    }
+    private async Task<VolumeDataset> DataProcessing(string datasetFolderName,string folderName, ProgressHandler progressHandler, VolumeDataset volumeDataset=null)
     {
         string datasetName = datasetFolderName.Split('/').Last();
-        string dataFolderName = datasetFolderName + "/Data/";
-        if (!Directory.Exists(dataFolderName))
-        {
-            ErrorNotifier.Instance.AddErrorMessageToUser($"Data folder for dataset named: {datasetName} doesnt exist!!!");
-        }
 
-        LoadDicomDataPath(dataFolderName, out string filePath, out bool isDicomImageSequence,out int errorFlag);
-
-        if (errorFlag == 1)
-        {
-            ErrorNotifier.Instance.AddErrorMessageToUser($"No data detected in dataset named: {datasetName} in folder Data");
+        if (!LoadDataInternal(folderName, datasetFolderName, out string filePath, out bool isDicomImageSequence))
             return null;
-        }
-        else if (errorFlag == 2)
-        {
-            ErrorNotifier.Instance.AddErrorMessageToUser($"Unknown data detected in dataset named: {datasetName} in folder Data");
-            return null;
-        }
 
-
-        SimpleITKImageSequenceImporter sequenceImporter = new SimpleITKImageSequenceImporter();
-        SimpleITKImageFileImporter fileImporter = new SimpleITKImageFileImporter();
-        VolumeDataset dataset = null;
-
-        if (isDicomImageSequence)
-        {
-            // Read all files
-            IEnumerable<string> fileCandidates = Directory.EnumerateFiles(filePath, "*.*", SearchOption.TopDirectoryOnly)
-                .Where(p => p.EndsWith(".dcm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicom", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpeg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".png", StringComparison.InvariantCultureIgnoreCase));
-
-            IEnumerable<IImageSequenceSeries> sequence = await sequenceImporter.LoadSeriesAsync(fileCandidates,progressHandler,false);
-
-            try
-            {
-                dataset = await sequenceImporter.ImportSeriesAsync(sequence.First(), datasetName);
-            }
-            catch
-            {
-                ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted image series in dataset named: {datasetName} in folder Data");
-            }
-        }
-        else
-        {
-            try
-            {
-                progressHandler.ReportProgress(0.2f, "Loading main file...");
-                dataset = await fileImporter.ImportAsync(filePath,datasetName); 
-            }
-            catch
-            {
-                ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted data in dataset named: {datasetName} in folder Data");
-            }
-        }
-        return dataset;
+        return await ImportDataInternal(isDicomImageSequence, filePath, datasetName, folderName, progressHandler, volumeDataset);
     }
-
-    public async Task<bool> TryLoadSegmentationToVolumeAsync(string datasetFolderName, VolumeDataset volumeDataset,ProgressHandler progressHandler)
+    private bool LoadDataInternal(string folderName, string datasetFolderName, out string filePath, out bool isDicomImageSequence)
     {
-        string segmentationFolderName = datasetFolderName + "/Labels/";
-        if (!Directory.Exists(segmentationFolderName))
+        string FolderName = $"{datasetFolderName}/{folderName}/";
+        if (!Directory.Exists(FolderName))
         {
+            filePath = "";
+            isDicomImageSequence = false;
             return false;
         }
 
-        LoadDicomDataPath(segmentationFolderName, out string filePath, out bool isDicomImageSequence,out int errorFlag);
+        LoadDicomDataPath(FolderName, out filePath, out isDicomImageSequence, out int errorFlag);
 
         if (errorFlag == 1)
         {
-            ErrorNotifier.Instance.AddErrorMessageToUser($"No data detected in dataset named: {datasetFolderName.Split('/').Last()} in folder Labels");
+            ErrorNotifier.Instance.AddErrorMessageToUser($"No data detected in dataset named: {datasetFolderName.Split('/').Last()} in folder {folderName}");
             return false;
         }
         else if (errorFlag == 2)
         {
-            ErrorNotifier.Instance.AddErrorMessageToUser($"Unknown data detected in dataset named: {datasetFolderName.Split('/').Last()} in folder Labels");
+            ErrorNotifier.Instance.AddErrorMessageToUser($"Unknown data detected in dataset named: {datasetFolderName.Split('/').Last()} in folder {folderName}");
             return false;
         }
-
+        return true;
+    }
+    private async Task<VolumeDataset> ImportDataInternal(bool isDicomImageSequence,string filePath,string datasetName,string folderName, ProgressHandler progressHandler, VolumeDataset volumeDataset=null)
+    {
         SimpleITKImageSequenceImporter sequenceImporter = new SimpleITKImageSequenceImporter();
         SimpleITKImageFileImporter fileImporter = new SimpleITKImageFileImporter();
 
@@ -252,39 +191,75 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             IEnumerable<string> fileCandidates = Directory.EnumerateFiles(filePath, "*.*", SearchOption.TopDirectoryOnly)
                 .Where(p => p.EndsWith(".dcm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicom", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".dicm", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".jpeg", StringComparison.InvariantCultureIgnoreCase) || p.EndsWith(".png", StringComparison.InvariantCultureIgnoreCase));
 
-            IEnumerable<IImageSequenceSeries> sequence = await sequenceImporter.LoadSeriesAsync(fileCandidates,progressHandler,true);
+            IEnumerable<IImageSequenceSeries> sequence = await sequenceImporter.LoadSeriesAsync(fileCandidates, progressHandler, isSegmentation:volumeDataset!=null);
 
             try
             {
-                await sequenceImporter.ImportSeriesSegmentationAsync(sequence.First(), volumeDataset);
+                if (volumeDataset==null)
+                    volumeDataset = await sequenceImporter.ImportSeriesAsync(sequence.First(), datasetName);
+                else
+                
+                    await sequenceImporter.ImportSeriesSegmentationAsync(sequence.First(), volumeDataset);  
             }
             catch
             {
-                ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted image series in dataset named: {datasetFolderName.Split('/').Last()} in folder Labels");
-                return false;
+                ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted image series in dataset named: {datasetName} in folder {folderName}");
+                return null;
             }
         }
         else
         {
             try
             {
-                progressHandler.ReportProgress(0.2f, "Loading segmentation file...");
+                progressHandler.ReportProgress(0.2f, $"Loading {folderName}...");
 
-                if (volumeDataset!=null)
+                if(volumeDataset == null)
+                    volumeDataset = await fileImporter.ImportAsync(filePath, datasetName);
+                else
                     await fileImporter.ImportSegmentationAsync(filePath, volumeDataset);
             }
             catch
             {
-                ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted data in dataset named: {datasetFolderName.Split('/').Last()} in folder Labels");
-                return false;
+                ErrorNotifier.Instance.AddErrorMessageToUser($"Corrupted data in dataset named: {datasetName} in folder {folderName}");
+                return null;
             }
         }
-        return true;
+        return volumeDataset;
     }
-
-    private void OnDestroy()
+    private void LoadDicomDataPath(string dicomFolderPath, out string dicomPath, out bool isImageSequence, out int errorFlag)
     {
-        DatasetDespawned?.Invoke(this);
+        List<string> dicomFilesCandidates = Directory.GetFiles(dicomFolderPath).ToList();
+
+        dicomFilesCandidates.RemoveAll(x => x.EndsWith(".meta"));
+
+        if (dicomFilesCandidates.Count == 0)
+        {
+            errorFlag = 1;
+            dicomPath = null;
+            isImageSequence = false;
+            return;
+        }
+
+        DatasetType datasetType = DatasetImporterUtility.GetDatasetType(dicomFilesCandidates.First());
+
+        if (datasetType == DatasetType.Unknown)
+        {
+            isImageSequence = false;
+            dicomPath = dicomFilesCandidates[0];
+            errorFlag = 2;
+        }
+        else if (datasetType == DatasetType.ImageSequence || datasetType == DatasetType.DICOM)
+        {
+            isImageSequence = true;
+            dicomPath = dicomFolderPath;
+            errorFlag = 0;
+        }
+        else     //NRRD or Niftis
+        {
+            isImageSequence = false;
+            dicomPath = dicomFilesCandidates[0];
+            errorFlag = 0;
+        }
     }
     public void SetCrossSectionType(CrossSectionType type)
     {
@@ -306,28 +281,6 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             _cutoutSphere.CutoutType = CutoutType.Exclusive;
         }
     }
-
-    //public void SetTransferFunction(string tfName)
-    //{
-    //    if (TF1D.Contains(tfName))
-    //    {
-    //        TransferFunction = TransferFunctionDatabase.LoadTransferFunction(tfName);
-    //
-    //        _volumeRenderedObject.SetTransferFunction(TransferFunction);
-    //        _volumeRenderedObject.SetTransferFunctionMode(TFRenderMode.TF1D);
-    //    }
-    //    else if (TF2D.Contains(tfName))
-    //    {
-    //        TransferFunction2D transferFunction = TransferFunctionDatabase.LoadTransferFunction2D(tfName);
-    //
-    //        _volumeRenderedObject.SetTransferFunction2D(transferFunction);
-    //        _volumeRenderedObject.SetTransferFunctionMode(TFRenderMode.TF2D);
-    //    }
-    //    else
-    //    {
-    //        ErrorNotifier.Instance.AddErrorMessageToUser("Wrong TF name, try to use the suggestor");
-    //    }
-    //}
     public void SetTransferFunction(TransferFunction tf)
     {
         _volumeRenderedObject.SetTransferFunction(tf);      
@@ -344,8 +297,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         newSlider.transform.localRotation = Quaternion.Euler(new Vector3(90, -90, 0));
         SliderIntervalUpdater sliderUpdater = newSlider.GetComponent<SliderIntervalUpdater>();
         sliderUpdater.IntervalSliderValueChanged += UpdateIsoRanges;
-        sliderUpdater.SetInitvalue(minVal, maxVal);
-        sliderUpdater.SetHounsfieldValues(Dataset.MinDataValue, Dataset.MaxDataValue);
+        sliderUpdater.SetInitValues(minVal, maxVal, Dataset.MinDataValue, Dataset.MaxDataValue);
         _sliderControlButtons.transform.localPosition = new Vector3(-0.03f - (DensityIntervalSliders.Count * 0.09f), 0, DensityIntervalSliders.Count > 0 ? 0.3f : 0.22f);
 
         DensityIntervalSliders.Add(sliderUpdater);
@@ -375,33 +327,28 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         DensityIntervalsChanged?.Invoke();
         _saveSystem.SaveDataAsync(this);
     }
-
     public void UpdateIsoRanges()
     {
         try                                                                                 //ON app start sliders are defaultly updated, but volume object is not present yet
         {
-            List<float> minVals = new List<float>();
-            List<float> maxVals = new List<float>();
+            float[] minVals= new float[DensityIntervalSliders.Count];
+            float[] maxVals = new float[DensityIntervalSliders.Count];
 
-
-            foreach(SliderIntervalUpdater i in DensityIntervalSliders)
+            for(int i=0;i<DensityIntervalSliders.Count;i++)
             {
-                i.GetSliderValues(out float minVal, out float maxVal);
-                minVals.Add(minVal);
-                maxVals.Add(maxVal);
+                DensityIntervalSliders[i].GetSliderValues(out float minVal, out float maxVal);
+                minVals[i] = minVal;
+                maxVals[i] = maxVal;
             }
-
-           
-            _volumeData.SetVisibilityWindow(minVals.ToArray(),maxVals.ToArray(), DensityIntervalSliders.Count);
-            
+            _volumeRenderedObject.SetVisibilityWindow(minVals,maxVals, DensityIntervalSliders.Count);
         }
         catch { }
     }
     public void UpdateRenderingMode(RenderMode renderMode)
     {
-        if(renderMode!=_volumeData.GetRenderMode())
+        if(renderMode!= _volumeRenderedObject.GetRenderMode())
         {
-            _volumeData.SetRenderMode(renderMode);
+            _volumeRenderedObject.SetRenderMode(renderMode);
             UpdateIsoRanges();
 
             if(renderMode==RenderMode.DirectVolumeRendering)
@@ -425,75 +372,21 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         _segmentationParentContainer.SetActive(_segmentationPanelVisible);
 
         _tfColorUpdater.ShowTfUpdater(!_segmentationPanelVisible);
-        TurnMaterialLabelingKeyword(_segmentationPanelVisible);
+        TurnLabelingKeyword(_segmentationPanelVisible);
     }
     public void UpdateCubicInterpolation(bool value)
     {
-        _volumeData.SetCubicInterpolationEnabled(value);
+        _volumeRenderedObject.SetCubicInterpolationEnabled(value);
     }
-  
     public void SetRaymarchStepCount(int value)
     {
         VolumeMesh.sharedMaterial.SetInt("_stepNumber", value);
     }
     public void UpdateLighting(bool value)
     {
-        _volumeData.SetLightingEnabled(value);
+        _volumeRenderedObject.SetLightingEnabled(value);
     }
-    public void LoadDicomDataPath(string dicomFolderPath,out string dicomPath,out bool isImageSequence,out int errorFlag)
-    {
-        List<string> dicomFilesCandidates = Directory.GetFiles(dicomFolderPath).ToList();
-
-        dicomFilesCandidates.RemoveAll(x => x.EndsWith(".meta"));
-
-        if(dicomFilesCandidates.Count==0)
-        {
-            errorFlag = 1;
-            dicomPath = null;
-            isImageSequence = false;
-            return;
-        }
-
-        DatasetType datasetType = DatasetImporterUtility.GetDatasetType(dicomFilesCandidates.First());
-
-        if(datasetType==DatasetType.ImageSequence||datasetType==DatasetType.DICOM)
-        {
-            isImageSequence = true;
-            dicomPath = dicomFolderPath;
-            errorFlag = 0;
-        }
-        else if(datasetType==DatasetType.Unknown)
-        {
-            isImageSequence = false;
-            dicomPath = dicomFilesCandidates[0];
-            errorFlag = 2;
-        }
-        else
-        {
-            isImageSequence = false;
-            dicomPath = dicomFilesCandidates[0];
-            errorFlag = 0;
-        }
-    }
-    //public void LoadTFDataPath(string transferFunctionFolderPath)
-    //{
-    //    TF1D = new List<string>();
-    //    TF2D = new List<string>();
-    //
-    //    List<string> dicomFilesCandidates = Directory.GetFiles(transferFunctionFolderPath).ToList();
-    //
-    //    dicomFilesCandidates.RemoveAll(x => x.EndsWith(".meta"));
-    //
-    //
-    //    foreach (string i in dicomFilesCandidates)
-    //    {
-    //        if (i.EndsWith("tf"))
-    //            TF1D.Add(i);
-    //        else if (i.EndsWith("tf2d"))
-    //            TF2D.Add(i);
-    //    }
-    //}
-    public async Task InitSegmentationAsync(ProgressHandler progressHandler)
+    private async Task InitSegmentationAsync(ProgressHandler progressHandler)
     {
         VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync(true, progressHandler));           //Very long
 
@@ -517,12 +410,9 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
                 segment.ChangeSegmentName(Dataset.LabelNames[key]);
 
             Segments.Add(segment);
-
             iter++;
         }
-
         UpdateShaderLabelArray();
-
     }
     public void TurnAllSegmentAlphas(bool value)
     {
@@ -530,15 +420,14 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         AllAlphaButtonsPressed?.Invoke();
         _saveSystem.SaveDataAsync(this);
     }
-    private void TurnMaterialLabelingKeyword(bool value)
+    private void TurnLabelingKeyword(bool value)
     {
         if(value)
             VolumeMesh.material.EnableKeyword("LABELING_SUPPORT_ON");
         else
             VolumeMesh.material.DisableKeyword("LABELING_SUPPORT_ON");
     }
-
-    public void UpdateShaderLabelArray()
+    private void UpdateShaderLabelArray()
     {
         VolumeMesh.material.SetColorArray("_SegmentsColors", Segments.Select(x => x.SegmentColor).ToArray());
     }
@@ -546,7 +435,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     {
         using (ProgressHandler progressHandler = new ProgressHandler(_orbProgressView))
         {
-            progressHandler.Start("Downscaling dataset...",3);
+            progressHandler.Start("Downscaling dataset...",numberOfParts:3);
 
             ProcessingType = DatasetProcessingType.Downsampling;
             await Dataset.DownScaleDataAsync(progressHandler);
@@ -557,10 +446,8 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     private async Task RegenerateTexturesDataAsync(ProgressHandler progressHandler)
     {
         VolumeMesh.sharedMaterial.SetTexture("_DataTex", await Dataset.GetDataTextureAsync(true, progressHandler));           //Very long
-
         VolumeMesh.sharedMaterial.SetTexture("_GradientTex", await Dataset.GetGradientTextureAsync(true,progressHandler));           //Very long        
     }
-
     public void UpdateSlicePlane(bool value)
     {
         _tfColorUpdater.gameObject.transform.localPosition = value ? new Vector3(0.275f, 0.02f, 0.3f) : new Vector3(0.1705f, 0.02f, 0.3f);  //Move the tf color slider if enabled
@@ -571,7 +458,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         _slicingPlaneYNormalAxisObject.gameObject.SetActive(value);
         _slicingPlaneZNormalAxisObject.gameObject.SetActive(value);
     }
-    public void UpdateSlicePlaneWindow()
+    private void UpdateSlicePlaneWindow()
     {
         SliceRendererWindow.GetSliderValues(out float minVal, out float maxVal);
         SliceWindowMin = minVal;
@@ -580,6 +467,34 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         _slicingPlaneXNormalAxisObject.UpdateHounsfieldWindow(minVal, maxVal, Dataset.MinDataValue,Dataset.MaxDataValue);
         _slicingPlaneYNormalAxisObject.UpdateHounsfieldWindow(minVal, maxVal, Dataset.MinDataValue, Dataset.MaxDataValue);
         _slicingPlaneZNormalAxisObject.UpdateHounsfieldWindow(minVal, maxVal, Dataset.MinDataValue, Dataset.MaxDataValue);
+    } 
+    public async Task MirrorFlipTexturesAsync()
+    {
+        using (ProgressHandler progressHandler = new ProgressHandler(_orbProgressView))
+        {
+            ProcessingType = DatasetProcessingType.Mirrorflipping;
+            _isDatasetReversed = !_isDatasetReversed;
+
+            progressHandler.Start("Flipping Data...",numberOfParts:5);
+
+            await Task.Run(() => Dataset.FlipTextureArrays());
+
+            if (Segments.Count > 0)
+            {
+                VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync(true,progressHandler));           //Very long
+            }
+            else
+            {
+                progressHandler.UpdateTotalNumberOfParts(3);
+            }
+            if (_isDatasetReversed)
+                _volumeRenderedObject.gameObject.transform.localRotation = Quaternion.Euler(_mirrorFlippedRotation);
+            else
+                _volumeRenderedObject.gameObject.transform.localRotation = Quaternion.Euler(_normalRotation);
+
+            await RegenerateTexturesDataAsync(progressHandler);
+            ProcessingType = DatasetProcessingType.Normal;
+        }
     }
     public void ResetAllTransforms()
     {
@@ -598,82 +513,33 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         rot.z = 0;
 
         transform.position = _mainCamera.transform.position + (_mainCamera.transform.forward);
-        transform.rotation= Quaternion.Euler(rot);
-
+        transform.rotation = Quaternion.Euler(rot);
+        transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
     }
-    public async Task MirrorFlipTexturesAsync()
-    {
-        using (ProgressHandler progressHandler = new ProgressHandler(_orbProgressView))
-        {
-            ProcessingType = DatasetProcessingType.Mirrorflipping;
-            _isDatasetReversed = !_isDatasetReversed;
-
-            progressHandler.Start("Flipping Data...", 5);
-
-            await Task.Run(() => Dataset.FlipTextureArrays());
-
-            if (Segments.Count > 0)
-            {
-                VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync(true,progressHandler));           //Very long
-            }
-            else
-            {
-                progressHandler.UpdateTotalNumberOfParts(3);
-            }
-            if (_isDatasetReversed)
-                _volumeData.gameObject.transform.localRotation = Quaternion.Euler(_mirrorFlippedRotation);
-            else
-                _volumeData.gameObject.transform.localRotation = Quaternion.Euler(_normalRotation);
-
-            await RegenerateTexturesDataAsync(progressHandler);
-            ProcessingType = DatasetProcessingType.Normal;
-        }
-    }
-    //TODO vsechny resety nedelat k initial hodnotam, ale defaultnim prednastavenym hodnotam, tak samo bude pouzit defaultni scaling atd...
     public void ResetCrossSectionToolsTransform()
     {
-        _cutoutPlane.transform.localPosition = _startLocalPlanePosition;
-        _cutoutPlane.transform.localRotation = Quaternion.Euler(_startLocalPlaneRotation);
-        _cutoutPlane.transform.localScale = _startLocalPlaneScale;
-
-        _cutoutSphere.transform.localPosition = _startLocalSpherePosition;
-        _cutoutSphere.transform.localRotation = Quaternion.Euler(_startLocalSphereRotation);
-        _cutoutSphere.transform.localScale = _startLocalSphereScale;
+        Converters.UpdateTransform(_cutoutPlane.transform, _cutoutPlaneTransformSave, false);
+        Converters.UpdateTransform(_cutoutSphere.transform, _cutoutSphereTransformSave, false);
     }
     public void ResetHandleTransform()
     {
-        _controlHandle.transform.localPosition = _startLocalHandlePosition;
-        _controlHandle.transform.localRotation = Quaternion.Euler(_startLocalHandleRotation);
-        _controlHandle.transform.localScale = _startLocalHandleScale;
+        Converters.UpdateTransform(_controlHandle.transform, _grabHandleTransformSave, false);
     }
     public void ResetSlicesTransform()
     {
-        _slicingPlaneXNormalAxisObject.transform.localPosition = new Vector3(0, 0, -0.1f);
-        _slicingPlaneXNormalAxisObject.transform.localRotation = Quaternion.Euler(new Vector3(-29.78f, -84.4f, 102.256f));
-        _slicingPlaneXNormalAxisObject.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-
-        _slicingPlaneYNormalAxisObject.transform.localPosition = new Vector3(0, 0, -0.1f);
-        _slicingPlaneYNormalAxisObject.transform.localRotation = Quaternion.Euler(new Vector3(-10.617f, 11.759f, 59.647f));
-        _slicingPlaneYNormalAxisObject.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-
-        _slicingPlaneZNormalAxisObject.transform.localPosition = new Vector3(0, 0, -0.1f);
-        _slicingPlaneZNormalAxisObject.transform.localRotation = Quaternion.Euler(new Vector3(-10.617f, 11.759f, -30.353f));
-        _slicingPlaneZNormalAxisObject.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+        Converters.UpdateTransform(_slicingPlaneXNormalAxisObject.transform, _slicingPlaneXTransformSave,false);
+        Converters.UpdateTransform(_slicingPlaneYNormalAxisObject.transform, _slicingPlaneYTransformSave,false);
+        Converters.UpdateTransform(_slicingPlaneZNormalAxisObject.transform, _slicingPlaneZTransformSave,false);
     }
-
-    private void SetInitialTransforms()
+    private void SaveInitialTransforms()
     {
-        _startLocalPlanePosition = new Vector3(_cutoutPlane.transform.localPosition.x, _cutoutPlane.transform.localPosition.y, _cutoutPlane.transform.localPosition.z);
-        _startLocalPlaneRotation = new Vector3(_cutoutPlane.transform.localRotation.eulerAngles.x, _cutoutPlane.transform.localRotation.eulerAngles.y, _cutoutPlane.transform.localRotation.eulerAngles.z);
-        _startLocalPlaneScale = new Vector3(_cutoutPlane.transform.localScale.x, _cutoutPlane.transform.localScale.y, _cutoutPlane.transform.localScale.z);
+        _cutoutPlaneTransformSave = Converters.ConvertTransform(_cutoutPlane.transform);
+        _cutoutSphereTransformSave = Converters.ConvertTransform(_cutoutSphere.transform);
+        _grabHandleTransformSave= Converters.ConvertTransform(_controlHandle.transform);
 
-        _startLocalSpherePosition = new Vector3(_cutoutSphere.transform.localPosition.x, _cutoutSphere.transform.localPosition.y, _cutoutSphere.transform.localPosition.z);
-        _startLocalSphereRotation = new Vector3(_cutoutSphere.transform.localRotation.eulerAngles.x, _cutoutSphere.transform.localRotation.eulerAngles.y, _cutoutSphere.transform.localRotation.eulerAngles.z);
-        _startLocalSphereScale = new Vector3(_cutoutSphere.transform.localScale.x, _cutoutSphere.transform.localScale.y, _cutoutSphere.transform.localScale.z);
-
-        _startLocalHandlePosition = new Vector3(_controlHandle.transform.localPosition.x, _controlHandle.transform.localPosition.y, _controlHandle.transform.localPosition.z);
-        _startLocalHandleRotation = new Vector3(_controlHandle.transform.localRotation.eulerAngles.x, _controlHandle.transform.localRotation.eulerAngles.y, _controlHandle.transform.localRotation.eulerAngles.z);
-        _startLocalHandleScale = new Vector3(_controlHandle.transform.localScale.x, _controlHandle.transform.localScale.y, _controlHandle.transform.localScale.z);
+        _slicingPlaneXTransformSave=Converters.ConvertTransform(_slicingPlaneXNormalAxisObject.transform);
+        _slicingPlaneYTransformSave=Converters.ConvertTransform(_slicingPlaneYNormalAxisObject.transform);
+        _slicingPlaneZTransformSave=Converters.ConvertTransform(_slicingPlaneZNormalAxisObject.transform);
     }
     public void SetVolumePosition(Vector3 position)
     {
