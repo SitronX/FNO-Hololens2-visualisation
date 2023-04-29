@@ -9,7 +9,7 @@ using UnityEngine.Events;
 public class Slice : MonoBehaviour
 {
     public SliceOptions sliceOptions;
-    public CallbackOptions callbackOptions;
+    public CallbackOptions callbackOptions=new CallbackOptions();
 
     /// <summary>
     /// The number of times this fragment has been re-sliced.

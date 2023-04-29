@@ -1,8 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.XR.Management;
 
 public class PlatformSpecific : MonoBehaviour
 {
@@ -16,8 +13,12 @@ public class PlatformSpecific : MonoBehaviour
     [SerializeField] GameObject _qrCodeManager;
     [SerializeField] Material _skyboxMaterial;
 
-    private void Awake()
+    Camera _mainCamera;
+
+    private void Start()
     {
+        _mainCamera = FindObjectOfType<Camera>();
+
         if(_targetPlatform==TargetPlatform.Hololens2)
         {
             _qrCodeManager.SetActive(true);
@@ -25,7 +26,18 @@ public class PlatformSpecific : MonoBehaviour
         else if(_targetPlatform== TargetPlatform.Quest)
         {
             RenderSettings.skybox = _skyboxMaterial;
-            Instantiate(_prefabObject, new Vector3(6,1.2f,1.5f), Quaternion.Euler(new Vector3(0,-180,0)));
+            StartCoroutine(SpawnDelay());       
         }
+    }
+    IEnumerator SpawnDelay()        //There is a delay with camera update on xr initialization so we must wait for proper camera position for model spawn
+    {
+        while(_mainCamera.transform.position==Vector3.zero) //Wait until the camera position changes
+            yield return new WaitForSeconds(0.1f);
+            
+        
+        Vector3 fixedRot = _mainCamera.transform.rotation.eulerAngles;
+        fixedRot.x -= 12;
+        fixedRot.y += 100;
+        Instantiate(_prefabObject, _mainCamera.transform.position + (_mainCamera.transform.forward), Quaternion.Euler(fixedRot));
     }
 }

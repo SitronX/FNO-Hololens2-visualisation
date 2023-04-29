@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 public class CuttingModelManager : MonoBehaviour
@@ -13,14 +11,11 @@ public class CuttingModelManager : MonoBehaviour
     [SerializeField] GameObject _alphaSliderPrefab;
     [SerializeField] GameObject _alphaSliderContainer;
     [SerializeField] GameObject _parentSpawnObject;
+    [SerializeField] GameObject _grabHandle;
 
-    Vector3 _startLocalPosition;
-    Vector3 _startLocalRotation;
-    Vector3 _startLocalScale;
-
-    Vector3 _startLocalPlanePosition;
-    Vector3 _startLocalPlaneRotation;
-    Vector3 _startLocalPlaneScale;
+    TransformSave _mainStartTransform;
+    TransformSave _planeStartTransform;
+    TransformSave _grabHandleStartTransform;
 
     GameObject _mainObject;
     List<SliceData> _segmentObjects = new List<SliceData>();
@@ -35,7 +30,6 @@ public class CuttingModelManager : MonoBehaviour
         public Segment segment;
     }
 
-
     void Start()
     {
         GameObject[] obj=Resources.LoadAll<GameObject>("");
@@ -48,27 +42,25 @@ public class CuttingModelManager : MonoBehaviour
 
         for (int i = 0; i < currentChildCount; i++)
         {
-            GameObject current = _mainObject.transform.GetChild(i).gameObject;
-            MeshRenderer renderer = current.GetComponent<MeshRenderer>();
+            GameObject currentSegment = _mainObject.transform.GetChild(i).gameObject;
+            MeshRenderer renderer = currentSegment.GetComponent<MeshRenderer>();
 
-            Slice currentSlice= current.AddComponent<Slice>();
+            Slice currentSlice= currentSegment.AddComponent<Slice>();
             currentSlice.sliceOptions = new SliceOptions
             {
                 insideMaterial = renderer.sharedMaterial,
                 enableReslicing = true
             };
-            currentSlice.callbackOptions = new CallbackOptions();
 
-            current.AddComponent<MeshCollider>();
-            Rigidbody bod = current.GetComponent<Rigidbody>();
+            currentSegment.AddComponent<MeshCollider>();
+            Rigidbody bod = currentSegment.GetComponent<Rigidbody>();
             bod.useGravity = false;
             bod.isKinematic = true;
 
-            SliceData data;
-            data.slice = currentSlice;
+            GameObject segmentContainer = Instantiate(_emptyGameObjectPrefab, currentSegment.transform.parent);
+            segmentContainer.name = $"{currentSegment.name}SliceContainer";  
+            
 
-            GameObject segmentContainer = Instantiate(_emptyGameObjectPrefab, current.transform.parent);
-            segmentContainer.name = $"{current.name}SliceContainer";       
 
             GameObject alphaSlider = Instantiate(_alphaSliderPrefab, _alphaSliderContainer.transform);
 
@@ -78,14 +70,18 @@ public class CuttingModelManager : MonoBehaviour
             Segment seg= alphaSlider.GetComponent<Segment>();
             seg.InitSegment(renderer);
 
+            SliceData data;
+            data.slice = currentSlice;
             data.fragmentRootContainer = currentSlice.CreateFragmentRootObject(segmentContainer);
             data.slicesParentObject = segmentContainer.transform.Find($"{segmentContainer.name}Slices").gameObject;
-            data.originalObject = current;
+            data.originalObject = currentSegment;
             data.segment = seg;
 
             _segmentObjects.Add(data);
         }
-        ResetInitialPosition();
+        SetInitialPosition();
+        UpdateSlicingData();
+
     }
 
     public void UpdateSlicingData()
@@ -96,38 +92,24 @@ public class CuttingModelManager : MonoBehaviour
             {
                 Destroy(j.gameObject);
             }
-            Tuple<GameObject,GameObject> slicedObjectFragments= _segmentObjects[i].slice.ComputeSlice(sliceNormalWorld: _slicingPlaneObject.transform.up, sliceOriginWorld: _slicingPlaneObject.transform.position+ (_slicingPlaneObject.transform.up*0.001f),instantiateOnlyLeftFragment: true,isKinematic: true, fragmentRootObject: _segmentObjects[i].fragmentRootContainer);
-
-            GameObject firstSlicedFragment=slicedObjectFragments.Item1;
-
-            //if(firstSlicedFragment!= null )
-            //{
-            //    //TODO SLICE BY SLIDER
-            //}
+            Tuple<GameObject,GameObject> parts=_segmentObjects[i].slice.ComputeSlice(sliceNormalWorld: _slicingPlaneObject.transform.up, sliceOriginWorld: _slicingPlaneObject.transform.position+ (_slicingPlaneObject.transform.up*0.001f),instantiateOnlyLeftFragment: true,isKinematic: true, fragmentRootObject: _segmentObjects[i].fragmentRootContainer);
+            _segmentObjects[i].segment.MeshRenderer = parts.Item1.GetComponent<MeshRenderer>();
         }
     }
     public void ResetObjectTransform()
     {
-        _mainObject.transform.parent.localPosition = _startLocalPosition;
-        _mainObject.transform.parent.localRotation = Quaternion.Euler(_startLocalRotation);
-        _mainObject.transform.parent.localScale = _startLocalScale;
-
-        _slicingPlaneObject.transform.parent.localPosition = _startLocalPlanePosition;
-        _slicingPlaneObject.transform.parent.localRotation = Quaternion.Euler(_startLocalPlaneRotation);
-        _slicingPlaneObject.transform.parent.localScale = _startLocalPlaneScale;
+        Converters.UpdateTransform(transform, _mainStartTransform);
+        Converters.UpdateTransform(_slicingPlaneObject.transform.parent.transform, _planeStartTransform);
+        Converters.UpdateTransform(_grabHandle.transform, _grabHandleStartTransform);
 
         UpdateSlicingData();
     }
 
-    private void ResetInitialPosition()
+    private void SetInitialPosition()
     {
-        _startLocalPosition = new Vector3(_mainObject.transform.parent.localPosition.x, _mainObject.transform.parent.localPosition.y, _mainObject.transform.parent.localPosition.z);
-        _startLocalRotation = new Vector3(_mainObject.transform.parent.localRotation.eulerAngles.x, _mainObject.transform.parent.localRotation.eulerAngles.y, _mainObject.transform.parent.localRotation.eulerAngles.z);
-        _startLocalScale = new Vector3(_mainObject.transform.parent.localScale.x, _mainObject.transform.parent.localScale.y, _mainObject.transform.parent.localScale.z);
-
-        _startLocalPlanePosition = new Vector3(_slicingPlaneObject.transform.parent.localPosition.x, _slicingPlaneObject.transform.parent.localPosition.y, _slicingPlaneObject.transform.parent.localPosition.z);
-        _startLocalPlaneRotation = new Vector3(_slicingPlaneObject.transform.parent.localRotation.eulerAngles.x, _slicingPlaneObject.transform.parent.localRotation.eulerAngles.y, _slicingPlaneObject.transform.parent.localRotation.eulerAngles.z);
-        _startLocalPlaneScale = new Vector3(_slicingPlaneObject.transform.parent.localScale.x, _slicingPlaneObject.transform.parent.localScale.y, _slicingPlaneObject.transform.parent.localScale.z);
+        _mainStartTransform = Converters.ConvertTransform(transform);
+        _planeStartTransform= Converters.ConvertTransform(_slicingPlaneObject.transform.parent.transform);
+        _grabHandleStartTransform = Converters.ConvertTransform(_grabHandle.transform);
     }
     public void TurnAllAlphas(bool value)
     {

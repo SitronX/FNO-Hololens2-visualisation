@@ -1,8 +1,5 @@
 using Microsoft.MixedReality.Toolkit.UI;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class Segment : MonoBehaviour,IColorPickerListener
 {
@@ -10,16 +7,18 @@ public class Segment : MonoBehaviour,IColorPickerListener
     [SerializeField] GameObject _colorPickerAnchor;
     [SerializeField] PinchSlider _alphaSlider;
 
-    MeshRenderer _meshRenderer;
+    public MeshRenderer MeshRenderer { get; set; }
 
     public void OpenColorPicker()
     {
-        CustomColorPicker.Instance.OpenColorPicker(this, _meshRenderer.sharedMaterial.color, _colorPickerAnchor.transform);
+        CustomColorPicker.Instance.OpenColorPicker(this, MeshRenderer.sharedMaterial.color, _colorPickerAnchor.transform);
     }
     public void InitSegment(MeshRenderer mesh)
     {
-        _meshRenderer = mesh;
-        _spriteRenderer.color= mesh.sharedMaterial.color;
+        MeshRenderer = mesh;
+        Color col = mesh.sharedMaterial.color;
+        col.a = 1;
+        _spriteRenderer.color = col;
     }
 
     public void OnColorUpdated(Color color)
@@ -27,7 +26,7 @@ public class Segment : MonoBehaviour,IColorPickerListener
         _spriteRenderer.color = color;
 
         color.a = _alphaSlider.SliderValue;
-        _meshRenderer.sharedMaterial.color = color;
+        MeshRenderer.sharedMaterial.color = color;
     }
 
     public void SliderUpdate(SliderEventData data)
@@ -40,15 +39,19 @@ public class Segment : MonoBehaviour,IColorPickerListener
     }
     private void UpdateAlpha(float sliderValue)
     {
+        MeshRenderer.enabled = (sliderValue != 0);        //If alpha is 0, disable meshrenderer for performance reasons
+
         if (sliderValue == 1)
-            _meshRenderer.sharedMaterial.ToOpaqueMode();
+        {
+            MeshRenderer.sharedMaterial.ToOpaqueMode();
+        }
         else
         {
-            _meshRenderer.sharedMaterial.ToFadeMode();
+            MeshRenderer.sharedMaterial.ToFadeMode();
 
-            Color color = _meshRenderer.sharedMaterial.color;
+            Color color = MeshRenderer.sharedMaterial.color;
             color.a = sliderValue;
-            _meshRenderer.sharedMaterial.color = color;
+            MeshRenderer.sharedMaterial.color = color;
         }
     }
 

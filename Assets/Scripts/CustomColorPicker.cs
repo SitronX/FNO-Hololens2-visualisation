@@ -1,8 +1,4 @@
 using Microsoft.MixedReality.Toolkit.UI;
-using QRTracking;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CustomColorPicker : MonoBehaviour
@@ -13,10 +9,9 @@ public class CustomColorPicker : MonoBehaviour
     [SerializeField] GameObject _pickerObject;
 
     Color _pickerColor;
+    IColorPickerListener _listener;
 
     public static CustomColorPicker Instance { get; private set; }
-
-    private IColorPickerListener _listener;
 
     private void Awake()
     {
