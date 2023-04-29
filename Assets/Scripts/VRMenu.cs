@@ -42,6 +42,7 @@ public class VRMenu : MonoBehaviour
             _vrControllerMenu.transform.localRotation = Quaternion.Euler(new Vector3(90, -30, 150));
             _vrControllerMenu.transform.localScale = Vector3.one;
 
+            _isMenuAnchored = false;
             _menuEnablerObject.SetActive(true);
             _buttonClose.SetActive(false);
         }    

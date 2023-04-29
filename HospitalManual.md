@@ -1,6 +1,6 @@
 </p>
 <p align="center">
- <img src="https://user-images.githubusercontent.com/68167377/226200142-53190216-13ea-47c3-9184-e05875096922.jpeg" width="512">
+ <img src="https://user-images.githubusercontent.com/68167377/235327492-a7f140a7-73b7-469e-bebf-97ffed756c06.png" width="512">
 </p>
 
 # FnO-Manual
@@ -58,19 +58,17 @@ Dataset can be enabled/disabled after the spawn.
 
 ## Changing Transfer-function
 
-Some datasets might have problem with the default Transfer-function. Transfer-function provides color to every particle based on its density. When dataset appears to be washed-out with a lot of same color, it is best to manually correct the color positions. Adjusting is showed here.
+Some datasets might have problem with the default Transfer-function. Transfer-function provides color to every particle based on its density. When dataset appears to be washed-out with a lot of same color, it is best to manually correct the color positions. Adjusting is shown here.
 
-<img src="https://user-images.githubusercontent.com/68167377/227997834-584ffa4a-628d-400c-aa17-ba74738f4426.gif" width=512>
+<img src="https://user-images.githubusercontent.com/68167377/235325145-a59606d4-0b8e-4f5f-b693-99d4cd0861b0.gif" width=512>
 
 The color positions are directly connected to the density slider, so when you select specific density interval, you can also set up what colors will be inside the interval.
 
-<img src="https://user-images.githubusercontent.com/68167377/227991860-8fbe4b09-6c06-46df-b0ab-fe45a5e02475.jpg" width=512>
+<img src="https://user-images.githubusercontent.com/68167377/235325395-a57d97d5-73f9-445c-9fed-205abdd6797a.png" width=512>
 
-You can also reset color positions by clicking this button, this will reset the colors to default state.
+You can also reset color positions by clicking <b>Reset TF</b> button, this will reset the colors to default state.
 
-<img src="https://user-images.githubusercontent.com/68167377/227994876-baa88eff-3be4-40ba-90e6-77e8767a9260.jpg" width=512>
-
-Note: In my tests, using black-red colors worked really well in highlighting changes.
+<img src="https://user-images.githubusercontent.com/68167377/235325466-2e4da136-9661-477b-bee1-37b235aaec3a.png" width=512>
 
 ## Segmentation module
 
@@ -78,7 +76,7 @@ If you placed the correct label map in the corresponding <b>Labels</b> folder, t
 
 After loading the dataset, you can open the segmentation module by checking the segmentation checkbox.
 
-<img src="https://user-images.githubusercontent.com/68167377/226214793-e0e8074b-9f04-40f2-8391-7e9bf02f62d7.jpg" width=512>
+<img src="https://user-images.githubusercontent.com/68167377/235325565-80cfd958-3d62-4cc6-bc59-c9d9d62b1034.gif" width=450>
 
 List of segments will appear. Segments are differentiated via color. You can control segments opacity by corresponding sliders as shown below.
 
@@ -88,15 +86,20 @@ You can also change segment color by pressing the color button.
 
 ![ColorChange](https://user-images.githubusercontent.com/68167377/226215618-b020f276-95f3-4aec-9d1f-a27dcb70b995.gif)
 
-You can exit the segmentation module by uncheching the segmentation checkbox.
 
 Note: The segmentation module only works in DVR render mode.
 
+## Rescaling objects
+
+You can rescale objects by stretching/contracting them with both hands.
+
+<img src="https://user-images.githubusercontent.com/68167377/235326145-678edfc2-2554-4a34-a7ff-00e61d2ac90a.gif" width=450>
+
 ## Slice planes
 
-You can enable the slice view from the hand menu. When enabled, you can move the slice planes.
+You can activate the slice view from the hand menu. Once enabled, it offers a grayscale visualization of the dataset, comparable to conventional 2D software. You can also modify the radiologic window using the slider located in the configuration panel for each dataset, allowing you to achieve better contrast.
 
-![Slices](https://user-images.githubusercontent.com/68167377/226216517-54128e09-7516-45f2-9a50-c803bbe011a8.gif)
+![Slices](https://user-images.githubusercontent.com/68167377/235325795-1850c06f-6fe6-4494-b335-4d4a88b840c9.gif)
 
 ## Cutout methods
 

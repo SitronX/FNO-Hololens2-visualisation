@@ -10,16 +10,25 @@ This branch is for raw medical volume data visualization using AR/VR headsets co
 Downloadable builds are available in the [Release](https://github.com/SitronX/FnO-Hololens2-visualisation/releases) section.
 
 <table>
+<tr>
+     <td colspan="2" style="text-align:center;">
+      <p>Click on images for video showcase</p>
+    </td>
+</tr>
   <tr>  
 <th>
-  <img src="https://user-images.githubusercontent.com/68167377/226212896-2f515a08-a887-495d-9d79-06f41a4e37eb.jpg" width="1024">
+
+  [![watch the video](https://img.youtube.com/vi/AJ2Yo9iHoyM/hqdefault.jpg)](https://youtu.be/AJ2Yo9iHoyM)
+
 </th>
 <th>  
-   <img src="https://user-images.githubusercontent.com/68167377/226200142-53190216-13ea-47c3-9184-e05875096922.jpeg" width="1024">
+
+[![watch the video](https://img.youtube.com/vi/YIiWLfu1hU8/hqdefault.jpg)](https://youtu.be/AJ2Yo9iHoyM)
+
 </th>
   </tr>
   <tr>
-    <th> Hololens 2 </th>
+    <th> Hololens 2</th>
     <th> PCVR </th>
   </tr>
   </table>
@@ -41,7 +50,7 @@ Connect the VR headset to the PC before launching the app (eg: [AirLink](https:/
 ### Hololens 2
 To open the hand menu with controls, show your palm to the camera. The menu can also be grabbed and anchored in space.
 
-<img src="https://user-images.githubusercontent.com/68167377/221321745-1d85ceb1-d1c1-4cd9-8363-0b3ebc626974.gif" width=512>
+<img src="https://user-images.githubusercontent.com/68167377/235324798-71190ea0-50aa-46d1-a9af-81d89a7b4e90.gif" width=512>
 
 Additionaly voice commands "Show hand menu" and "Close hand menu" also work.
 ### PCVR
@@ -61,7 +70,7 @@ To add a custom dataset to the build with an option to spawn it at runtime, foll
     - In the editor, the path is: `Assets/StreamingAssets/Datasets`
 2. Create additional folder in the previously created folder, named <b> Data </b>.
 3. Paste the medical dataset into the <b>Data</b> folder. Supported file types are: <b>NRRD,NIFTI,DICOM and JPG sequence</b>. The files need to have corresponding suffix matching the file they represent (eg: DICOM data will have a .dcm suffix). If you have a lot of files without suffix, you can create suffixes in my simple bulk renaming tool, which is available [here](https://github.com/SitronX/FileRenamer). If you have the whole patient study, see [here](https://github.com/SitronX/FnO-Hololens2-visualisation/blob/VolumetricData/DatasetExtraction.md) how you can extract the specific dataset from study using Slicer3D.
-4. (Optional-Recommended) Create a second folder named <b>Thumbnail</b> and paste some image into that folder (.jpg or .png) so that dataset is easily recognizable in the spawn menu.
+4. (Optional-Recommended) Create a second folder named <b>Thumbnail</b> and paste some image into that folder (.jpg or .png) so that dataset is recognizable in the spawn menu.
 5. (Optional) Create a third folder named <b>Labels</b> for segmentation support. Paste the segmentation [label map](https://slicer.readthedocs.io/en/latest/user_guide/modules/segmentations.html#export-segmentation-to-labelmap-volume) to this folder. The manual for correctly extracting segmentation from Slicer3D is available [here](https://github.com/SitronX/FnO-Hololens2-visualisation/blob/VolumetricData/SegmentationExtraction.md). The supported file types are the same as mentioned in step 3. 
 
 ### Spawning dataset in app
@@ -80,25 +89,23 @@ Dataset can be enabled/disabled after the spawn.
 
 <img src="https://user-images.githubusercontent.com/68167377/227978363-84184c7c-3a20-4c1f-a056-44d193ac88d3.gif" width=512>
 
-Specifically on Hololens 2, datasets can be set as <b> QR active</b>. QR active datasets are placed into exact position where the QR code was detected. It is possible to switch between loaded datasets as shown below.
+Specifically on Hololens 2, datasets can be set as <b> QR active</b> (green indicator). QR active datasets are placed into exact position where the QR code was detected. It is possible to switch between loaded datasets as shown below.
 
-<img src="https://user-images.githubusercontent.com/68167377/221687075-d32c3aee-1407-49df-8f2f-504c9ddce989.gif" width=512>
+<img src="https://user-images.githubusercontent.com/68167377/235324911-59a84cb2-c371-46b7-ac74-010763a19575.gif" width=512>
 
 ## Changing Transfer-function
 
-Some datasets might have problem with the default Transfer-function. Transfer-function provides color to every particle based on its density. When dataset appears to be washed-out with a lot of same color, it is best to manually correct the color positions. Adjusting is showed here.
+Some datasets might have problem with the default Transfer-function. Transfer-function provides color to every particle based on its density. When dataset appears to be washed-out with a lot of same color, it is best to manually correct the color positions. Adjusting is shown here.
 
-<img src="https://user-images.githubusercontent.com/68167377/227997834-584ffa4a-628d-400c-aa17-ba74738f4426.gif" width=512>
+<img src="https://user-images.githubusercontent.com/68167377/235325145-a59606d4-0b8e-4f5f-b693-99d4cd0861b0.gif" width=512>
 
 The color positions are directly connected to the density slider, so when you select specific density interval, you can also set up what colors will be inside the interval.
 
-<img src="https://user-images.githubusercontent.com/68167377/227991860-8fbe4b09-6c06-46df-b0ab-fe45a5e02475.jpg" width=512>
+<img src="https://user-images.githubusercontent.com/68167377/235325395-a57d97d5-73f9-445c-9fed-205abdd6797a.png" width=512>
 
-You can also reset color positions by clicking this button, this will reset the colors to default state.
+You can also reset color positions by clicking <b>Reset TF</b> button, this will reset the colors to default state.
 
-<img src="https://user-images.githubusercontent.com/68167377/227994876-baa88eff-3be4-40ba-90e6-77e8767a9260.jpg" width=512>
-
-Note: In my tests, using black-red colors worked really well in highlighting changes.
+<img src="https://user-images.githubusercontent.com/68167377/235325466-2e4da136-9661-477b-bee1-37b235aaec3a.png" width=512>
 
 ## Segmentation module
 
@@ -106,7 +113,7 @@ If you placed the correct label map in the corresponding <b>Labels</b> folder, t
 
 After loading the dataset, you can open the segmentation module by checking the segmentation checkbox.
 
-<img src="https://user-images.githubusercontent.com/68167377/226214793-e0e8074b-9f04-40f2-8391-7e9bf02f62d7.jpg" width=512>
+<img src="https://user-images.githubusercontent.com/68167377/235325565-80cfd958-3d62-4cc6-bc59-c9d9d62b1034.gif" width=450>
 
 List of segments will appear. Segments are differentiated via color. You can control segments opacity by corresponding sliders as shown below.
 
@@ -116,13 +123,19 @@ You can also change segment color by pressing the color button.
 
 ![ColorChange](https://user-images.githubusercontent.com/68167377/226215618-b020f276-95f3-4aec-9d1f-a27dcb70b995.gif)
 
-You can exit the segmentation module by uncheching the segmentation checkbox.
+Note: The segmentation module only works in DVR render mode.
+
+## Rescaling objects
+
+You can rescale objects by stretching/contracting them with both hands.
+
+<img src="https://user-images.githubusercontent.com/68167377/235326145-678edfc2-2554-4a34-a7ff-00e61d2ac90a.gif" width=450>
 
 ## Slice planes
 
-You can enable the slice view from the hand menu. When enabled, you can move the slice planes.
+You can activate the slice view from the hand menu. Once enabled, it offers a grayscale visualization of the dataset, comparable to conventional 2D software. You can also modify the radiologic window using the slider located in the configuration panel for each dataset, allowing you to achieve better contrast.
 
-![Slices](https://user-images.githubusercontent.com/68167377/226216517-54128e09-7516-45f2-9a50-c803bbe011a8.gif)
+![Slices](https://user-images.githubusercontent.com/68167377/235325795-1850c06f-6fe6-4494-b335-4d4a88b840c9.gif)
 
 
 ## Cutout methods
