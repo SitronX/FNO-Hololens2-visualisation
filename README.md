@@ -23,7 +23,7 @@ Downloadable builds are available in the [Release](https://github.com/SitronX/Fn
 </th>
 <th>  
 
-[![watch the video](https://img.youtube.com/vi/YIiWLfu1hU8/hqdefault.jpg)](https://youtu.be/AJ2Yo9iHoyM)
+[![watch the video](https://img.youtube.com/vi/YIiWLfu1hU8/hqdefault.jpg)](https://youtu.be/YIiWLfu1hU8)
 
 </th>
   </tr>
