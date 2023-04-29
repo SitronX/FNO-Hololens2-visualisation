@@ -36,20 +36,15 @@ public static class Utils
         {
             List<string> metadataKeys = sliceImage.GetMetaDataKeys().ToList();
 
-            if (metadataKeys.Contains("0020|0032"))
-            {
-                string imagePositionPatient = sliceImage.GetMetaData("0020|0032");          //0020|0032 tag for getting location
-                string[] arr = imagePositionPatient.Split('\\');
+            string imagePositionPatient = sliceImage.GetMetaData("0020|0032");          //0020|0032 tag for getting location
+            string[] arr = imagePositionPatient.Split('\\');
 
-                float x = float.Parse(arr[0], CultureInfo.InvariantCulture);
-                float y = float.Parse(arr[1], CultureInfo.InvariantCulture);
-                float z = float.Parse(arr[2], CultureInfo.InvariantCulture);
+            float x = float.Parse(arr[0], CultureInfo.InvariantCulture);
+            float y = float.Parse(arr[1], CultureInfo.InvariantCulture);
+            float z = float.Parse(arr[2], CultureInfo.InvariantCulture);
 
-                position = new Vector3(x, y, z);
-                return true;
-            }
-            position = Vector3.zero;
-            return false;
+            position = new Vector3(x, y, z);
+            return true;
         }
         catch
         {
