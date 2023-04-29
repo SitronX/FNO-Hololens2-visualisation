@@ -100,7 +100,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
             await VolumeObjectFactory.FillObjectWithDatasetDataAsync(Dataset, _volumeRenderedObject.gameObject,VolumeMesh.gameObject,progressHandler);
 
-            TransferFunction = TransferFunctionDatabase.LoadTransferFunctionFromResources("default");      //TF in resources must be in .txt format, the .tf that is default for transfer function cannot be loaded from resources
+            TransferFunction = TransferFunctionDatabase.LoadTransferFunctionFromResources("defaultTF");      //TF in resources must be in .txt format, the .tf that is default for transfer function cannot be loaded from resources
             SetTransferFunction(TransferFunction);
 
             _tfColorUpdater.InitUpdater(TransferFunction,Dataset.MinDataValue,Dataset.MaxDataValue);
