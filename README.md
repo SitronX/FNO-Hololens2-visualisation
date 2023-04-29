@@ -11,9 +11,9 @@ Downloadable builds are available in the [Release](https://github.com/SitronX/Fn
 
 <table>
 <tr>
-     <td colspan="2" style="text-align:center;">
-      <p>Click on images for video showcase</p>
-    </td>
+     <th colspan="2" style="text-align:center;">
+      <b>Click on images for video showcase</b>
+    </th>
 </tr>
   <tr>  
 <th>
