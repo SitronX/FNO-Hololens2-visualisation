@@ -1,6 +1,6 @@
 </p>
 <p align="center">
- <img src="https://user-images.githubusercontent.com/68167377/235327492-a7f140a7-73b7-469e-bebf-97ffed756c06.png" width="512">
+ <img src="https://user-images.githubusercontent.com/68167377/235357838-d1168679-e3a9-4819-bf30-274770078271.jpg" width="512">
 </p>
 
 # FnO-Manual
