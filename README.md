@@ -6,18 +6,31 @@
 # FnO-Model-visualisation
 This branch is for data visualisation that are represented by 3D mesh/model using AR/VR headsets running on target devices without the PC. [OpenFracture](https://github.com/dgreenheck/OpenFracture) library from dgreenheck is used for reality mesh slicing providing similar functionality as cutout plane in [VolumeBranch](https://github.com/SitronX/FnO-Hololens2-visualisation/tree/VolumetricData). Solution is tested to work on Hololens 2 (AR) and Oculus Quest 2 (VR).
 
+Downloadable builds are available in the [Release](https://github.com/SitronX/FnO-Hololens2-visualisation/releases) section.
+
+
+
 <table>
+<tr>
+     <th colspan="2" style="text-align:center;">
+      <b>Click on images for video showcase</b>
+    </th>
+</tr>
   <tr>  
 <th>
-  <img src="https://user-images.githubusercontent.com/68167377/231151273-dd7a3745-6143-41ab-bb0c-83e3acfbba6e.jpg" width="1024">
+
+  [![watch the video](https://img.youtube.com/vi/iHUxRmJwxO0/hqdefault.jpg)](https://youtu.be/iHUxRmJwxO0)
+
 </th>
 <th>  
-   <img src="https://user-images.githubusercontent.com/68167377/220968858-e87f215a-ce64-4a28-9687-3bec5498fdf0.jpg" width="865">
+
+[![watch the video](https://img.youtube.com/vi/ZV28z-6UJyM/hqdefault.jpg)](https://youtu.be/ZV28z-6UJyM)
+
 </th>
   </tr>
   <tr>
-    <th> Hololens 2 </th>
-    <th> Quest 2 </th>
+    <th> Hololens 2</th>
+    <th> PCVR </th>
   </tr>
   </table>
 
@@ -43,11 +56,11 @@ In the scene, make sure the Hololens2 is selected here as target platform
 
 <img src="https://user-images.githubusercontent.com/68167377/220965466-def9d8e6-4548-4c2a-a499-f89210b64484.jpg" width=720>
 
-Make sure the UWP is selected in build and all settings are same as on next picture
+Make sure the UWP is selected in build and all settings are same as on next picture. Building the project like this will export it to the Visual Studio project.
 
 <img src="https://user-images.githubusercontent.com/68167377/220967860-7e2aabeb-c191-4f59-b7c7-d614db96489e.jpg" width=720>
 
-The Visual Studio installation process is described [here](https://learn.microsoft.com/en-us/windows/mixed-reality/develop/advanced-concepts/using-visual-studio?tabs=hl2). The application should start running automatically on device after Visual-studio finishes building the app.
+Visual Studio building and deployment is described [here](https://learn.microsoft.com/en-us/windows/mixed-reality/develop/advanced-concepts/using-visual-studio?tabs=hl2). The application should start running automatically on device after Visual Studio finishes the building and deployment process.
 
 ### Quest 2 / Quest 1
 
