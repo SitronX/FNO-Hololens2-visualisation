@@ -60,7 +60,7 @@ public class OrbProgressView :MonoBehaviour,IProgressView
         if(_progressQueue.TryDequeue(out ProgressData progressData))
         {
             _orbObject.Message=progressData.description;
-            _textIndicator.text = $"{(int)(progressData.progress*100)} %";
+            _textIndicator.text = progressData.progress==0?"": $"{(int)(progressData.progress*100)} %";
             _textPartNumber.text = $"{progressData.partNumber}/{_numberOfParts}";
         }
         transform.rotation = _mainCamera.transform.rotation;

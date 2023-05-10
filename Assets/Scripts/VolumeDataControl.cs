@@ -211,7 +211,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         {
             try
             {
-                progressHandler.ReportProgress(0.2f, $"Loading {folderName}...");
+                progressHandler.ReportProgress(0, $"Loading {folderName}...");
 
                 if(volumeDataset == null)
                     volumeDataset = await fileImporter.ImportAsync(filePath, datasetName);
