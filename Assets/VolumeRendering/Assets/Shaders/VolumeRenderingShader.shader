@@ -312,17 +312,17 @@
                 {
                     const float t = iStep * raymarchInfo.numStepsRecip;
                     const float3 currPos = lerp(ray.startPos, ray.endPos, t);
-
+   
                     // Perform slice culling (cross section plane)
 #ifdef CROSS_SECTION_ON
                     if(IsCutout(currPos))
                     	continue;
 #endif
-                    
+
 
                     // Get the dansity/sample value of the current position
                     const float density = getDensity(currPos);
-
+                              
                     bool isInInterval = false;
                     // Apply visibility window
                     for (int i = 0; i < _visibilitySlidersCount; i++)
@@ -336,14 +336,6 @@
                     if (!isInInterval)
                         continue;
 
-
-                    // Calculate gradient (needed for lighting and 2D transfer functions)
-#if defined(TF2D_ON) || defined(LIGHTING_ON)
-                    float3 gradient = getGradient(currPos);
-                    float gradMag = length(gradient);
-                    float gradMagNorm = gradMag / 1.75f;
-#endif
-
 #ifdef LABELING_SUPPORT_ON
 
                     int label = getLabel(currPos);
@@ -354,24 +346,20 @@
                     float4 src = _SegmentsColors[label - 1];
                     src.a*= density * 0.7;              //0.7 works best to smooth ugly edges
 
-                    if (src.a == 0.0)
+                    if (src.a < 0.01)
                         continue;
-#else
-                    // Apply transfer function
-    #if TF2D_ON
-                        float4 src = getTF2DColour(density, gradMagNorm);
-                        if (src.a == 0.0)
-                            continue;
-    #else
-                        float4 src = getTF1DColour(density);
-                        if (src.a == 0.0)
-                            continue;
-    #endif
-
+#else  
+                    float4 src = getTF1DColour(density);
+                    if (src.a < 0.01)
+                        continue;
 #endif
 
                     // Apply lighting
 #if defined(LIGHTING_ON) 
+                    float3 gradient = getGradient(currPos);
+                    float gradMag = length(gradient);
+                    float gradMagNorm = gradMag / 1.75f;
+
                     src.rgb = calculateLighting(src.rgb, gradient/gradMag, getLightDirection(ray.direction), ray.direction, 0.3f);
 #endif
 

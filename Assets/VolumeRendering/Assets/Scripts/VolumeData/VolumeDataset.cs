@@ -186,7 +186,7 @@ namespace UnityVolumeRendering
                 {
                     for (int z = 0; z < halfDimZ; z++)
                     {
-                        downScaledData[x + y * halfDimX + z * (halfDimX * halfDimY)] = Mathf.Round(GetAvgerageVoxelValues(x * 2, y * 2, z * 2));
+                        downScaledData[x + y * halfDimX + z * (halfDimX * halfDimY)] = math.round(GetAvgerageVoxelValues(x * 2, y * 2, z * 2));
                     }
                 }
             }
@@ -208,7 +208,7 @@ namespace UnityVolumeRendering
         [BurstCompile]
         public struct DownscaleDataJob : IJobParallelFor
         {
-            public NativeArray<float> downscaledData;
+            [WriteOnly] public NativeArray<float> downscaledData;
             [ReadOnly] public NativeArray<float> originalData;
             [ReadOnly] public int halfDimX;
             [ReadOnly] public int halfDimY;
@@ -222,7 +222,7 @@ namespace UnityVolumeRendering
                 int y = (index % (halfDimX * halfDimY)) / halfDimX;
                 int x = index % halfDimX;
 
-                downscaledData[x + y * halfDimX + z * (halfDimX * halfDimY)] = Mathf.Round(GetAvgerageVoxelValues(originalData, x * 2, y * 2, z * 2, dimX, dimY, dimZ));
+                downscaledData[x + y * halfDimX + z * (halfDimX * halfDimY)] = math.round(GetAvgerageVoxelValues(originalData, x * 2, y * 2, z * 2, dimX, dimY, dimZ));
             }
         }
         public async Task DownScaleDataAsync(ProgressHandler progressHandler)
@@ -392,7 +392,7 @@ namespace UnityVolumeRendering
         [BurstCompile]
         public struct DataTextureProcess : IJobParallelFor
         {
-            public NativeArray<ushort> pixelBytes;
+            [WriteOnly] public NativeArray<half> pixelBytes;
             [ReadOnly]
             public NativeArray<float> data;
             [ReadOnly]
@@ -401,7 +401,7 @@ namespace UnityVolumeRendering
             public float maxRange;
             public void Execute(int index)
             {
-                pixelBytes[index] = Mathf.FloatToHalf((float)(data[index] - minValue) / maxRange);
+                pixelBytes[index] = math.half((float)(data[index] - minValue) / maxRange);
             }
         }
         private async Task CreateTextureInternalAsync(ProgressHandler progressHandler)                                             //This method can be also called in custom logic to load it before continuing
@@ -427,9 +427,9 @@ namespace UnityVolumeRendering
                 if (isHalfFloat)
                 {
                     progressHandler.ReportProgress(0, "Creating Data...");
-                    NativeArray<ushort> pixelBytes = default;
+                    NativeArray<half> pixelBytes = default;
 
-                    await Task.Run(() =>pixelBytes = new NativeArray<ushort>(data.Length, Allocator.TempJob));
+                    await Task.Run(() =>pixelBytes = new NativeArray<half>(data.Length, Allocator.TempJob));
 
                     DataTextureProcess dataJob = new DataTextureProcess()
                     {
@@ -507,7 +507,7 @@ namespace UnityVolumeRendering
         [BurstCompile]
         public struct LabelTextureProcess : IJobParallelFor
         {
-            public NativeArray<ushort> pixelBytes;
+            [WriteOnly] public NativeArray<half> pixelBytes;
             [ReadOnly]
             public NativeArray<float> labelData;
             [ReadOnly]
@@ -515,7 +515,7 @@ namespace UnityVolumeRendering
 
             public void Execute(int index)
             {
-                pixelBytes[index] = Mathf.FloatToHalf(labelValues[labelData[index]]);
+                pixelBytes[index] = math.half(labelValues[labelData[index]]);
             }
         }
         private async Task CreateLabelTextureInternalAsync(ProgressHandler progressHandler)                                         //It would be ideal to represent label values as Int, but i didnt manage to get it working
@@ -538,11 +538,11 @@ namespace UnityVolumeRendering
 
                     progressHandler.ReportProgress(0, "Creating Segmentation Data...");
 
-                    NativeArray<ushort> pixelBytes = default;
+                    NativeArray<half> pixelBytes = default;
                     NativeParallelHashMap<float, float> nativeHashmap = default;
 
                     await Task.Run(() => {
-                        pixelBytes = new NativeArray<ushort>(labelData.Length, Allocator.TempJob);
+                        pixelBytes = new NativeArray<half>(labelData.Length, Allocator.TempJob);
                         nativeHashmap = new NativeParallelHashMap<float, float>(LabelValues.Keys.Count, Allocator.TempJob);
                     });
 
@@ -600,7 +600,7 @@ namespace UnityVolumeRendering
                     Texture3D texture = new Texture3D(labelDimX, labelDimY, labelDimZ, texformat, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
                     texture.wrapMode = TextureWrapMode.Clamp;
                     texture.SetPixelData(pixelBytes, 0);
-                    //texture.filterMode = FilterMode.Point;
+                    texture.filterMode = FilterMode.Point;
                     texture.Apply();
                     labelTexture = texture;
 
@@ -682,7 +682,7 @@ namespace UnityVolumeRendering
         [BurstCompile]
         public struct GradientTextureProcess : IJobParallelFor
         {
-            public NativeArray<Color32> resultColors;
+            [WriteOnly] public NativeArray<Color32> resultColors;
             [ReadOnly]
             public NativeArray<float> data;
             [ReadOnly]
