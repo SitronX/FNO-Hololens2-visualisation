@@ -133,12 +133,12 @@ namespace UnityVolumeRendering
                 int segmentNumber = 0;
                 List<string> metaDataKeys = reader.GetMetaDataKeys().ToList();
                 
-                for(int i=0;i< metaDataKeys.Count;i++)
+                while(true)
                 {
                     string key = $"Segment{segmentNumber}_Name";
-                    string keyValue= $"Segment{segmentNumber}_LabelValue";
+                    string keyValue = $"Segment{segmentNumber}_LabelValue";
 
-                    if (metaDataKeys[i]==key)
+                    if(metaDataKeys.Contains(key))
                     {
                         float segmentValue = float.Parse(reader.GetMetaData(keyValue), CultureInfo.InvariantCulture);
                         string segmentName = reader.GetMetaData(key);
@@ -146,8 +146,11 @@ namespace UnityVolumeRendering
                         volumeDataset.LabelNames.Add(segmentValue, segmentName);
                         segmentNumber++;
                     }
+                    else
+                    {
+                        break;
+                    }
                 }
-
 
                 // Cast to 32-bit float
                 image = SimpleITK.Cast(image, PixelIDValueEnum.sitkFloat32);
