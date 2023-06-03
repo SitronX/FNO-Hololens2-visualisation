@@ -194,7 +194,7 @@
 #endif
             }
 
-            float getLabel(float3 pos)
+            float4 getLabel(float3 pos)
             {   
                 return tex3Dlod(_LabelTex, float4(pos.x, pos.y, pos.z, 0.0f));
             }
@@ -338,12 +338,18 @@
 
 #ifdef LABELING_SUPPORT_ON
 
-                    int label = getLabel(currPos);
+                    int4 label = int4(getLabel(currPos)*255.0);
 
-                    if (label == 0)
+                    if (label.r == 0)
                         continue;
 
-                    float4 src = _SegmentsColors[label - 1];
+                    //float4 src;
+                    //if (label.r != 0 || label.g != 0 || label.b != 0 || label.a != 0)
+                    //    src = _SegmentsColors[0];
+                    //else
+                    //    src = float4(0, 0, 0, 0);
+
+                    float4 src = _SegmentsColors[label.r-1];
                     src.a*= density * 0.7;              //0.7 works best to smooth ugly edges
 
                     if (src.a < 0.01)

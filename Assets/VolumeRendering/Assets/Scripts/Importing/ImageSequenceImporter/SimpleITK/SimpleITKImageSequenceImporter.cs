@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Globalization;
+using Unity.Collections;
 
 namespace UnityVolumeRendering
 {
@@ -299,11 +300,19 @@ namespace UnityVolumeRendering
 
                 VectorDouble spacing = image.GetSpacing();
 
-                volumeDataset.labelData = pixelData.Reverse().ToArray();
+                NativeArray<float>[] labelData = new NativeArray<float>[1];     //Dicom segmentation map only supports 1 layer, only NRRD supports multiple layers
 
+                labelData[0] = new NativeArray<float>(pixelData.Reverse().ToArray(), Allocator.Persistent);
+
+
+                volumeDataset.LabelValues.Add(new Dictionary<float, float>());
+                volumeDataset.LabelNames.Add(new Dictionary<float, string>());
+
+                volumeDataset.nativeLabelData = labelData;
                 volumeDataset.labelDimX = (int)size[0];
                 volumeDataset.labelDimY = (int)size[1];
                 volumeDataset.labelDimZ = (int)size[2];
+                volumeDataset.HowManyLabelMapLayers = 1;
             });
 
         }
