@@ -211,7 +211,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         {
             try
             {
-                progressHandler.ReportProgress(0.2f, $"Loading {folderName}...");
+                progressHandler.ReportProgress(0, $"Loading {folderName}...");
 
                 if(volumeDataset == null)
                     volumeDataset = await fileImporter.ImportAsync(filePath, datasetName);
@@ -390,28 +390,32 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     {
         VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync(true, progressHandler));           //Very long
 
-        Color[] uniqueColors = Utils.CreateDistinctColors(Dataset.LabelValues.Keys.Count);
+        Color[] uniqueColors = Utils.CreateDistinctColors(Dataset.LabelValues.Sum(x=>x.Keys.Count));
 
         int iter = 0;
 
-        foreach (float key in Dataset.LabelValues.Keys.OrderBy(x=>x))
+        for(int i=0;i<Dataset.LabelValues.Count;i++)        //For each layer
         {
-            if (key == 0) continue; 
+            foreach (float key in Dataset.LabelValues[i].Keys.OrderBy(x => x))
+            {
+                if (key == 0) continue;
 
-            Color col = uniqueColors[iter];
-            GameObject tmp = Instantiate(_segmentationSliderPrefab, _segmentationParentContainer.transform);
-            tmp.transform.localPosition = new Vector3(0,0.24f -(0.06f * iter), 0.33f);
-            tmp.transform.localRotation = Quaternion.Euler(new Vector3(0,-90,0));
-            Segment segment = tmp.GetComponent<Segment>();
-            segment.ColorUpdated += UpdateShaderLabelArray;
-            segment.InitColor(col);
+                Color col = uniqueColors[iter];
+                GameObject tmp = Instantiate(_segmentationSliderPrefab, _segmentationParentContainer.transform);
+                tmp.transform.localPosition = new Vector3(0, 0.24f - (0.06f * iter), 0.33f);
+                tmp.transform.localRotation = Quaternion.Euler(new Vector3(0, -90, 0));
+                Segment segment = tmp.GetComponent<Segment>();
+                segment.ColorUpdated += UpdateShaderLabelArray;
+                segment.InitColor(col);
 
-            if(Dataset.LabelNames.ContainsKey(key))
-                segment.ChangeSegmentName(Dataset.LabelNames[key]);
+                if (Dataset.LabelNames[i].ContainsKey(key))
+                    segment.ChangeSegmentName(Dataset.LabelNames[i][key]);
 
-            Segments.Add(segment);
-            iter++;
+                Segments.Add(segment);
+                iter++;
+            }
         }
+        
         UpdateShaderLabelArray();
     }
     public void TurnAllSegmentAlphas(bool value)

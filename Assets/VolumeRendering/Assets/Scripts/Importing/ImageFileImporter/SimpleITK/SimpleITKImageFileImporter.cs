@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Globalization;
 using System.Xml;
+using Unity.Jobs;
+using Microsoft.MixedReality.Toolkit;
+using Unity.Collections;
 
 namespace UnityVolumeRendering
 {
@@ -106,6 +109,7 @@ namespace UnityVolumeRendering
 
             return volumeDataset;
         }
+
         public async Task ImportSegmentationAsync(string filePath, VolumeDataset volumeDataset)
         {
             float[] pixelData = null;
@@ -120,43 +124,46 @@ namespace UnityVolumeRendering
                 image = reader.Execute();
             });
             
-            uint numChannels = image.GetNumberOfComponentsPerPixel();
-
-            if(numChannels>1)
-            {
-                ErrorNotifier.Instance.AddErrorMessageToUser($"Segmentation file in dataset named: {volumeDataset.datasetName} contains multiple layers. All segments must be in the same layer!!!");
-                return;
-            }
-
             await Task.Run(() =>
             {
                 int segmentNumber = 0;
                 List<string> metaDataKeys = reader.GetMetaDataKeys().ToList();
-                
-                for(int i=0;i< metaDataKeys.Count;i++)
+                int numOfChannels = (int)image.GetNumberOfComponentsPerPixel();
+
+                for(int i=0;i<numOfChannels;i++)
+                {
+                    volumeDataset.LabelNames.Add(new Dictionary<float, string>());
+                    volumeDataset.LabelValues.Add(new Dictionary<float, float>());
+                }
+
+                while (true)
                 {
                     string key = $"Segment{segmentNumber}_Name";
-                    string keyValue= $"Segment{segmentNumber}_LabelValue";
+                    string keyValue = $"Segment{segmentNumber}_LabelValue";
+                    string layerValue = $"Segment{segmentNumber}_Layer";
 
-                    if (metaDataKeys[i]==key)
+                    if (metaDataKeys.Contains(key))
                     {
-                        float segmentValue = float.Parse(reader.GetMetaData(keyValue), CultureInfo.InvariantCulture);
+                        float segmentValue = float.Parse(reader.GetMetaData(keyValue),CultureInfo.InvariantCulture);
                         string segmentName = reader.GetMetaData(key);
+                        int layer = int.Parse(reader.GetMetaData(layerValue));
 
-                        volumeDataset.LabelNames.Add(segmentValue, segmentName);
+                        volumeDataset.LabelNames[layer].Add(segmentValue, segmentName);
                         segmentNumber++;
+                    }
+                    else
+                    {
+                        break;
                     }
                 }
 
 
                 // Cast to 32-bit float
-                image = SimpleITK.Cast(image, PixelIDValueEnum.sitkFloat32);
-             
+                image = SimpleITK.Cast(image, PixelIDValueEnum.sitkVectorFloat32);
+                size=image.GetSize();
 
-                size = image.GetSize();
+                int numPixels = numOfChannels;
 
-               
-                int numPixels = 1;
                 for (int dim = 0; dim < image.GetDimension(); dim++)
                     numPixels *= (int)size[dim];
 
@@ -165,10 +172,23 @@ namespace UnityVolumeRendering
                 IntPtr imgBuffer = image.GetBufferAsFloat();
                 Marshal.Copy(imgBuffer, pixelData, 0, numPixels);
 
-                volumeDataset.labelData =  pixelData.Reverse().ToArray();
+
+                pixelData = pixelData.Reverse().ToArray();
+
+                NativeArray<float>[] labelData= new NativeArray<float>[numOfChannels];
+                int pixelsPerLayer = numPixels / numOfChannels;
+
+                for (int i=0;i<numOfChannels;i++)       //Extracting 3D images by channels/layers
+                {
+                    labelData[i] = new NativeArray<float>(pixelData.Where((x, index) => (index +i ) % numOfChannels == 0).ToArray(), Allocator.Persistent);
+                }
+
+
+                volumeDataset.nativeLabelData = labelData;
                 volumeDataset.labelDimX = (int)size[0];
                 volumeDataset.labelDimY = (int)size[1];
                 volumeDataset.labelDimZ = (int)size[2];
+                volumeDataset.HowManyLabelMapLayers= numOfChannels;
             });
 
         }

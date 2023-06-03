@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityVolumeRendering;
 
-public class OrbProgressView :MonoBehaviour,IProgressView
+public class OrbProgressView : MonoBehaviour, IProgressView
 {
     [SerializeField] ProgressIndicatorOrbsRotator _orbObject;
     [SerializeField] TMP_Text _textIndicator;
@@ -23,30 +23,30 @@ public class OrbProgressView :MonoBehaviour,IProgressView
     private void Start()
     {
         _mainCamera = FindObjectOfType<Camera>();
-    }  
+    }
     public void FinishProgress(ProgressStatus status = ProgressStatus.Succeeded)
     {
         _orbObject.CloseAsync();
     }
 
-    public void StartProgress(string description,int numberOfParts)
+    public void StartProgress(string description, int numberOfParts)
     {
         _numberOfParts = numberOfParts;
-        OpenOrbView(description);   
+        OpenOrbView(description);
     }
 
-    public void UpdateProgress(float progress, string description,int partNumber)
+    public void UpdateProgress(float progress, string description, int partNumber)
     {
-        EnqeueReport(progress,description, partNumber);
+        EnqeueReport(progress, description, partNumber);
     }
 
     private async void OpenOrbView(string description)
     {
         await _orbObject.OpenAsync();
-       
+
         EnqeueReport(0, description, 1);
     }
-    private void EnqeueReport(float progress, string description,int partNumber)
+    private void EnqeueReport(float progress, string description, int partNumber)
     {
         ProgressData progressData;
         progressData.progress = progress;
@@ -57,10 +57,10 @@ public class OrbProgressView :MonoBehaviour,IProgressView
 
     private void FixedUpdate()
     {
-        if(_progressQueue.TryDequeue(out ProgressData progressData))
+        if (_progressQueue.TryDequeue(out ProgressData progressData))
         {
-            _orbObject.Message=progressData.description;
-            _textIndicator.text = $"{(int)(progressData.progress*100)} %";
+            _orbObject.Message = progressData.description;
+            _textIndicator.text = progressData.progress == 0 ? "" : $"{(int)(progressData.progress * 100)} %";
             _textPartNumber.text = $"{progressData.partNumber}/{_numberOfParts}";
         }
         transform.rotation = _mainCamera.transform.rotation;
