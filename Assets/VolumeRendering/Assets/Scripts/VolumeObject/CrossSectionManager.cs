@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Microsoft.MixedReality.Toolkit.Input;
+using JetBrains.Annotations;
 
 namespace UnityVolumeRendering
 {
@@ -25,7 +27,7 @@ namespace UnityVolumeRendering
     public class CrossSectionManager : MonoBehaviour
     {
         private const int MAX_CROSS_SECTIONS = 8;
-
+        [SerializeField] VolumeDataControl _control;
         /// <summary>
         /// Volume dataset to cross section.
         /// </summary>
@@ -34,6 +36,7 @@ namespace UnityVolumeRendering
         private Matrix4x4[] crossSectionMatrices = new Matrix4x4[MAX_CROSS_SECTIONS];
         private float[] crossSectionTypes = new float[MAX_CROSS_SECTIONS];
         private CrossSectionData[] crossSectionData = new CrossSectionData[MAX_CROSS_SECTIONS];
+        bool _doesUserInteract = true;
 
         public CrossSectionData[] GetCrossSectionData()
         {
@@ -50,12 +53,23 @@ namespace UnityVolumeRendering
             crossSectionObjects.Remove(crossSectionObject);
         }
 
-        private void Awake()
+        private void Start()
         {
             targetObject = GetComponent<VolumeRenderedObject>();
+            _control.UserInputDetected += OnUserInputDetected;
+            UpdateShaderData();
+
         }
 
         private void Update()
+        {
+            if (_doesUserInteract)              //So the data is sent to shader only when necessary
+            {
+                UpdateShaderData();
+            }
+            
+        }
+        public void UpdateShaderData()
         {
             if (targetObject == null)
                 return;
@@ -84,5 +98,11 @@ namespace UnityVolumeRendering
                 mat.DisableKeyword("CROSS_SECTION_ON");
             }
         }
+        public void OnUserInputDetected(bool val)
+        {
+            _doesUserInteract = val;
+        }
+
+        
     }
 }

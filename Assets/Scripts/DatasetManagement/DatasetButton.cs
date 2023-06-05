@@ -15,7 +15,7 @@ public class DatasetButton : MonoBehaviour
     [SerializeField] TMP_Text _qrButtonText;
     [SerializeField] MeshRenderer _qrButtonMesh;
 
-    Camera _mainCamera;
+    
 
     [field: SerializeField] public Interactable LoadButton { get; set; }
     [field: SerializeField] public Interactable QrButton { get; set; }
@@ -25,17 +25,13 @@ public class DatasetButton : MonoBehaviour
     public Texture ThumbnailTexture { get; set; }
     public string DatasetPath { get; set; }
     public int ButtonIndex { get; set; }
+    public Camera MainCamera { get; set; }
 
     public static Action<DatasetButton> DatasetGrabbed { get; set; }
 
     public enum LoadButtonState
     {
         Selectable, ReadyToLoad, Active
-    }
-
-    private void Start()
-    {
-        _mainCamera = FindObjectOfType<Camera>();
     }
 
     public void SetNameSprite(string spriteFolder,string name)
@@ -60,12 +56,12 @@ public class DatasetButton : MonoBehaviour
     {      
         if (VolumeControlObject == null)
         {
-            Vector3 rot = _mainCamera.transform.rotation.eulerAngles;
+            Vector3 rot = MainCamera.transform.rotation.eulerAngles;
             rot.y += 90;
             rot.x= 0;
             rot.z = 0;
 
-            GameObject spawned = Instantiate(_placeableVolumePrefab, _mainCamera.transform.position+(_mainCamera.transform.forward), Quaternion.Euler(rot));
+            GameObject spawned = Instantiate(_placeableVolumePrefab, MainCamera.transform.position+(MainCamera.transform.forward), Quaternion.Euler(rot));
 
             VolumeControlObject = spawned.GetComponent<VolumeDataControl>();
             ObjectManipulator manip= spawned.GetComponent<ObjectManipulator>();
@@ -77,7 +73,7 @@ public class DatasetButton : MonoBehaviour
             if (PlatformSpecific.Instance.CurrentPlatform == PlatformSpecific.TargetPlatform.Hololens2)
                 QrButton.gameObject.SetActive(true);
 
-            VolumeControlObject.LoadDatasetAsync(DatasetPath,ThumbnailTexture,DatasetName.text,_mainCamera);        
+            VolumeControlObject.LoadDatasetAsync(DatasetPath,ThumbnailTexture,DatasetName.text, MainCamera);        
         }
     }
 

@@ -64,6 +64,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     public Action AllAlphaButtonsPressed { get; set; }
     public Action DensityIntervalsChanged { get; set; }
     public static Action<VolumeDataControl> DatasetSpawned { get; set; }
+    public Action<bool> UserInputDetected { get; set; }
 
     public enum DatasetProcessingType
     {
@@ -589,10 +590,11 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     public void OnInputUp(InputEventData eventData)
     {
         _saveSystem.SaveDataAsync(this);
+        UserInputDetected.Invoke(false);
     }
 
     public void OnInputDown(InputEventData eventData)
     {
-        //
+        UserInputDetected.Invoke(true);
     }
 }

@@ -21,6 +21,7 @@ public class HandMenu : MonoBehaviour
     [SerializeField] ScrollingObjectCollection _scrollingObjectCollection;
     [SerializeField] TMP_Text _version;
     [SerializeField] string _lastUpdateText;
+    [SerializeField] Camera _mainCamera;
 
     bool _showCutPlane = false;
     bool _useCubicInterpolation = false;
@@ -52,6 +53,7 @@ public class HandMenu : MonoBehaviour
             currentScroll.SetNameSprite(_datasetDirectories[i] + "/Thumbnail/", _datasetDirectories[i].Split('/').Last());
             currentScroll.DatasetPath = _datasetDirectories[i];
             currentScroll.ButtonIndex = i;
+            currentScroll.MainCamera = _mainCamera;
 
             currentScroll.QrButton.OnClick.AddListener(()=> OnAnyQrActivated(currentScroll.ButtonIndex));
             currentScroll.LoadButton.OnClick.AddListener(()=> OnDatasetLoadButtonClicked(currentScroll.ButtonIndex)); 
