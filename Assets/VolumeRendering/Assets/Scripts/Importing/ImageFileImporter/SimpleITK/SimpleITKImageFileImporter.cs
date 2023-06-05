@@ -12,6 +12,10 @@ using System.Xml;
 using Unity.Jobs;
 using Microsoft.MixedReality.Toolkit;
 using Unity.Collections;
+using Unity.Burst;
+using ReadOnlyAttribute = Unity.Collections.ReadOnlyAttribute;
+using System.ComponentModel;
+using Unity.XR.CoreUtils;
 
 namespace UnityVolumeRendering
 {
@@ -110,12 +114,29 @@ namespace UnityVolumeRendering
             return volumeDataset;
         }
 
+        [BurstCompile]
+        public struct DivideLabelMapLayers : IJobParallelFor
+        {
+            [ReadOnly] public NativeArray<float> allLayersData;
+            [ReadOnly] public int currentLayer;
+            [ReadOnly] public int numberOfLayers;
+            [WriteOnly] public NativeArray<float> layerData;
+
+
+            public void Execute(int index)
+            {
+                int reversedIndex = allLayersData.Length - (index * numberOfLayers) - (numberOfLayers - currentLayer);
+                layerData[index] = allLayersData[reversedIndex];   //Also reversing the data array
+            }
+        }
+
         public async Task ImportSegmentationAsync(string filePath, VolumeDataset volumeDataset)
         {
             float[] pixelData = null;
             VectorUInt32 size = null;
             Image image = null;
             ImageFileReader reader = null;
+            int numOfChannels = 1;
 
             await Task.Run(() =>
             {
@@ -128,7 +149,7 @@ namespace UnityVolumeRendering
             {
                 int segmentNumber = 0;
                 List<string> metaDataKeys = reader.GetMetaDataKeys().ToList();
-                int numOfChannels = (int)image.GetNumberOfComponentsPerPixel();
+                numOfChannels = (int)image.GetNumberOfComponentsPerPixel();
 
                 for(int i=0;i<numOfChannels;i++)
                 {
@@ -173,24 +194,47 @@ namespace UnityVolumeRendering
                 Marshal.Copy(imgBuffer, pixelData, 0, numPixels);
 
 
-                pixelData = pixelData.Reverse().ToArray();
+                //pixelData = pixelData.Reverse().ToArray();
 
-                NativeArray<float>[] labelData= new NativeArray<float>[numOfChannels];
-                int pixelsPerLayer = numPixels / numOfChannels;
-
-                for (int i=0;i<numOfChannels;i++)       //Extracting 3D images by channels/layers
-                {
-                    labelData[i] = new NativeArray<float>(pixelData.Where((x, index) => (index +i ) % numOfChannels == 0).ToArray(), Allocator.Persistent);
-                }
-
-
-                volumeDataset.nativeLabelData = labelData;
-                volumeDataset.labelDimX = (int)size[0];
-                volumeDataset.labelDimY = (int)size[1];
-                volumeDataset.labelDimZ = (int)size[2];
-                volumeDataset.HowManyLabelMapLayers= numOfChannels;
             });
 
+            NativeArray<float> pixelDataNative = new NativeArray<float>(pixelData, Allocator.TempJob);
+            NativeArray<float>[] labelData = new NativeArray<float>[numOfChannels];
+            NativeArray<JobHandle> handles = new NativeArray<JobHandle>(numOfChannels, Allocator.TempJob);
+
+            int layerDataSize = pixelData.Length / numOfChannels;
+
+            for (int i=0; i < numOfChannels; i++)
+            {
+                labelData[i] = new NativeArray<float>(layerDataSize, Allocator.Persistent);
+
+                DivideLabelMapLayers divideJob = new DivideLabelMapLayers()
+                {
+                    allLayersData = pixelDataNative,
+                    currentLayer = i,
+                    numberOfLayers = numOfChannels,
+                    layerData = labelData[i]
+                };
+
+                handles[i] = divideJob.Schedule(layerDataSize, 64);
+
+            }
+
+            JobHandle combinedHandles = JobHandle.CombineDependencies(handles);
+
+            while (!combinedHandles.IsCompleted)
+                await Task.Delay(1000);
+
+            combinedHandles.Complete();
+
+            volumeDataset.nativeLabelData = labelData;
+            volumeDataset.labelDimX = (int)size[0];
+            volumeDataset.labelDimY = (int)size[1];
+            volumeDataset.labelDimZ = (int)size[2];
+            volumeDataset.HowManyLabelMapLayers= numOfChannels;
+
+            pixelDataNative.Dispose();
+            handles.Dispose();         
         }
     }
 }

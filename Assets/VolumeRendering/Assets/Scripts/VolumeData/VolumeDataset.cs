@@ -9,6 +9,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Jobs;
 using UnityEngine.ParticleSystemJobs;
+using static UnityEngine.Rendering.VirtualTexturing.Debugging;
 
 
 namespace UnityVolumeRendering
@@ -32,8 +33,8 @@ namespace UnityVolumeRendering
         public int HowManyLabelMapLayers { get; set; }
 
 
-        public List<Dictionary<float, float>> LabelValues { get; set; } = new List<Dictionary<float, float>>();      //Label value and index
-        public List<Dictionary<float, string>> LabelNames { get; set; } = new List<Dictionary<float, string>>();      //Names correction
+        public List<Dictionary<float, float>> LabelValues { get; set; } = new List<Dictionary<float, float>>();      //Label value and index for each labelmap layer
+        public List<Dictionary<float, string>> LabelNames { get; set; } = new List<Dictionary<float, string>>();      //Names for each labelmap layer
 
         [SerializeField]
         public int dimX, dimY, dimZ;
@@ -58,6 +59,7 @@ namespace UnityVolumeRendering
 
         //TODO
         private Texture3D labelTexture = null;
+        private Texture3D secondLabelTexture = null;
         public int labelDimX, labelDimY, labelDimZ;
 
 
@@ -90,13 +92,13 @@ namespace UnityVolumeRendering
             }
             return gradientTexture;
         }
-        public async Task<Texture3D> GetLabelTextureAsync(bool generateNew,ProgressHandler progressHandler)
+        public async Task<(Texture3D,Texture3D)> GetLabelTexturesAsync(bool generateNew,ProgressHandler progressHandler)
         {
             if (labelTexture == null||generateNew)
             {
                 await CreateLabelTextureInternalAsync(progressHandler);
             }
-            return labelTexture;
+            return (labelTexture,secondLabelTexture);
         }
 
         public float GetMinDataValue()
@@ -151,9 +153,12 @@ namespace UnityVolumeRendering
                     await Task.Delay(1000);
 
                 combinedHandles.Complete();
-        
 
-                for(int i=0;i<hashSets.Length;i++)
+                for (int i = 0; i < LabelValues.Count; i++)
+                    LabelValues[i].Clear();
+
+
+                for (int i=0;i<hashSets.Length;i++)
                 {
                     foreach (var j in hashSets[i])
                         LabelValues[i].Add(j, 0);
@@ -208,17 +213,41 @@ namespace UnityVolumeRendering
             dimY = halfDimY;
             dimZ = halfDimZ;
         }
-        public void FlipTextureArrays()
+        [BurstCompile]
+        public struct ReverseArrays : IJobParallelFor
         {
-            data=data.Reverse().ToArray();
+            [ReadOnly] public NativeArray<float> previousArray;
+            [WriteOnly] public NativeArray<float> flippedArray;
+            public void Execute(int index)
+            {
+                flippedArray[index] = previousArray[(previousArray.Length-1) - index];
+            }
+        }
+        public async Task FlipTextureArrays()
+        {
+             await Task.Run(()=>data = data.Reverse().ToArray());
 
             if(nativeLabelData!=null)
             {
-                for(int i=0;i<nativeLabelData.Length;i++)
+                for(int i=0;i<HowManyLabelMapLayers;i++)
                 {
-                    float[] arr = nativeLabelData[i].Reverse().ToArray();
+                    NativeArray<float> flippedData = new NativeArray<float>(nativeLabelData[i].Length, Allocator.Persistent);
+
+                    ReverseArrays reverse = new ReverseArrays()
+                    {
+                        previousArray = nativeLabelData[i],
+                        flippedArray = flippedData
+                    };
+
+                    JobHandle flip = reverse.Schedule(nativeLabelData[i].Length, 64);
+
+                    while (!flip.IsCompleted)
+                        await Task.Delay(1000);
+
+                    flip.Complete();
+
                     nativeLabelData[i].Dispose();
-                    nativeLabelData[i] = new NativeArray<float>(arr, Allocator.TempJob);
+                    nativeLabelData[i] = flippedData;
                 }
             }
         }
@@ -278,7 +307,7 @@ namespace UnityVolumeRendering
 
             dimX = halfDimX;
             dimY = halfDimY;
-            dimZ = halfDimZ;   
+            dimZ = halfDimZ;
         }
 
         [BurstCompile]
@@ -429,7 +458,12 @@ namespace UnityVolumeRendering
             Texture3D.allowThreadedTextureCreation = true;
             TextureFormat texformat = SystemInfo.SupportsTextureFormat(TextureFormat.RHalf) ? TextureFormat.RHalf : TextureFormat.RFloat;
 
-            await Task.Run(() => { nativeData = new NativeArray<float>(data, Allocator.Persistent); });    //At start create this native array
+            if (nativeData.IsCreated)
+                nativeData.Dispose();
+
+            await Task.Run(() => {
+                nativeData = new NativeArray<float>(data, Allocator.Persistent); 
+            });    //At start create this native array
 
             
             if (MinDataValue == float.MaxValue&& MaxDataValue == float.MinValue)
@@ -566,28 +600,32 @@ namespace UnityVolumeRendering
                 progressHandler.ReportProgress(0, "Creating Segmentation Data...");
 
                 labelTexture = await CreateLayerTexture(0,Mathf.Min(HowManyLabelMapLayers,4));
+                if (HowManyLabelMapLayers > 4)
+                    secondLabelTexture = await CreateLayerTexture(4, HowManyLabelMapLayers-4);
                 
             }
             catch (OutOfMemoryException)
             {
                 ErrorNotifier.Instance.AddErrorMessageToUser("Not enough of memory when creating label map!!!");
             }
+            catch
+            {
+                ErrorNotifier.Instance.AddErrorMessageToUser("Some weird error when creating label map!!!");
+            }
 
             Debug.Log("Label Texture generation done.");
         }
-        public async Task<Texture3D> CreateLayerTexture(int startLayer,int endLayer)
+        public async Task<Texture3D> CreateLayerTexture(int startLayer,int howManyLayers)
         {
-            int layersCount = endLayer - startLayer;
-
-            NativeArray<byte>[] pixelBytes = new NativeArray<byte>[layersCount];
+            NativeArray<byte>[] pixelBytes = new NativeArray<byte>[howManyLayers];
             NativeArray<byte> emptyArray = new NativeArray<byte>(nativeLabelData[0].Length, Allocator.TempJob);
 
-            NativeParallelHashMap<float, float>[] nativeHashmap = new NativeParallelHashMap<float, float>[layersCount];
-            NativeArray<JobHandle> jobHandles = new NativeArray<JobHandle>(layersCount, Allocator.TempJob);
+            NativeParallelHashMap<float, float>[] nativeHashmap = new NativeParallelHashMap<float, float>[howManyLayers];
+            NativeArray<JobHandle> jobHandles = new NativeArray<JobHandle>(howManyLayers, Allocator.TempJob);
             NativeArray<Color32> pixelColors = new NativeArray<Color32>(nativeLabelData[0].Length, Allocator.TempJob);
 
 
-            for (int i = 0; i < layersCount; i++)        
+            for (int i = 0; i < howManyLayers; i++)        
             {
                 nativeHashmap[i] = new NativeParallelHashMap<float, float>(LabelValues[startLayer + i].Keys.Count, Allocator.TempJob);
                 pixelBytes[i] = new NativeArray<byte>(nativeLabelData[0].Length, Allocator.TempJob);
@@ -615,33 +653,32 @@ namespace UnityVolumeRendering
             ColorTextureJoining joining = new ColorTextureJoining()
             {
                 redChannel = pixelBytes[0],
-                greenChannel = layersCount>1?pixelBytes[1]: emptyArray,
-                blueChannel = layersCount>2? pixelBytes[2]: emptyArray,
-                alphaChannel = layersCount>3? pixelBytes[3]: emptyArray,
+                greenChannel = howManyLayers > 1?pixelBytes[1]: emptyArray,
+                blueChannel = howManyLayers > 2? pixelBytes[2]: emptyArray,
+                alphaChannel = howManyLayers > 3? pixelBytes[3]: emptyArray,
                 result = pixelColors
 
             };
 
-            JobHandle joiningHandle = joining.Schedule(nativeLabelData[0].Length, 64);
+            JobHandle joiningHandle = joining.Schedule(pixelColors.Length, 64);
 
             while (!joiningHandle.IsCompleted)
                 await Task.Delay(1000);
 
             joiningHandle.Complete();
 
-
+           
             Texture3D texture = new Texture3D(labelDimX, labelDimY, labelDimZ, TextureFormat.RGBA32, false);                  //Grouped texture stuff so it doesnt freezes twice, but only once
             texture.wrapMode = TextureWrapMode.Clamp;
             texture.SetPixels32(pixelColors.ToArray(), 0);
             texture.filterMode = FilterMode.Point;
             texture.Apply();
 
-
             jobHandles.Dispose();
             pixelColors.Dispose();
             emptyArray.Dispose();
 
-            for (int i = 0; i < layersCount; i++)
+            for (int i = 0; i < howManyLayers; i++)
             {
                 pixelBytes[i].Dispose();
                 nativeHashmap[i].Dispose();
@@ -651,7 +688,7 @@ namespace UnityVolumeRendering
         }
         private void OrderLabelDictionaríes()
         {
-            for(int i=0;i<LabelValues.Count;i++)
+            for(int i=0;i<HowManyLabelMapLayers;i++)
             {
                 List<float> orderedKeys = LabelValues[i].Keys.OrderBy(x => x).ToList();
 
@@ -904,12 +941,14 @@ namespace UnityVolumeRendering
             if (nativeData.IsCreated)
                 nativeData.Dispose();
 
-            foreach(var data in nativeLabelData)
+            if (nativeLabelData != null)
             {
-                if (data.IsCreated)
-                    data.Dispose();
+                foreach (var data in nativeLabelData)
+                {
+                    if (data.IsCreated)
+                        data.Dispose();
+                }
             }
-                       
         }
 
     }

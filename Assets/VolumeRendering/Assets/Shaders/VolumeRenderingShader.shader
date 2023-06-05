@@ -4,6 +4,7 @@
     {
         _DataTex ("Data Texture (Generated)", 3D) = "" {}
         _LabelTex("Label Texture (Generated)",3D)=""{}
+        _LabelTexSec("Label TextureSec (Generated)",3D) = ""{}
         _GradientTex("Gradient Texture (Generated)", 3D) = "" {}
         _NoiseTex("Noise Texture (Generated)", 2D) = "white" {}
         _TFTex("Transfer Function Texture (Generated)", 2D) = "" {}
@@ -31,6 +32,7 @@
             #pragma multi_compile __ USE_MAIN_LIGHT
             #pragma multi_compile __ CUBIC_INTERPOLATION_ON
             #pragma multi_compile __ LABELING_SUPPORT_ON
+            #pragma multi_compile __ SECOND_LABEL_TEXTURE_ON
             #pragma vertex vert
             #pragma fragment frag
 
@@ -67,14 +69,17 @@
 
             sampler3D _DataTex;
             sampler3D _LabelTex;
+            sampler3D _LabelTexSec;
             sampler3D _GradientTex;
             sampler2D _NoiseTex;
             sampler2D _TFTex;
 
             float3 _TextureSize;
             int _stepNumber;
-            float4 _SegmentsColors[500];                                       //Dynamic arrays are not possible, so here it is capped to 500 segments, it should not be really possible to overcome this number (i hope?)
-
+            float4 _SegmentsColors[255];                                       //Dynamic arrays are not possible, so here it is capped to 255 segments
+            int _SegmentsColorsLayersStride[255];                               //Due to label map support of multiple layers, in each layer lets take its stride by index and only after that take correct color position
+            int _HowManyLabelLayers;
+          
             float _lowerVisibilityWindow[500];
             float _upperVisibilityWindow[500];
             int _visibilitySlidersCount = 1;
@@ -197,6 +202,10 @@
             float4 getLabel(float3 pos)
             {   
                 return tex3Dlod(_LabelTex, float4(pos.x, pos.y, pos.z, 0.0f));
+            }
+            float4 getLabelSec(float3 pos)
+            {
+                return tex3Dlod(_LabelTexSec, float4(pos.x, pos.y, pos.z, 0.0f));
             }
 
             // Gets the gradient at the specified position
@@ -338,18 +347,45 @@
 
 #ifdef LABELING_SUPPORT_ON
 
-                    int4 label = int4(getLabel(currPos)*255.0);
+                    float4 label = getLabel(currPos)*255.0;
 
-                    if (label.r == 0)
-                        continue;
+                    float4 src = float4(0, 0, 0, 0);
 
-                    //float4 src;
-                    //if (label.r != 0 || label.g != 0 || label.b != 0 || label.a != 0)
-                    //    src = _SegmentsColors[0];
-                    //else
-                    //    src = float4(0, 0, 0, 0);
+#ifdef SECOND_LABEL_TEXTURE_ON
 
-                    float4 src = _SegmentsColors[label.r-1];
+                    for (int i = 0; i < 4; i++)
+                    {
+                        if (label[i] != 0)
+                        {
+                            float4 tmp = _SegmentsColors[_SegmentsColorsLayersStride[i] + label[i]-1 ];
+                            if (tmp.a > src.a)
+                                src = tmp;
+                        }
+                    }
+                    float4 labelSec = getLabelSec(currPos) * 255.0;
+
+                    for (int i = 0; i < _HowManyLabelLayers - 4; i++)
+                    {
+                        if (labelSec[i] != 0)
+                        {
+                            float4 tmp = _SegmentsColors[_SegmentsColorsLayersStride[4+i] + labelSec[i]-1 ];
+                            if (tmp.a > src.a)
+                                src = tmp;
+                        }
+                    }
+#else
+
+                    for (int i = 0; i < _HowManyLabelLayers; i++)
+                    {
+                        if (label[i] != 0)
+                        {
+                            float4 tmp = _SegmentsColors[_SegmentsColorsLayersStride[i] + label[i]-1 ];
+                            if (tmp.a > src.a)
+                                src = tmp;
+                        }
+                    }
+#endif
+
                     src.a*= density * 0.7;              //0.7 works best to smooth ugly edges
 
                     if (src.a < 0.01)

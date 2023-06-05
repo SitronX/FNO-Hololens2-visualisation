@@ -388,13 +388,21 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     }
     private async Task InitSegmentationAsync(ProgressHandler progressHandler)
     {
-        VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync(true, progressHandler));           //Very long
+        (Texture3D lt1, Texture3D lt2) = await Dataset.GetLabelTexturesAsync(true, progressHandler);
 
-        Color[] uniqueColors = Utils.CreateDistinctColors(Dataset.LabelValues.Sum(x=>x.Keys.Count));
+        VolumeMesh.sharedMaterial.SetTexture("_LabelTex", lt1);    
+        if(Dataset.HowManyLabelMapLayers>4)
+        {
+            VolumeMesh.sharedMaterial.EnableKeyword("SECOND_LABEL_TEXTURE_ON");
+            VolumeMesh.sharedMaterial.SetTexture("_LabelTexSec", lt2);
+        }
+
+        int howManyZeros = Dataset.HowManyLabelMapLayers;
+        Color[] uniqueColors = Utils.CreateDistinctColors(Dataset.LabelValues.Sum(x=>x.Keys.Count)- howManyZeros);      
 
         int iter = 0;
 
-        for(int i=0;i<Dataset.LabelValues.Count;i++)        //For each layer
+        for(int i=0;i<Dataset.HowManyLabelMapLayers;i++)        //For each layer
         {
             foreach (float key in Dataset.LabelValues[i].Keys.OrderBy(x => x))
             {
@@ -417,6 +425,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
         }
         
         UpdateShaderLabelArray();
+        InitShaderLabelStrideArray();
     }
     public void TurnAllSegmentAlphas(bool value)
     {
@@ -434,6 +443,20 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     private void UpdateShaderLabelArray()
     {
         VolumeMesh.material.SetColorArray("_SegmentsColors", Segments.Select(x => x.SegmentColor).ToArray());
+    }
+    private void InitShaderLabelStrideArray()                                                                //Due to label map support of multiple layers, in each layer lets take its stride by number of segments, so we can get the correct color position in shader
+    {
+        List<float> strides = new List<float>() {0};
+        float tmpStride = 0;
+
+        foreach (var i in Dataset.LabelValues)
+        {
+            tmpStride += i.Keys.Count-1;        //-1 cause the layers also contains 0 key, which is no segment 
+            strides.Add(tmpStride);
+        }
+
+        VolumeMesh.material.SetFloatArray("_SegmentsColorsLayersStride", strides);
+        VolumeMesh.material.SetInt("_HowManyLabelLayers", Dataset.HowManyLabelMapLayers);
     }
     public async Task DownScaleDatasetAsync()
     {
@@ -481,11 +504,15 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
 
             progressHandler.Start("Flipping Data...",numberOfParts:5);
 
-            await Task.Run(() => Dataset.FlipTextureArrays());
+            await Dataset.FlipTextureArrays();
 
             if (Segments.Count > 0)
             {
-                VolumeMesh.sharedMaterial.SetTexture("_LabelTex", await Dataset.GetLabelTextureAsync(true,progressHandler));           //Very long
+                (Texture3D lt1, Texture3D lt2) = await Dataset.GetLabelTexturesAsync(true, progressHandler);
+
+                VolumeMesh.sharedMaterial.SetTexture("_LabelTex", lt1);           //Very long
+                if (Dataset.HowManyLabelMapLayers > 4)
+                    VolumeMesh.sharedMaterial.SetTexture("_LabelTexSec", lt2);
             }
             else
             {
