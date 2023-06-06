@@ -9,7 +9,6 @@ This branch is for data visualisation that are represented by 3D mesh/model usin
 Downloadable builds are available in the [Release](https://github.com/SitronX/FnO-Hololens2-visualisation/releases) section.
 
 
-
 <table>
 <tr>
      <th colspan="2" style="text-align:center;">
@@ -19,12 +18,12 @@ Downloadable builds are available in the [Release](https://github.com/SitronX/Fn
   <tr>  
 <th>
 
-  [![watch the video](https://img.youtube.com/vi/iHUxRmJwxO0/hqdefault.jpg)](https://youtu.be/iHUxRmJwxO0)
+  [![watch the video](https://github-production-user-asset-6210df.s3.amazonaws.com/68167377/243800512-86c4b214-0a8e-455e-bd88-ccd14dd32eb7.gif)](https://youtu.be/iHUxRmJwxO0)
 
 </th>
 <th>  
 
-[![watch the video](https://img.youtube.com/vi/ZV28z-6UJyM/hqdefault.jpg)](https://youtu.be/ZV28z-6UJyM)
+[![watch the video](https://github-production-user-asset-6210df.s3.amazonaws.com/68167377/243800652-a80e3e76-53fc-43a0-b628-108d6b4f5bf9.gif)](https://youtu.be/ZV28z-6UJyM)
 
 </th>
   </tr>
