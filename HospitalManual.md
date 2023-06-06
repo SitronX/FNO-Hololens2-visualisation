@@ -87,7 +87,11 @@ You can also change segment color by pressing the color button.
 ![ColorChange](https://user-images.githubusercontent.com/68167377/226215618-b020f276-95f3-4aec-9d1f-a27dcb70b995.gif)
 
 
-Note: The segmentation module only works in DVR render mode.
+In case you have multi-layer label map, you can control which segments will be shown by changing the alpha value of the segments. The segment with highest alpha value will cover the others in that location. If there are two segments with the same alpha value, the segment that is higher on the list will be displayed.
+
+<img src="https://github.com/SitronX/FnO-Hololens2-visualisation/assets/68167377/8de9cb81-4f2b-4627-89b0-69788ba46055" width=450>
+
+<b>Note:</b> Up to 8 layer label maps are supported.
 
 ## Rescaling objects
 
