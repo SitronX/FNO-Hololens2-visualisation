@@ -76,7 +76,7 @@ If you placed the correct label map in the corresponding <b>Labels</b> folder, t
 
 After loading the dataset, you can open the segmentation module by checking the segmentation checkbox.
 
-<img src="https://user-images.githubusercontent.com/68167377/235325565-80cfd958-3d62-4cc6-bc59-c9d9d62b1034.gif" width=450>
+<img src="https://github.com/SitronX/FnO-Hololens2-visualisation/assets/68167377/6a13221e-8487-43b2-92cd-a81ed845437d" width=450>
 
 List of segments will appear. Segments are differentiated via color. You can control segments opacity by corresponding sliders as shown below.
 

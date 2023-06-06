@@ -2,15 +2,11 @@
 
 ### 1. Open Slicer3D with your segmented patient. You should see segmentation like this.
  
- <img src="https://user-images.githubusercontent.com/68167377/229519204-963d005b-d4ec-43a2-beae-9aaf9462db8e.jpg" width=512>
+ <img src="https://github.com/SitronX/FnO-Hololens2-visualisation/assets/68167377/f1ebf93b-7826-4f73-b36d-83fc67f18f1f" width=512>
 
-### 2. Make sure the segmentation only has one layer, it is shown on image below.
+### 2. Open the export window, like shown below.
 
- <img src="https://user-images.githubusercontent.com/68167377/229522065-36fb3401-f296-4513-8ed2-26016c323549.jpg" width=512>
-
-### 3. Open the export window, like shown below.
-
- <img src="https://user-images.githubusercontent.com/68167377/229524916-5a0d7060-d186-4f5d-bfd9-62e1cff439bc.jpg" width=512>
+ <img src="https://github.com/SitronX/FnO-Hololens2-visualisation/assets/68167377/4a5bf8a2-5034-49d1-b495-efad741e096d" width=512>
 
 ### 4. Export the segmentation. This segmentation can then be placed into the Labels folder in Dataset.
 
@@ -20,4 +16,4 @@
 
 <b>Note 2:</b> Use NRRD format for segmentation, app can also read segment names from this format.
 
-<b>Note 3:</b> By collapsing label map layers, there is inevitable loss of data on certain label map segments. You can try to avoid it by manually disabling overlapping segments you dont specifically need.
+<b>Note 3:</b> The multilayer label map up to 8 layers is supported from app version 1.1
