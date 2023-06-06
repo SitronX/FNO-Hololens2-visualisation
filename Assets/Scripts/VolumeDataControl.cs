@@ -15,6 +15,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     [SerializeField] InteractableToggleCollection _renderModes;
     [SerializeField] TMP_Text _raymarchStepsLabel;
     [SerializeField] CrossSectionSphere _cutoutSphere;
+    [SerializeField] CrossSectionManager _cutoutManager;
     [SerializeField] GameObject _cutoutPlane;
     [SerializeField] SlicingPlane _slicingPlaneXNormalAxisObject;
     [SerializeField] SlicingPlane _slicingPlaneYNormalAxisObject;
@@ -64,7 +65,6 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     public Action AllAlphaButtonsPressed { get; set; }
     public Action DensityIntervalsChanged { get; set; }
     public static Action<VolumeDataControl> DatasetSpawned { get; set; }
-    public Action<bool> UserInputDetected { get; set; }
 
     public enum DatasetProcessingType
     {
@@ -97,7 +97,10 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             Dataset = await CreateVolumeDatasetAsync(datasetFolderName,progressHandler);
 
             if (Dataset == null)
+            {
+                ErrorNotifier.Instance.AddErrorMessageToUser("There was an issue with loading Dataset.");
                 return;
+            }
 
             await VolumeObjectFactory.FillObjectWithDatasetDataAsync(Dataset, _volumeRenderedObject.gameObject,VolumeMesh.gameObject,progressHandler);
 
@@ -116,6 +119,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             
 
             _densitySlidersContainer.SetActive(true);
+            _cutoutManager.UpdateShaderData();
 
             if (await TryLoadSegmentationToVolumeAsync(datasetFolderName, Dataset,progressHandler))
             {
@@ -281,6 +285,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
             _cutoutSphere.gameObject.SetActive(true);
             _cutoutSphere.CutoutType = CutoutType.Exclusive;
         }
+        _cutoutManager.UpdateShaderData();
     }
     public void SetTransferFunction(TransferFunction tf)
     {
@@ -590,11 +595,11 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     public void OnInputUp(InputEventData eventData)
     {
         _saveSystem.SaveDataAsync(this);
-        UserInputDetected.Invoke(false);
+        _cutoutManager.DoesUserInteract = false;
     }
 
     public void OnInputDown(InputEventData eventData)
     {
-        UserInputDetected.Invoke(true);
+        _cutoutManager.DoesUserInteract = true;
     }
 }

@@ -149,7 +149,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c065f1884402af707a0e8d778d50d29e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _control: {fileID: 7307838315410646070}
 --- !u!1 &234778507492673473
 GameObject:
   m_ObjectHideFlags: 0
@@ -2464,6 +2463,7 @@ MonoBehaviour:
   _renderModes: {fileID: 2815014904274198762}
   _raymarchStepsLabel: {fileID: 8776426775208976224}
   _cutoutSphere: {fileID: 3345379870146554797}
+  _cutoutManager: {fileID: 1261478829}
   _cutoutPlane: {fileID: 2359523716532183661}
   _slicingPlaneXNormalAxisObject: {fileID: 1913269825470672853}
   _slicingPlaneYNormalAxisObject: {fileID: 7898406278632690704}
