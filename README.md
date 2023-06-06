@@ -18,12 +18,12 @@ Downloadable builds are available in the [Release](https://github.com/SitronX/Fn
   <tr>  
 <th>
 
-  [![watch the video](https://github.com/SitronX/FnO-Hololens2-visualisation/assets/68167377/940ea6cb-7b9e-4aea-85ad-4f81a300a66e)](https://youtu.be/AJ2Yo9iHoyM)
+  [![watch the video](https://github-production-user-asset-6210df.s3.amazonaws.com/68167377/243795262-940ea6cb-7b9e-4aea-85ad-4f81a300a66e.gif)](https://youtu.be/AJ2Yo9iHoyM)
 
 </th>
 <th>  
 
-[![watch the video](https://github.com/SitronX/FnO-Hololens2-visualisation/assets/68167377/deceaea6-5052-4851-a9f5-62a86f8c558d)](https://youtu.be/YIiWLfu1hU8)
+[![watch the video](https://github-production-user-asset-6210df.s3.amazonaws.com/68167377/243795422-deceaea6-5052-4851-a9f5-62a86f8c558d.gif)](https://youtu.be/YIiWLfu1hU8)
 
 </th>
   </tr>
