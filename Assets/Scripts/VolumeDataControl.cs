@@ -49,6 +49,7 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     Camera _mainCamera;
     bool _isDatasetReversed = true;
     bool _segmentationPanelVisible = false;
+    bool _labelsShadingBasedOnDensity = false;
 
     [field: SerializeField] public MeshRenderer VolumeMesh { get; set; }
     [field: SerializeField] public SliderIntervalUpdater SliceRendererWindow { get; set; }
@@ -587,6 +588,15 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     public void SetVolumePosition(Vector3 position)
     {
         transform.position = position;
+    }
+    public void ToggleShadesBasedOnDensity()
+    {
+        _labelsShadingBasedOnDensity = !_labelsShadingBasedOnDensity;
+
+        if (_labelsShadingBasedOnDensity)
+            VolumeMesh.material.EnableKeyword("MODIFY_BRIGHTNESS_IN_LABELING");
+        else
+            VolumeMesh.material.DisableKeyword("MODIFY_BRIGHTNESS_IN_LABELING");
     }
     private void OnTFReset()
     {

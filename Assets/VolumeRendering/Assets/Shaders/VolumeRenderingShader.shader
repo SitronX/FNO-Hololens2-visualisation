@@ -33,6 +33,7 @@
             #pragma multi_compile __ CUBIC_INTERPOLATION_ON
             #pragma multi_compile __ LABELING_SUPPORT_ON
             #pragma multi_compile __ SECOND_LABEL_TEXTURE_ON
+            #pragma multi_compile __ MODIFY_BRIGHTNESS_IN_LABELING
             #pragma vertex vert
             #pragma fragment frag
 
@@ -110,6 +111,24 @@
                 float numStepsRecip;
                 float stepSize;
             };
+            float3 RGBtoHSV(float3 c)
+            {
+                float4 K = float4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+                float4 p = lerp(float4(c.bg, K.wz), float4(c.gb, K.xy), step(c.b, c.g));
+                float4 q = lerp(float4(p.xyw, c.r), float4(c.r, p.yzx), step(p.x, c.r));
+
+                float d = q.x - min(q.w, q.y);
+                float e = 1.0e-10;
+                return float3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+            }
+
+            float3 HSVtoRGB(float3 c)
+            {
+                float4 K = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+                float3 p = abs(frac(c.xxx + K.xyz) * 6.0 - K.www);
+                return c.z * lerp(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+            }
+
 
             float3 getViewRayDir(float3 vertexLocal)
             {
@@ -384,6 +403,14 @@
                                 src = tmp;
                         }
                     }
+#endif
+
+
+#ifdef MODIFY_BRIGHTNESS_IN_LABELING                    //Density value is preserved in color brightness
+                    float3 hsv = RGBtoHSV(src);
+                    hsv.z = lerp(0.3,1,density);
+                    float3 newColor = HSVtoRGB(hsv);
+                    src.xyz = newColor;
 #endif
 
                     src.a*= density * 0.7;              //0.7 works best to smooth ugly edges
