@@ -177,8 +177,7 @@ namespace UnityVolumeRendering
                         break;
                     }
                 }
-
-
+               
                 // Cast to 32-bit float
                 image = SimpleITK.Cast(image, PixelIDValueEnum.sitkVectorFloat32);
                 size=image.GetSize();
@@ -192,11 +191,11 @@ namespace UnityVolumeRendering
                 pixelData = new float[numPixels];
                 IntPtr imgBuffer = image.GetBufferAsFloat();
                 Marshal.Copy(imgBuffer, pixelData, 0, numPixels);
-
-
-                //pixelData = pixelData.Reverse().ToArray();
-
             });
+
+            if (numOfChannels > 8)
+                ErrorNotifier.Instance.AddErrorMessageToUser("Label map contains more than 8 layers, which is not supported.");
+
 
             NativeArray<float> pixelDataNative = new NativeArray<float>(pixelData, Allocator.TempJob);
             NativeArray<float>[] labelData = new NativeArray<float>[numOfChannels];
