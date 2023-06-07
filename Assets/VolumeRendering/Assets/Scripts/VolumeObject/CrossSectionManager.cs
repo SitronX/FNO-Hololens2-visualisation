@@ -35,7 +35,7 @@ namespace UnityVolumeRendering
         private Matrix4x4[] crossSectionMatrices = new Matrix4x4[MAX_CROSS_SECTIONS];
         private float[] crossSectionTypes = new float[MAX_CROSS_SECTIONS];
         private CrossSectionData[] crossSectionData = new CrossSectionData[MAX_CROSS_SECTIONS];
-        public bool DoesUserInteract { get; set; } = false;
+        private int _touchCount = 0;
 
         public CrossSectionData[] GetCrossSectionData()
         {
@@ -59,7 +59,7 @@ namespace UnityVolumeRendering
 
         private void Update()
         {
-            if (DoesUserInteract)              //So the data is sent to shader only when necessary
+            if (_touchCount>0)              //So the data is sent to shader only when necessary
             {
                 UpdateShaderData();
             }
@@ -93,6 +93,13 @@ namespace UnityVolumeRendering
             {
                 mat.DisableKeyword("CROSS_SECTION_ON");
             }
-        }   
+        } 
+        public void InputDetected(bool value)
+        {
+            if (value)
+                _touchCount++;
+            else
+                _touchCount--;
+        }
     }
 }

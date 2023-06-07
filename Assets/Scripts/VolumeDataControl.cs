@@ -605,11 +605,11 @@ public class VolumeDataControl : MonoBehaviour, IMixedRealityInputHandler
     public void OnInputUp(InputEventData eventData)
     {
         _saveSystem.SaveDataAsync(this);
-        _cutoutManager.DoesUserInteract = false;
+        _cutoutManager.InputDetected(false);
     }
 
     public void OnInputDown(InputEventData eventData)
     {
-        _cutoutManager.DoesUserInteract = true;
+        _cutoutManager.InputDetected(true);
     }
 }
