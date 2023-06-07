@@ -115,7 +115,7 @@ After loading the dataset, you can open the segmentation module by checking the 
 
 <img src="https://github.com/SitronX/FnO-Hololens2-visualisation/assets/68167377/6a13221e-8487-43b2-92cd-a81ed845437d" width=450>
 
-List of segments will appear. Segments are differentiated via color. You can control segments opacity by corresponding sliders as shown below.
+List of segments will appear. Segments are differentiated via color. You can control segments opacity by alpha sliders as shown below.
 
 ![SegmentControl](https://user-images.githubusercontent.com/68167377/226215616-12a93ab8-6ed5-4337-8343-c359e7364432.gif)
 
